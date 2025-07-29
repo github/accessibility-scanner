@@ -26,7 +26,7 @@ https://primer.style/octicons/
 ### Example workflow
 
 ```YAML
-name: Continuous Accessibilty Scanner
+name: Continuous Accessibility Scanner
 on: workflow_dispatch
 
 jobs:
