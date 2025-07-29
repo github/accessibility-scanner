@@ -13,7 +13,7 @@ export default async function () {
     // Find
     const results = await findResultsForUrl(url);
     if (results.length === 0) {
-      console.log(`No accessibility gaps found for ${url}`);
+      console.log(`No accessibility gaps were found on ${url}`);
       continue;
     }
     // File
