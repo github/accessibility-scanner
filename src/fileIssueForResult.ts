@@ -7,7 +7,16 @@ export async function fileIssueForResult(octokit: Octokit, repoWithOwner: string
   const owner = repoWithOwner.split('/')[0];
   const repo = repoWithOwner.split('/')[1];
   const title = `Accessibility issue: ${result.problemShort[0].toUpperCase() + result.problemShort.slice(1)} on ${new URL(result.url).pathname}`;
-  const solutionLong = result.solutionLong?.split('\n').map((line) => { if (!line.trim().startsWith("Fix any") && !line.trim().startsWith("Fix all") && line.trim() !== "") { return `- ${line}`; } else { return line; } }).join('\n');
+  const solutionLong = result.solutionLong
+    ?.split("\n")
+    .map((line) =>
+      !line.trim().startsWith("Fix any") &&
+      !line.trim().startsWith("Fix all") &&
+      line.trim() !== ""
+        ? `- ${line}`
+        : line
+    )
+    .join("\n");
   const body = `
 An accessibility scan flagged the element \`${result.html}\` on ${result.url} because ${result.problemShort}. Learn more about why this was flagged by visiting ${result.problemUrl}.
 
