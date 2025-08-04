@@ -16,6 +16,7 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - uses: actions/checkout@v4
     - name: Find
       id: find
       uses: ./.github/actions/find
