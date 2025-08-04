@@ -1,0 +1,23 @@
+{
+  "name": "fix",
+  "version": "1.0.0",
+  "description": "Attempts to fix issues with Copilot.",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "scripts": {
+    "start": "node bootstrap.js",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "GitHub",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@octokit/core": "^7.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.1.0",
+    "typescript": "^5.8.3"
+  }
+}

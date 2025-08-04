@@ -14,8 +14,27 @@ inputs:
     required: true
 
 runs:
-  using: "node20"
-  main: "bootstrap.js"
+  using: "composite"
+  steps:
+    - name: Find
+      id: find
+      uses: ./.github/actions/find
+      with:
+        urls: ${{ inputs.urls }}
+    - name: File
+      id: file
+      uses: ./.github/actions/file
+      with:
+        findings: ${{ steps.find.outputs.findings }}
+        repository: ${{ inputs.repository }}
+        token: ${{ inputs.token }}
+    - name: Fix
+      id: fix
+      uses: ./.github/actions/fix
+      with:
+        issue_numbers: ${{ steps.file.outputs.issue_numbers }}
+        repository: ${{ inputs.repository }}
+        token: ${{ inputs.token }}
 
 branding:
   icon: "compass"

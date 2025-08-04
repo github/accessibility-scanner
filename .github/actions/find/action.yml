@@ -1,0 +1,20 @@
+name: "Find"
+description: "Finds potential accessibility gaps."
+
+inputs:
+  urls:
+    description: "Newline-delimited list of URLs to check for accessibility issues"
+    required: true
+    multiline: true
+
+outputs:
+  findings:
+    description: "List of potential accessibility gaps, as stringified JSON"
+
+runs:
+  using: "node20"
+  main: "bootstrap.js"
+
+branding:
+  icon: "compass"
+  color: "blue"

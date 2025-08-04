@@ -1,0 +1,25 @@
+name: "File"
+description: "Files GitHub issues to track potential accessibility gaps."
+
+inputs:
+  findings:
+    description: "List of potential accessibility gaps, as stringified JSON"
+    required: true
+  repository:
+    description: "Repository (with owner) to file issues in"
+    required: true
+  token:
+    description: "Token with fine-grained permission 'issues: write'"
+    required: true
+
+outputs:
+  issue_numbers:
+    description: "List of issue numbers for created issues, as stringified JSON"
+
+runs:
+  using: "node20"
+  main: "bootstrap.js"
+
+branding:
+  icon: "compass"
+  color: "blue"

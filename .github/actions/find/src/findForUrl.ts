@@ -1,17 +1,17 @@
-import type { Result } from './types.d.js';
+import type { Finding } from './types.d.js';
 import AxeBuilder from '@axe-core/playwright'
 import playwright from 'playwright';
 
-export async function findResultsForUrl(url: string): Promise<Result[]> {
+export async function findForUrl(url: string): Promise<Finding[]> {
   const browser = await playwright.chromium.launch({ headless: true, executablePath: process.env.CI ? '/usr/bin/google-chrome' : undefined });
   const context = await browser.newContext();
   const page = await context.newPage();
   await page.goto(url);
-
-  let results: Result[] = [];
+  
+  let findings: Finding[] = [];
   try {
-    const rawResults = await new AxeBuilder({ page }).analyze();
-    results = rawResults.violations.map(violation => ({
+    const rawFindings = await new AxeBuilder({ page }).analyze();
+    findings = rawFindings.violations.map(violation => ({
       url,
       html: violation.nodes[0].html,
       problemShort: violation.help.toLowerCase(),
@@ -24,5 +24,5 @@ export async function findResultsForUrl(url: string): Promise<Result[]> {
   }
   await context.close();
   await browser.close();
-  return results;
+  return findings;
 }
