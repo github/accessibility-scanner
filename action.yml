@@ -17,6 +17,8 @@ runs:
   using: "composite"
   steps:
     - uses: actions/checkout@v4
+      with:
+        repository: 'github/continuous-accessibility-scanner'
     - name: Find
       id: find
       uses: ./.github/actions/find
