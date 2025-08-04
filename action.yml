@@ -16,24 +16,21 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@v4
-      with:
-        repository: 'github/continuous-accessibility-scanner'
     - name: Find
       id: find
-      uses: ./.github/actions/find
+      uses: github/continuous-accessibility-scanner/.github/actions/find@smockle/composite-action
       with:
         urls: ${{ inputs.urls }}
     - name: File
       id: file
-      uses: ./.github/actions/file
+      uses: github/continuous-accessibility-scanner/.github/actions/file@smockle/composite-action
       with:
         findings: ${{ steps.find.outputs.findings }}
         repository: ${{ inputs.repository }}
         token: ${{ inputs.token }}
     - name: Fix
       id: fix
-      uses: ./.github/actions/fix
+      uses: github/continuous-accessibility-scanner/.github/actions/fix@smockle/composite-action
       with:
         issue_numbers: ${{ steps.file.outputs.issue_numbers }}
         repository: ${{ inputs.repository }}
