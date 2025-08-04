@@ -14,5 +14,5 @@ export default async function () {
     findings.push(...findingsForUrl);
   }
 
-  core.setOutput("results", JSON.stringify(findings));
+  core.setOutput("findings", JSON.stringify(findings));
 }
