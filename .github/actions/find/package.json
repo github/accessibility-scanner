@@ -1,0 +1,24 @@
+{
+  "name": "find",
+  "version": "1.0.0",
+  "description": "Finds potential accessibility gaps.",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "scripts": {
+    "start": "node bootstrap.js",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "GitHub",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@axe-core/playwright": "^4.10.2",
+    "playwright": "^1.54.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.1.0",
+    "typescript": "^5.8.3"
+  }
+}

@@ -1,4 +1,4 @@
-export type Result = {
+export type Finding = {
   url: string;
   html: string;
   problemShort: string;

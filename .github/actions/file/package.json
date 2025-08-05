@@ -1,7 +1,7 @@
 {
-  "name": "continuous-accessibility-scanner",
+  "name": "file",
   "version": "1.0.0",
-  "description": "Finds potential accessibility gaps, files GitHub issues to track them, and attempts to fix them with Copilot.",
+  "description": "Files GitHub issues to track potential accessibility gaps.",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "scripts": {
@@ -14,9 +14,7 @@
   "type": "module",
   "dependencies": {
     "@actions/core": "^1.11.1",
-    "@axe-core/playwright": "^4.10.2",
-    "@octokit/core": "^7.0.3",
-    "playwright": "^1.54.1"
+    "@octokit/core": "^7.0.3"
   },
   "devDependencies": {
     "@types/node": "^24.1.0",

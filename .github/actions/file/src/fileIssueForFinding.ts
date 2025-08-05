@@ -1,13 +1,13 @@
 import type { Octokit } from '@octokit/core';
-import type { Result } from './types.d.js';
+import type { Finding } from './types.d.js';
 import * as url from 'node:url'
 const URL = url.URL;
 
-export async function fileIssueForResult(octokit: Octokit, repoWithOwner: string, result: Result) {
+export async function fileIssueForFinding(octokit: Octokit, repoWithOwner: string, finding: Finding) {
   const owner = repoWithOwner.split('/')[0];
   const repo = repoWithOwner.split('/')[1];
-  const title = `Accessibility issue: ${result.problemShort[0].toUpperCase() + result.problemShort.slice(1)} on ${new URL(result.url).pathname}`;
-  const solutionLong = result.solutionLong
+  const title = `Accessibility issue: ${finding.problemShort[0].toUpperCase() + finding.problemShort.slice(1)} on ${new URL(finding.url).pathname}`;
+  const solutionLong = finding.solutionLong
     ?.split("\n")
     .map((line) =>
       !line.trim().startsWith("Fix any") &&
@@ -18,9 +18,9 @@ export async function fileIssueForResult(octokit: Octokit, repoWithOwner: string
     )
     .join("\n");
   const body = `
-An accessibility scan flagged the element \`${result.html}\` on ${result.url} because ${result.problemShort}. Learn more about why this was flagged by visiting ${result.problemUrl}.
+An accessibility scan flagged the element \`${finding.html}\` on ${finding.url} because ${finding.problemShort}. Learn more about why this was flagged by visiting ${finding.problemUrl}.
 
-To fix this, ${result.solutionShort}.
+To fix this, ${finding.solutionShort}.
 ${solutionLong ? `\nSpecifically:\n\n${solutionLong}` : ''}
 `;
 
