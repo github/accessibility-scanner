@@ -27,7 +27,7 @@ runs:
           git checkout gh-cache
         else
           git checkout --orphan gh-cache
-          git rm -rf . # Clear files from the initial checkout, to avoid adding them to the orphaned branch
+          git rm -rfq . # Clear files from the initial checkout, to avoid adding them to the orphaned branch
         fi
 
     - name: Copy file to repo
