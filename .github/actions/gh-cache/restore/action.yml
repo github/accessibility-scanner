@@ -1,0 +1,53 @@
+name: "restore"
+description: "Checkout a file or directory from an orphaned 'gh-cache' branch"
+
+inputs:
+  path:
+    description: "Relative path to a file or directory to restore"
+    required: true
+  token:
+    description: "Token with fine-grained permissions 'contents: read'"
+    required: true
+  fail_on_cache_miss:
+    description: "Fail the workflow if cache entry is not found."
+    required: false
+    default: 'false'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout repository to /tmp/gh-cache
+      uses: actions/checkout@v4
+      with:
+        token: ${{ inputs.token }}
+        fetch-depth: 0
+        path: /tmp/gh-cache
+
+    - name: Switch to gh-cache branch if it exists
+      shell: bash
+      working-directory: /tmp/gh-cache
+      run: |
+        if git ls-remote --exit-code --heads origin gh-cache >/dev/null; then
+          git fetch origin gh-cache:gh-cache
+          git checkout gh-cache
+        elif [[ "${{ inputs.fail_on_cache_miss }}" == "true" ]]; then
+          echo "Branch does not exist and 'fail_on_cache_miss' is 'true'."
+          exit 1
+        fi
+
+    - name: Restore artifact to workspace
+      shell: bash
+      run: |
+        src="/tmp/gh-cache/${{ inputs.path }}"
+        dest="${{ inputs.path }}"
+        if [ -e "$src" ]; then
+          mkdir -p "$(dirname "$dest")"
+          cp -Rf "$src" "$dest"
+        elif [[ "${{ inputs.fail_on_cache_miss }}" == "true" ]]; then
+          echo "File or directory does not exist and 'fail_on_cache_miss' is 'true'."
+          exit 1
+        fi
+
+branding:
+  icon: "download"
+  color: "blue"

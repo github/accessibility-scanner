@@ -1,0 +1,50 @@
+name: "save"
+description: "Commit a file or directory to an orphaned 'gh-cache' branch"
+
+inputs:
+  path:
+    description: "Relative path to a file or directory to save"
+    required: true
+  token:
+    description: "Token with fine-grained permissions 'contents: write'"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout repository to /tmp/gh-cache
+      uses: actions/checkout@v4
+      with:
+        token: ${{ inputs.token }}
+        fetch-depth: 0
+        path: /tmp/gh-cache
+
+    - name: Switch to gh-cache branch (or create orphan)
+      shell: bash
+      working-directory: /tmp/gh-cache
+      run: |
+        if git ls-remote --exit-code --heads origin gh-cache >/dev/null; then
+          git checkout gh-cache
+        else
+          git checkout --orphan gh-cache
+          git rm -rf . # Clear files from the initial checkout, to avoid adding them to the orphaned branch
+        fi
+
+    - name: Copy file to repo
+      shell: bash
+      run: |
+        cp -Rf "${{ inputs.path }}" "/tmp/gh-cache/${{ inputs.path }}"
+
+    - name: Commit and push
+      shell: bash
+      working-directory: /tmp/gh-cache
+      run: |
+        git add "${{ inputs.path }}"
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git commit -m "$(printf 'Save artifact: %s' "${{ inputs.path }}")" || echo "No changes to commit"
+        git push origin gh-cache
+
+branding:
+  icon: "upload"
+  color: "blue"
