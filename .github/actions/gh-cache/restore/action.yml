@@ -9,23 +9,23 @@ inputs:
     description: "Token with fine-grained permissions 'contents: read'"
     required: true
   fail_on_cache_miss:
-    description: "Fail the workflow if cache entry is not found."
+    description: "Fail the workflow if cached item is not found."
     required: false
     default: 'false'
 
 runs:
   using: "composite"
   steps:
-    - name: Checkout repository to /tmp/gh-cache
+    - name: Checkout repository to temporary directory
       uses: actions/checkout@v4
       with:
         token: ${{ inputs.token }}
         fetch-depth: 0
-        path: /tmp/gh-cache
+        path: .gh-cache-${{ github.run_id }}
 
-    - name: Switch to gh-cache branch if it exists
+    - name: Switch to 'gh-cache' branch if it exists
       shell: bash
-      working-directory: /tmp/gh-cache
+      working-directory: .gh-cache-${{ github.run_id }}
       run: |
         if git ls-remote --exit-code --heads origin gh-cache >/dev/null; then
           git fetch origin gh-cache:gh-cache
@@ -35,10 +35,10 @@ runs:
           exit 1
         fi
 
-    - name: Restore artifact to workspace
+    - name: Restore cached item
       shell: bash
       run: |
-        src="/tmp/gh-cache/${{ inputs.path }}"
+        src=".gh-cache-${{ github.run_id }}/${{ inputs.path }}"
         dest="${{ inputs.path }}"
         if [ -e "$src" ]; then
           mkdir -p "$(dirname "$dest")"
@@ -47,6 +47,11 @@ runs:
           echo "File or directory does not exist and 'fail_on_cache_miss' is 'true'."
           exit 1
         fi
+
+    - name: Clean up temporary directory
+      shell: bash
+      run: |
+        rm -rf .gh-cache-${{ github.run_id }}
 
 branding:
   icon: "download"

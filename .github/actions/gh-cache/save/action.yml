@@ -12,16 +12,16 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Checkout repository to /tmp/gh-cache
+    - name: Checkout repository to temporary directory
       uses: actions/checkout@v4
       with:
         token: ${{ inputs.token }}
         fetch-depth: 0
-        path: /tmp/gh-cache
+        path: .gh-cache-${{ github.run_id }}
 
     - name: Switch to gh-cache branch (or create orphan)
       shell: bash
-      working-directory: /tmp/gh-cache
+      working-directory: .gh-cache-${{ github.run_id }}
       run: |
         if git ls-remote --exit-code --heads origin gh-cache >/dev/null; then
           git checkout gh-cache
@@ -33,17 +33,22 @@ runs:
     - name: Copy file to repo
       shell: bash
       run: |
-        cp -Rf "${{ inputs.path }}" "/tmp/gh-cache/${{ inputs.path }}"
+        cp -Rf "${{ inputs.path }}" ".gh-cache-${{ github.run_id }}/${{ inputs.path }}"
 
     - name: Commit and push
       shell: bash
-      working-directory: /tmp/gh-cache
+      working-directory: .gh-cache-${{ github.run_id }}
       run: |
         git add "${{ inputs.path }}"
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
         git commit -m "$(printf 'Save artifact: %s' "${{ inputs.path }}")" || echo "No changes to commit"
         git push origin gh-cache
+
+    - name: Clean up temporary directory
+      shell: bash
+      run: |
+        rm -rf .gh-cache-${{ github.run_id }}
 
 branding:
   icon: "upload"

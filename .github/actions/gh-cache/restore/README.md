@@ -16,4 +16,4 @@ Checkout a file or directory from an orphaned 'gh-cache' branch.
 
 #### `fail_on_cache_miss`
 
-**Optional** Fail the workflow if cache entry is not found. For example: `'true'`. Default: `'false'`.
+**Optional** Fail the workflow if cached item is not found. For example: `'true'`. Default: `'false'`.
