@@ -32,7 +32,9 @@ runs:
     - if: ${{ inputs.value }}
       name: Update cached value
       shell: bash
-      run: echo "${{ inputs.value }}" > ${{ inputs.key }}
+      run: |
+        mkdir -p "$(dirname "${{ inputs.key }}")"
+        printf "%s" "${{ inputs.value }}" > "${{ inputs.key }}"
     - name: Save cached value
       uses: github/continuous-accessibility-scanner/.github/actions/gh-cache/save@smockle/cache-findings
       with:
