@@ -29,24 +29,31 @@ runs:
         path: ${{ inputs.key }}
         token: ${{ inputs.token }}
         fail_on_cache_miss: ${{ inputs.fail_on_cache_miss }}
+
     - if: ${{ inputs.value }}
       name: Update cached value
       shell: bash
       run: |
         mkdir -p "$(dirname "${{ inputs.key }}")"
         echo '${{ inputs.value }}' > "${{ inputs.key }}"
+        echo "Updated contents of '${{ inputs.key }}'"
+
     - if: ${{ inputs.value }}
       name: Save cached value
       uses: github/continuous-accessibility-scanner/.github/actions/gh-cache/save@smockle/cache-findings
       with:
         path: ${{ inputs.key }}
         token: ${{ inputs.token }}
+
     - name: Output cached value
       shell: bash
       run: |
         echo "value<<EOF" >> $GITHUB_OUTPUT
         if [ -f "${{ inputs.key }}" ]; then
           cat "${{ inputs.key }}" >> $GITHUB_OUTPUT
+          echo "Outputted 'value: $(cat "${{ inputs.key }}")'"
+        else
+          echo "Skipped outputting 'value'"
         fi
         echo "EOF" >> $GITHUB_OUTPUT
 

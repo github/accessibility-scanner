@@ -28,11 +28,14 @@ runs:
       working-directory: .gh-cache-${{ github.run_id }}
       run: |
         if git ls-remote --exit-code --heads origin gh-cache >/dev/null; then
-          git fetch origin gh-cache:gh-cache
-          git checkout gh-cache
-        elif [[ "${{ inputs.fail_on_cache_miss }}" == "true" ]]; then
-          echo "Branch does not exist and 'fail_on_cache_miss' is 'true'."
-          exit 1
+          git fetch origin gh-cache:gh-cache >/dev/null 2>&1
+          git checkout gh-cache >/dev/null 2>&1
+        else
+          echo "Branch 'gh-cache' does not exist"
+          if [[ "${{ inputs.fail_on_cache_miss }}" == "true" ]]; then
+            echo "Exiting with error because 'fail_on_cache_miss' is 'true'"
+            exit 1
+          fi
         fi
 
     - name: Restore cached item
@@ -43,9 +46,13 @@ runs:
         if [ -e "$src" ]; then
           mkdir -p "$(dirname "$dest")"
           cp -Rf "$src" "$dest"
-        elif [[ "${{ inputs.fail_on_cache_miss }}" == "true" ]]; then
-          echo "File or directory does not exist and 'fail_on_cache_miss' is 'true'."
-          exit 1
+          echo "Restored '${{ inputs.path }}' from cache"
+        else
+          echo "'${{ inputs.path }}' not found in cache"
+          if [[ "${{ inputs.fail_on_cache_miss }}" == "true" ]]; then
+            echo "Exiting with error because 'fail_on_cache_miss' is 'true'"
+            exit 1
+          fi
         fi
 
     - name: Clean up temporary directory
