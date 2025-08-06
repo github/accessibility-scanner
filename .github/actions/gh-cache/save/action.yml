@@ -41,11 +41,13 @@ runs:
       shell: bash
       working-directory: .gh-cache-${{ github.run_id }}
       run: |
-        git add "${{ inputs.path }}"
-        git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
-        git commit -m "$(printf 'Save artifact: %s' "${{ inputs.path }}")" || echo "No changes to commit"
-        git push origin gh-cache
+        if [ -e "${{ inputs.path }}" ]; then
+          git add "${{ inputs.path }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "$(printf 'Save artifact: %s' "${{ inputs.path }}")" || echo "No changes to commit"
+          git push origin gh-cache
+        fi
 
     - name: Clean up temporary directory
       shell: bash
