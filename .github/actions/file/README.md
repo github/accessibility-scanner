@@ -38,12 +38,12 @@ List of potential accessibility gaps (plus issue URLs), as stringified JSON. For
 
 #### `closed_issue_urls`
 
-List of URLs for closed issues, as stringified JSON. For example: `'[123, 124, 126, 127]'`.
+List of URLs for closed issues, as stringified JSON. For example: `'["https://github.com/github/docs/issues/123","https://github.com/github/docs/issues/124","https://github.com/github/docs/issues/126","https://github.com/github/docs/issues/127"]'`.
 
 #### `opened_issue_urls`
 
-List of URLs for newly-opened issues, as stringified JSON. For example: `'[123, 124, 126, 127]'`.
+List of URLs for newly-opened issues, as stringified JSON. For example: `'["https://github.com/github/docs/issues/123","https://github.com/github/docs/issues/124","https://github.com/github/docs/issues/126","https://github.com/github/docs/issues/127"]'`.
 
 #### `repeated_issue_urls`
 
-List of URLs for repeated issues, as stringified JSON. For example: `'[123, 124, 126, 127]'`.
+List of URLs for repeated issues, as stringified JSON. For example: `'["https://github.com/github/docs/issues/123","https://github.com/github/docs/issues/124","https://github.com/github/docs/issues/126","https://github.com/github/docs/issues/127"]'`.

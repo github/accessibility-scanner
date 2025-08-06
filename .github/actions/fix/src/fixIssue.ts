@@ -1,9 +1,10 @@
 import type { Octokit } from '@octokit/core';
 
 // https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/coding-agent/assign-copilot-to-an-issue#assigning-an-existing-issue
-export async function fixIssue(octokit: Octokit, repoWithOwner: string, issueNumber: number) {
+export async function fixIssue(octokit: Octokit, repoWithOwner: string, issueUrl: string) {
   const owner = repoWithOwner.split('/')[0];
   const repo = repoWithOwner.split('/')[1];
+  const issueNumber = issueUrl.split('/').pop();
   // Check whether issues can be assigned to Copilot
   const suggestedActorsResponse = await octokit.graphql<{
     repository: {

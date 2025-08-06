@@ -6,9 +6,9 @@ Attempts to fix issues with Copilot.
 
 ### Inputs
 
-#### `issue_numbers`
+#### `issue_urls`
 
-**Required** List of issue numbers to attempt to fix, as stringified JSON. For example: `'[123, 124, 126, 127]'`.
+**Required** List of issue URLs to attempt to fix, as stringified JSON. For example: `'["https://github.com/github/docs/issues/123","https://github.com/github/docs/issues/124","https://github.com/github/docs/issues/126","https://github.com/github/docs/issues/127"]'`.
 
 #### `repository`
 

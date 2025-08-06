@@ -39,7 +39,7 @@ runs:
       id: fix
       uses: github/continuous-accessibility-scanner/.github/actions/fix@smockle/cache-findings
       with:
-        issue_numbers: ${{ steps.file.outputs.issue_numbers }}
+        issue_urls: ${{ steps.file.outputs.opened_issue_urls }}
         repository: ${{ inputs.repository }}
         token: ${{ inputs.token }}
     - name: Save cached_findings
