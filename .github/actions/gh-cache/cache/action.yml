@@ -31,6 +31,7 @@ runs:
         fail_on_cache_miss: ${{ inputs.fail_on_cache_miss }}
     - if: ${{ inputs.value }}
       name: Update cached value
+      shell: bash
       run: echo "${{ inputs.value }}" > ${{ inputs.key }}
     - name: Save cached value
       uses: github/continuous-accessibility-scanner/.github/actions/gh-cache/save@smockle/cache-findings
@@ -38,6 +39,7 @@ runs:
         path: ${{ inputs.key }}
         token: ${{ inputs.token }}
     - name: Output cached value
+      shell: bash
       run: echo "value=$(cat ${{ inputs.key }})" >> $GITHUB_OUTPUT
 
 branding:
