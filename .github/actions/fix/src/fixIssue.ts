@@ -4,7 +4,7 @@ import type { Octokit } from '@octokit/core';
 export async function fixIssue(octokit: Octokit, repoWithOwner: string, issueUrl: string) {
   const owner = repoWithOwner.split('/')[0];
   const repo = repoWithOwner.split('/')[1];
-  const issueNumber = issueUrl.split('/').pop();
+  const issueNumber = Number(issueUrl.split('/').pop());
   // Check whether issues can be assigned to Copilot
   const suggestedActorsResponse = await octokit.graphql<{
     repository: {
