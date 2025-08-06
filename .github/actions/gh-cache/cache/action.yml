@@ -35,7 +35,8 @@ runs:
       run: |
         mkdir -p "$(dirname "${{ inputs.key }}")"
         echo '${{ inputs.value }}' > "${{ inputs.key }}"
-    - name: Save cached value
+    - if: ${{ inputs.value }}
+      name: Save cached value
       uses: github/continuous-accessibility-scanner/.github/actions/gh-cache/save@smockle/cache-findings
       with:
         path: ${{ inputs.key }}
@@ -44,7 +45,9 @@ runs:
       shell: bash
       run: |
         echo "value<<EOF" >> $GITHUB_OUTPUT
-        cat "${{ inputs.key }}" >> $GITHUB_OUTPUT
+        if [ -f "${{ inputs.key }}" ]; then
+          cat "${{ inputs.key }}" >> $GITHUB_OUTPUT
+        fi
         echo "EOF" >> $GITHUB_OUTPUT
 
 branding:

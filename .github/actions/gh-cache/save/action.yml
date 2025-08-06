@@ -33,7 +33,7 @@ runs:
     - name: Copy file to repo
       shell: bash
       run: |
-        if [ -e "${{ inputs.path }}" ]; then
+        if [ -f "${{ inputs.path }}" ]; then
           cp -Rf "${{ inputs.path }}" ".gh-cache-${{ github.run_id }}/${{ inputs.path }}"
         fi
 
@@ -41,7 +41,7 @@ runs:
       shell: bash
       working-directory: .gh-cache-${{ github.run_id }}
       run: |
-        if [ -e "${{ inputs.path }}" ]; then
+        if [ -f "${{ inputs.path }}" ]; then
           git add "${{ inputs.path }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
