@@ -33,7 +33,9 @@ runs:
     - name: Copy file to repo
       shell: bash
       run: |
-        cp -Rf "${{ inputs.path }}" ".gh-cache-${{ github.run_id }}/${{ inputs.path }}"
+        if [ -e "${{ inputs.path }}" ]; then
+          cp -Rf "${{ inputs.path }}" ".gh-cache-${{ github.run_id }}/${{ inputs.path }}"
+        fi
 
     - name: Commit and push
       shell: bash
