@@ -30,18 +30,11 @@ runs:
         token: ${{ inputs.token }}
         fail_on_cache_miss: ${{ inputs.fail_on_cache_miss }}
     - if: ${{ inputs.value }}
-      name: Debug
-      shell: bash
-      run: |
-        echo '${{ inputs.value }}'
-        echo "${{ inputs.value }}"
-        echo ${{ inputs.value }}
-    - if: ${{ inputs.value }}
       name: Update cached value
       shell: bash
       run: |
         mkdir -p "$(dirname "${{ inputs.key }}")"
-        printf "%s" "${{ inputs.value }}" > "${{ inputs.key }}"
+        echo '${{ inputs.value }}' > "${{ inputs.key }}"
     - name: Save cached value
       uses: github/continuous-accessibility-scanner/.github/actions/gh-cache/save@smockle/cache-findings
       with:
@@ -49,7 +42,10 @@ runs:
         token: ${{ inputs.token }}
     - name: Output cached value
       shell: bash
-      run: echo "value=$(cat ${{ inputs.key }})" >> $GITHUB_OUTPUT
+      run: |
+        echo "value<<EOF" >> $GITHUB_OUTPUT
+        cat "${{ inputs.key }}" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
 
 branding:
   icon: "archive"
