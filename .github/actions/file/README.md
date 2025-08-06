@@ -22,8 +22,28 @@ Files GitHub issues to track potential accessibility gaps.
 
 **Required** Token with fine-grained permission 'issues: write'.
 
+#### `cached_findings`
+
+**Optional** Cached findings from previous runs, as stringified JSON. Without this, duplicate issues may be filed. For example: `'[]'`.
+
 ### Outputs
 
-#### `issue_numbers`
+#### `findings`
 
-List of issue numbers for created issues, as stringified JSON. For example: `'[123, 124, 126, 127]'`.
+List of potential accessibility gaps (plus issue URLs), as stringified JSON. For example:
+
+```JS
+'[]'
+```
+
+#### `closed_issue_urls`
+
+List of URLs for closed issues, as stringified JSON. For example: `'[123, 124, 126, 127]'`.
+
+#### `opened_issue_urls`
+
+List of URLs for newly-opened issues, as stringified JSON. For example: `'[123, 124, 126, 127]'`.
+
+#### `repeated_issue_urls`
+
+List of URLs for repeated issues, as stringified JSON. For example: `'[123, 124, 126, 127]'`.

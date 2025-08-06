@@ -11,10 +11,19 @@ inputs:
   token:
     description: "Token with fine-grained permission 'issues: write'"
     required: true
+  cached_findings:
+    description: "Cached findings from previous runs, as stringified JSON. Without this, duplicate issues may be filed."
+    required: false
 
 outputs:
-  issue_numbers:
-    description: "List of issue numbers for created issues, as stringified JSON"
+  findings:
+    description: "List of potential accessibility gaps (plus issue URLs), as stringified JSON"
+  closed_issue_urls:
+    description: "List of URLs for closed issues, as stringified JSON"
+  opened_issue_urls:
+    description: "List of URLs for newly-opened issues, as stringified JSON"
+  repeated_issue_urls:
+    description: "List of URLs for repeated issues, as stringified JSON"
 
 runs:
   using: "node20"

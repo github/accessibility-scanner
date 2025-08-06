@@ -10,12 +10,18 @@ inputs:
     description: "Repository (with owner) to file issues in"
     required: true
   token:
-    description: "Personal access token (PAT) with fine-grained permissions 'issues: write' and 'pull_requests: write'"
+    description: "Personal access token (PAT) with fine-grained permissions 'contents: write', 'issues: write', and 'pull_requests: write'"
     required: true
 
 runs:
   using: "composite"
   steps:
+    - name: Restore cached_findings
+      id: restore
+      uses: github/continuous-accessibility-scanner/.github/actions/gh-cache/cache@main
+      with:
+        key: cached_findings-${{ github.ref_name }}
+        token: ${{ inputs.token }}
     - name: Find
       id: find
       uses: github/continuous-accessibility-scanner/.github/actions/find@main
@@ -28,12 +34,19 @@ runs:
         findings: ${{ steps.find.outputs.findings }}
         repository: ${{ inputs.repository }}
         token: ${{ inputs.token }}
+        cached_findings: ${{ steps.restore.outputs.value }}
     - name: Fix
       id: fix
       uses: github/continuous-accessibility-scanner/.github/actions/fix@main
       with:
         issue_numbers: ${{ steps.file.outputs.issue_numbers }}
         repository: ${{ inputs.repository }}
+        token: ${{ inputs.token }}
+    - name: Save cached_findings
+      uses: github/continuous-accessibility-scanner/.github/actions/gh-cache/cache@main
+      with:
+        key: cached_findings-${{ github.ref_name }}
+        value: ${{ steps.file.outputs.findings }}
         token: ${{ inputs.token }}
 
 branding:

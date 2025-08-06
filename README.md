@@ -21,7 +21,7 @@ https://primer.style/octicons/
 
 #### `token`
 
-**Required** Personal access token (PAT) with fine-grained permissions 'issues: write' and 'pull_requests: write'.
+**Required** Personal access token (PAT) with fine-grained permissions 'contents: write', 'issues: write', and 'pull_requests: write'.
 
 ### Example workflow
 
