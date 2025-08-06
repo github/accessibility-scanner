@@ -30,6 +30,13 @@ runs:
         token: ${{ inputs.token }}
         fail_on_cache_miss: ${{ inputs.fail_on_cache_miss }}
     - if: ${{ inputs.value }}
+      name: Debug
+      shell: bash
+      run: |
+        echo '${{ inputs.value }}'
+        echo "${{ inputs.value }}"
+        echo ${{ inputs.value }}
+    - if: ${{ inputs.value }}
       name: Update cached value
       shell: bash
       run: |
