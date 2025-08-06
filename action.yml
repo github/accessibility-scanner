@@ -18,18 +18,18 @@ runs:
   steps:
     - name: Restore cached_findings
       id: restore
-      uses: github/continuous-accessibility-scanner/.github/actions/gh-cache/cache@main
+      uses: github/continuous-accessibility-scanner/.github/actions/gh-cache/cache@smockle/cache-findings
       with:
         key: cached_findings-${{ github.ref_name }}
         token: ${{ inputs.token }}
     - name: Find
       id: find
-      uses: github/continuous-accessibility-scanner/.github/actions/find@main
+      uses: github/continuous-accessibility-scanner/.github/actions/find@smockle/cache-findings
       with:
         urls: ${{ inputs.urls }}
     - name: File
       id: file
-      uses: github/continuous-accessibility-scanner/.github/actions/file@main
+      uses: github/continuous-accessibility-scanner/.github/actions/file@smockle/cache-findings
       with:
         findings: ${{ steps.find.outputs.findings }}
         repository: ${{ inputs.repository }}
@@ -37,13 +37,13 @@ runs:
         cached_findings: ${{ steps.restore.outputs.value }}
     - name: Fix
       id: fix
-      uses: github/continuous-accessibility-scanner/.github/actions/fix@main
+      uses: github/continuous-accessibility-scanner/.github/actions/fix@smockle/cache-findings
       with:
         issue_numbers: ${{ steps.file.outputs.issue_numbers }}
         repository: ${{ inputs.repository }}
         token: ${{ inputs.token }}
     - name: Save cached_findings
-      uses: github/continuous-accessibility-scanner/.github/actions/gh-cache/cache@main
+      uses: github/continuous-accessibility-scanner/.github/actions/gh-cache/cache@smockle/cache-findings
       with:
         key: cached_findings-${{ github.ref_name }}
         value: ${{ steps.file.outputs.findings }}

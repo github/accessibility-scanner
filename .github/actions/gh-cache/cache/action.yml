@@ -24,7 +24,7 @@ runs:
   using: "composite"
   steps:
     - name: Restore cached value
-      uses: github/continuous-accessibility-scanner/.github/actions/gh-cache/restore@main
+      uses: github/continuous-accessibility-scanner/.github/actions/gh-cache/restore@smockle/cache-findings
       with:
         path: ${{ inputs.key }}
         token: ${{ inputs.token }}
@@ -33,7 +33,7 @@ runs:
       name: Update cached value
       run: echo "${{ inputs.value }}" > ${{ inputs.key }}
     - name: Save cached value
-      uses: github/continuous-accessibility-scanner/.github/actions/gh-cache/save@main
+      uses: github/continuous-accessibility-scanner/.github/actions/gh-cache/save@smockle/cache-findings
       with:
         path: ${{ inputs.key }}
         token: ${{ inputs.token }}
