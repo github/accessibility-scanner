@@ -22,6 +22,9 @@ runs:
       with:
         key: cached_findings-${{ github.ref_name }}
         token: ${{ inputs.token }}
+    - name: Debugging
+      shell: bash
+      run: echo ${{ steps.restore.outputs.value }}
     - name: Find
       id: find
       uses: github/continuous-accessibility-scanner/.github/actions/find@smockle/cache-findings

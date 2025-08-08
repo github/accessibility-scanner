@@ -51,7 +51,7 @@ runs:
         echo "value<<EOF" >> $GITHUB_OUTPUT
         if [ -f "${{ inputs.key }}" ]; then
           cat "${{ inputs.key }}" >> $GITHUB_OUTPUT
-          echo "Outputted 'value: $(cat "${{ inputs.key }}")'"
+          echo "Outputted 'value=$(cat "${{ inputs.key }}")'"
         else
           echo "Skipped outputting 'value'"
         fi
