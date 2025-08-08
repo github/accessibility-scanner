@@ -22,6 +22,7 @@ runs:
         token: ${{ inputs.token }}
         fetch-depth: 0
         path: .gh-cache-${{ github.run_id }}
+        show-progress: 'false'
 
     - name: Switch to 'gh-cache' branch if it exists
       shell: bash

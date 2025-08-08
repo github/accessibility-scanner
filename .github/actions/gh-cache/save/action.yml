@@ -18,6 +18,7 @@ runs:
         token: ${{ inputs.token }}
         fetch-depth: 0
         path: .gh-cache-${{ github.run_id }}
+        show-progress: 'false'
 
     - name: Switch to gh-cache branch (or create orphan)
       shell: bash
