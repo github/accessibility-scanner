@@ -19,6 +19,7 @@ inputs:
 outputs:
   value:
     description: "Cached string"
+    value: ${{ steps.output_cached_value.outputs.value }}
 
 runs:
   using: "composite"
@@ -46,6 +47,7 @@ runs:
         token: ${{ inputs.token }}
 
     - name: Output cached value
+      id: output_cached_value
       shell: bash
       run: |
         echo "value<<EOF" >> $GITHUB_OUTPUT
