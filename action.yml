@@ -1,4 +1,4 @@
-name: "continuous-accessibility-scanner"
+name: "continuous-ai-for-accessibility-scanner"
 description: "Finds potential accessibility gaps, files GitHub issues to track them, and attempts to fix them with Copilot."
 
 inputs:
@@ -24,12 +24,12 @@ runs:
         token: ${{ inputs.token }}
     - name: Find
       id: find
-      uses: github/continuous-accessibility-scanner/.github/actions/find@main
+      uses: github/continuous-ai-for-accessibility-scanner/.github/actions/find@main
       with:
         urls: ${{ inputs.urls }}
     - name: File
       id: file
-      uses: github/continuous-accessibility-scanner/.github/actions/file@main
+      uses: github/continuous-ai-for-accessibility-scanner/.github/actions/file@main
       with:
         findings: ${{ steps.find.outputs.findings }}
         repository: ${{ inputs.repository }}
@@ -37,7 +37,7 @@ runs:
         cached_findings: ${{ steps.restore.outputs.value }}
     - name: Fix
       id: fix
-      uses: github/continuous-accessibility-scanner/.github/actions/fix@main
+      uses: github/continuous-ai-for-accessibility-scanner/.github/actions/fix@main
       with:
         issue_urls: ${{ steps.file.outputs.opened_issue_urls }}
         repository: ${{ inputs.repository }}

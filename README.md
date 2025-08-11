@@ -1,4 +1,4 @@
-# continuous-accessibility-scanner
+# continuous-ai-for-accessibility-scanner
 
 Finds potential accessibility gaps, files GitHub issues to track them, and attempts to fix them with Copilot.
 
@@ -33,7 +33,7 @@ jobs:
   continuous_accessibility_scanner:
     runs-on: ubuntu-latest
     steps:
-      - uses: github/continuous-accessibility-scanner@main
+      - uses: github/continuous-ai-for-accessibility-scanner@main
         with:
           urls: |
             https://primer.style/octicons/
