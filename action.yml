@@ -18,7 +18,7 @@ runs:
   steps:
     - name: Restore cached_findings
       id: restore
-      uses: github/continuous-accessibility-scanner/.github/actions/gh-cache/cache@main
+      uses: github/continuous-ai-for-accessibility-scanner/.github/actions/gh-cache/cache@main
       with:
         key: cached_findings-${{ github.ref_name }}
         token: ${{ inputs.token }}
@@ -43,7 +43,7 @@ runs:
         repository: ${{ inputs.repository }}
         token: ${{ inputs.token }}
     - name: Save cached_findings
-      uses: github/continuous-accessibility-scanner/.github/actions/gh-cache/cache@main
+      uses: github/continuous-ai-for-accessibility-scanner/.github/actions/gh-cache/cache@main
       with:
         key: cached_findings-${{ github.ref_name }}
         value: ${{ steps.file.outputs.findings }}
