@@ -8,7 +8,7 @@ export async function closeIssueForFinding(octokit: Octokit, repoWithOwner: stri
   if (!issueNumber) {
     throw new Error(`Invalid issue URL: ${finding.issueUrl}`);
   }
-  return await octokit.request(`PATCH /repos/${owner}/${repo}/issues/${issueNumber}`, {
+  return octokit.request(`PATCH /repos/${owner}/${repo}/issues/${issueNumber}`, {
     owner,
     repo,
     issue_number: issueNumber,

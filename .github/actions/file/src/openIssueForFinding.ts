@@ -9,7 +9,7 @@ export async function openIssueForFinding(octokit: Octokit, repoWithOwner: strin
   const issueNumber = finding.issueUrl?.split('/').pop();
   if (issueNumber) {
     // If an issue already exists, ensure it is open
-    return await octokit.request(`PATCH /repos/${owner}/${repo}/issues/${issueNumber}`, {
+    return octokit.request(`PATCH /repos/${owner}/${repo}/issues/${issueNumber}`, {
       owner,
       repo,
       issue_number: issueNumber,
@@ -35,7 +35,7 @@ To fix this, ${finding.solutionShort}.
 ${solutionLong ? `\nSpecifically:\n\n${solutionLong}` : ''}
 `;
 
-    return await octokit.request(`POST /repos/${owner}/${repo}/issues`, {
+    return octokit.request(`POST /repos/${owner}/${repo}/issues`, {
       owner,
       repo,
       title,

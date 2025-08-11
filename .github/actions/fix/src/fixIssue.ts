@@ -48,7 +48,7 @@ export async function fixIssue(octokit: Octokit, repoWithOwner: string, issueUrl
     return;
   }
   // Assign issue to Copilot
-  return await octokit.graphql(
+  return octokit.graphql(
     `mutation($issueId: ID!, $assigneeId: ID!) {
       replaceActorsForAssignable(input: {assignableId: $issueId, actorIds: [$assigneeId]}) {
         assignable {
