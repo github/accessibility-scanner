@@ -16,6 +16,9 @@ export async function openIssueForFinding(octokit: Octokit, repoWithOwner: strin
       state: 'open'
     });
   } else {
+    
+    const labels = [`${finding.scannerType} rule: ${finding.ruleId}`, `${finding.scannerType}-scanning-issue`];
+
     // Otherwise, create a new issue
     const title = `Accessibility issue: ${finding.problemShort[0].toUpperCase() + finding.problemShort.slice(1)} on ${new URL(finding.url).pathname}`;
     const solutionLong = finding.solutionLong
@@ -39,7 +42,8 @@ ${solutionLong ? `\nSpecifically:\n\n${solutionLong}` : ''}
       owner,
       repo,
       title,
-      body
+      body,
+      labels
     });
   }
 }

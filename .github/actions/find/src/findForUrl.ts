@@ -12,10 +12,12 @@ export async function findForUrl(url: string): Promise<Finding[]> {
   try {
     const rawFindings = await new AxeBuilder({ page }).analyze();
     findings = rawFindings.violations.map(violation => ({
+      scannerType: 'axe',
       url,
       html: violation.nodes[0].html,
       problemShort: violation.help.toLowerCase(),
       problemUrl: violation.helpUrl,
+      ruleId: violation.id,
       solutionShort: violation.description.toLowerCase(),
       solutionLong: violation.nodes[0].failureSummary
     }));
