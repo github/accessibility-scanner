@@ -5,4 +5,5 @@ export type Finding = {
   problemUrl: string;
   solutionShort: string;
   solutionLong?: string;
+  issueUrl?: string;
 }

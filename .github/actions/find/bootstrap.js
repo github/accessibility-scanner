@@ -5,12 +5,14 @@ import fs from 'node:fs'
 import * as url from 'node:url'
 import { spawn } from 'node:child_process'
 
-function spawnPromisified(command, args, options) {
+function spawnPromisified(command, args, { quiet = false, ...options } = {}) {
   return new Promise((resolve, reject) => {
     const proc = spawn(command, args, options)
     proc.stdout.setEncoding('utf8')
     proc.stdout.on('data', (data) => {
-      console.log(data)
+      if (!quiet) {
+        console.log(data)
+      }
     })
     proc.stderr.setEncoding('utf8')
     proc.stderr.on('data', (data) => {
@@ -36,7 +38,8 @@ await (async () => {
   } catch {
     try {
       await spawnPromisified('npm', ['ci'], {
-        cwd: url.fileURLToPath(new URL('.', import.meta.url))
+        cwd: url.fileURLToPath(new URL('.', import.meta.url)),
+        quiet: true
       })
     } catch {
       process.exit(1)
@@ -45,7 +48,8 @@ await (async () => {
     // Compile TypeScript.
     try {
       await spawnPromisified('npm', ['run', 'build'], {
-        cwd: url.fileURLToPath(new URL('.', import.meta.url))
+        cwd: url.fileURLToPath(new URL('.', import.meta.url)),
+        quiet: true
       })
     } catch {
       process.exit(1)

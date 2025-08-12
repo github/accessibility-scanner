@@ -1,0 +1,66 @@
+name: "restore"
+description: "Checkout a file or directory from an orphaned 'gh-cache' branch"
+
+inputs:
+  path:
+    description: "Relative path to a file or directory to restore"
+    required: true
+  token:
+    description: "Token with fine-grained permissions 'contents: read'"
+    required: true
+  fail_on_cache_miss:
+    description: "Fail the workflow if cached item is not found."
+    required: false
+    default: 'false'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout repository to temporary directory
+      uses: actions/checkout@v4
+      with:
+        token: ${{ inputs.token }}
+        fetch-depth: 0
+        path: .gh-cache-${{ github.run_id }}
+        show-progress: 'false'
+
+    - name: Switch to 'gh-cache' branch if it exists
+      shell: bash
+      working-directory: .gh-cache-${{ github.run_id }}
+      run: |
+        if git ls-remote --exit-code --heads origin gh-cache >/dev/null; then
+          git fetch origin gh-cache:gh-cache >/dev/null 2>&1
+          git checkout gh-cache >/dev/null 2>&1
+        else
+          echo "Branch 'gh-cache' does not exist"
+          if [[ "${{ inputs.fail_on_cache_miss }}" == "true" ]]; then
+            echo "Exiting with error because 'fail_on_cache_miss' is 'true'"
+            exit 1
+          fi
+        fi
+
+    - name: Restore cached item
+      shell: bash
+      run: |
+        src=".gh-cache-${{ github.run_id }}/${{ inputs.path }}"
+        dest="${{ inputs.path }}"
+        if [ -e "$src" ]; then
+          mkdir -p "$(dirname "$dest")"
+          cp -Rf "$src" "$dest"
+          echo "Restored '${{ inputs.path }}' from cache"
+        else
+          echo "'${{ inputs.path }}' not found in cache"
+          if [[ "${{ inputs.fail_on_cache_miss }}" == "true" ]]; then
+            echo "Exiting with error because 'fail_on_cache_miss' is 'true'"
+            exit 1
+          fi
+        fi
+
+    - name: Clean up temporary directory
+      shell: bash
+      run: |
+        rm -rf .gh-cache-${{ github.run_id }}
+
+branding:
+  icon: "download"
+  color: "blue"

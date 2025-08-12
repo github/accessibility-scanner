@@ -1,0 +1,64 @@
+name: "cache"
+description: "Cache/uncache strings using an orphaned 'gh-cache' branch."
+
+inputs:
+  key:
+    description: "Identifier for the string to cache/uncache"
+    required: true
+  token:
+    description: "Token with fine-grained permissions 'contents: write'"
+    required: true
+  value:
+    description: "String to cache"
+    required: false
+  fail_on_cache_miss:
+    description: "Fail the workflow if cached item is not found."
+    required: false
+    default: 'false'
+
+outputs:
+  value:
+    description: "Cached string"
+    value: ${{ steps.output_cached_value.outputs.value }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Restore cached value
+      uses: github/continuous-ai-for-accessibility-scanner/.github/actions/gh-cache/restore@main
+      with:
+        path: ${{ inputs.key }}
+        token: ${{ inputs.token }}
+        fail_on_cache_miss: ${{ inputs.fail_on_cache_miss }}
+
+    - if: ${{ inputs.value }}
+      name: Update cached value
+      shell: bash
+      run: |
+        mkdir -p "$(dirname "${{ inputs.key }}")"
+        echo '${{ inputs.value }}' > "${{ inputs.key }}"
+        echo "Updated contents of '${{ inputs.key }}'"
+
+    - if: ${{ inputs.value }}
+      name: Save cached value
+      uses: github/continuous-ai-for-accessibility-scanner/.github/actions/gh-cache/save@main
+      with:
+        path: ${{ inputs.key }}
+        token: ${{ inputs.token }}
+
+    - name: Output cached value
+      id: output_cached_value
+      shell: bash
+      run: |
+        echo "value<<EOF" >> $GITHUB_OUTPUT
+        if [ -f "${{ inputs.key }}" ]; then
+          cat "${{ inputs.key }}" >> $GITHUB_OUTPUT
+          echo "Outputted 'value=$(cat "${{ inputs.key }}")'"
+        else
+          echo "Skipped outputting 'value'"
+        fi
+        echo "EOF" >> $GITHUB_OUTPUT
+
+branding:
+  icon: "archive"
+  color: "blue"
