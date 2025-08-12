@@ -17,7 +17,7 @@ export async function findForUrl(url: string): Promise<Finding[]> {
       html: violation.nodes[0].html,
       problemShort: violation.help.toLowerCase(),
       problemUrl: violation.helpUrl,
-      id: violation.id,
+      ruleId: violation.id,
       solutionShort: violation.description.toLowerCase(),
       solutionLong: violation.nodes[0].failureSummary
     }));
