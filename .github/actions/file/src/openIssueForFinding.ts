@@ -17,7 +17,7 @@ export async function openIssueForFinding(octokit: Octokit, repoWithOwner: strin
     });
   } else {
     
-    const labels = [`${finding.scannerType} rule: ${finding.id}`, `${finding.scannerType}-scanning-issue`]
+    const labels = [`${finding.scannerType} rule: ${finding.id}`, `${finding.scannerType}-scanning-issue`];
 
     // Otherwise, create a new issue
     const title = `Accessibility issue: ${finding.problemShort[0].toUpperCase() + finding.problemShort.slice(1)} on ${new URL(finding.url).pathname}`;
