@@ -17,7 +17,7 @@
     "@octokit/core": "^7.0.3"
   },
   "devDependencies": {
-    "@types/node": "^24.2.1",
+    "@types/node": "^24.3.0",
     "typescript": "^5.8.3"
   }
 }
