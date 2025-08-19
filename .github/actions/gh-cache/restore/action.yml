@@ -17,7 +17,7 @@ runs:
   using: "composite"
   steps:
     - name: Checkout repository to temporary directory
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         token: ${{ inputs.token }}
         fetch-depth: 0
