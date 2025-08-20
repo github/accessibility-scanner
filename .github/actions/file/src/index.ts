@@ -32,7 +32,7 @@ export default async function () {
         closedIssueUrls.push(response.data.html_url);
         core.info(`Closed issue: ${response.data.title} (${repoWithOwner}#${response.data.number})`);
       } catch (error) {
-        core.setFailed(`Failed to close issue for finding: ${error}`)
+        core.setFailed(`Failed to close issue for finding: ${error}`);
         process.exit(1);
       }
     }
