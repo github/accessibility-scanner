@@ -1,4 +1,5 @@
 import type { Finding } from "./types.d.js";
+import process from "node:process";
 import core from "@actions/core";
 import { Octokit } from '@octokit/core';
 import { toFindingsMap } from "./toFindingsMap.js"
@@ -31,7 +32,8 @@ export default async function () {
         closedIssueUrls.push(response.data.html_url);
         core.info(`Closed issue: ${response.data.title} (${repoWithOwner}#${response.data.number})`);
       } catch (error) {
-        core.error(`Failed to close issue for finding: ${error}`);
+        core.setFailed(`Failed to close issue for finding: ${error}`)
+        process.exit(1);
       }
     }
   }
@@ -52,7 +54,8 @@ export default async function () {
         core.info(`Created issue: ${response.data.title} (${repoWithOwner}#${response.data.number})`);
       }
     } catch (error) {
-      core.error(`Failed to open/reopen issue for finding: ${error}`);
+      core.setFailed(`Failed to open/reopen issue for finding: ${error}`);
+      process.exit(1);
     }
   }
 

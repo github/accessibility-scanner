@@ -1,3 +1,4 @@
+import process from "node:process";
 import core from "@actions/core";
 import { Octokit } from '@octokit/core';
 import { fixIssue } from "./fixIssue.js";
@@ -16,7 +17,8 @@ export default async function () {
       await fixIssue(octokit, repoWithOwner, issueUrl);
       core.info(`Assigned ${repoWithOwner}#${issueUrl.split('/').pop()} to Copilot!`);
     } catch (error) {
-      core.error(`Failed to assign ${repoWithOwner}#${issueUrl.split('/').pop()} to Copilot: ${error}`);
+      core.setFailed(`Failed to assign ${repoWithOwner}#${issueUrl.split('/').pop()} to Copilot: ${error}`);
+      process.exit(1);
     }
   }
   core.info("Finished 'fix' action");
