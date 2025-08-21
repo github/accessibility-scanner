@@ -23,6 +23,10 @@ https://primer.style/octicons/
 
 **Required** Personal access token (PAT) with fine-grained permissions 'contents: write', 'issues: write', and 'pull_requests: write'.
 
+#### `cache_key`
+
+**Optional** Custom key for caching findings across runs. Allowed characters are `A-Za-z0-9._/-`. For example: `cached_findings-main-primer.style.json`.
+
 ### Example workflow
 
 ```YAML

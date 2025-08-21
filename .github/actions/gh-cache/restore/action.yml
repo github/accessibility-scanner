@@ -3,7 +3,7 @@ description: "Checkout a file or directory from an orphaned 'gh-cache' branch"
 
 inputs:
   path:
-    description: "Relative path to a file or directory to restore"
+    description: "Relative path to a file or directory to restore."
     required: true
   token:
     description: "Token with fine-grained permissions 'contents: read'"
@@ -16,6 +16,33 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Validate path
+      shell: bash
+      run: |
+        # Check for empty
+        if [[ -z "${{ inputs.path }}" ]]; then
+          echo "Invalid 'path' input (empty)"
+          exit 1
+        fi
+        # Check for absolute paths
+        if [[ "${{ inputs.path }}" == /* ]]; then
+          echo "Invalid 'path' input (absolute path): ${{ inputs.path }}"
+          exit 1
+        fi
+        # Check for directory traversal
+        if [[
+          "${{ inputs.path }}" == "~"* ||
+          "${{ inputs.path }}" =~ (^|/)\.\.(/|$)
+        ]]; then
+          echo "Invalid 'path' input (directory traversal): ${{ inputs.path }}"
+          exit 1
+        fi
+        # Check for disallowed characters (to ensure portability)
+        if [[ ! "${{ inputs.path }}" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+          echo "Invalid 'path' input (disallowed characters): ${{ inputs.path }}"
+          exit 1
+        fi
+
     - name: Checkout repository to temporary directory
       uses: actions/checkout@v5
       with:
