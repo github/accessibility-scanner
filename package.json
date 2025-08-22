@@ -1,0 +1,25 @@
+{
+  "name": "continuous-ai-for-accessibility-scanner",
+  "version": "0.0.0-development",
+  "description": "Finds potential accessibility gaps, files GitHub issues to track them, and attempts to fix them with Copilot",
+  "scripts": {
+    "test": "vitest run tests/*.test.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/github/continuous-ai-for-accessibility-scanner.git"
+  },
+  "author": "GitHub Inc.",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/github/continuous-ai-for-accessibility-scanner/issues"
+  },
+  "homepage": "https://github.com/github/continuous-ai-for-accessibility-scanner#readme",
+  "devDependencies": {
+    "@actions/core": "^1.11.1",
+    "@octokit/core": "^7.0.3",
+    "@octokit/types": "^14.1.0",
+    "@types/node": "^24.3.0",
+    "vitest": "^3.2.4"
+  }
+}

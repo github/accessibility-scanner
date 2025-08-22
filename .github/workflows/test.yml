@@ -1,0 +1,158 @@
+name: Test
+on:
+  pull_request:
+    types:
+      - synchronize
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        site: [ "sites/site-with-errors" ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@829114fc20da43a41d27359103ec7a63020954d4
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+          working-directory: ${{ matrix.site }}
+
+      - name: Start Jekyll (${{ matrix.site }})
+        shell: bash
+        working-directory: ${{ matrix.site }}
+        env:
+          JEKYLL_ENV: production
+        run: |
+          set -euo pipefail
+          bundle exec jekyll serve --no-watch --detach
+          echo "Starting Jekyll on port 4000"
+          curl -fsS --retry 25 --retry-delay 1 --retry-all-errors "http://127.0.0.1:4000/" > /dev/null
+          echo "Jekyll has started"
+
+      - name: Generate cache key
+        id: cache_key
+        shell: bash
+        run: |
+          echo "cache_key=$(printf 'cached_findings-%s-%s.json' "${{ github.ref_name }}" "${{ matrix.site }}" | tr -cs 'A-Za-z0-9._-' '_')" >> $GITHUB_OUTPUT
+
+      - name: Scan site (${{ matrix.site }})
+        # FIXME: Switch branch to 'main' after https://github.com/github/continuous-ai-for-accessibility-scanner/pull/24 is merged
+        uses: github/continuous-ai-for-accessibility-scanner@smockle/cache_key
+        with:
+          urls: |
+            http://127.0.0.1:4000/
+            http://127.0.0.1:4000/jekyll/update/2025/07/30/welcome-to-jekyll.html
+            http://127.0.0.1:4000/about/
+            http://127.0.0.1:4000/404.html
+          repository: github/continuous-ai-for-accessibility-scanner
+          token: ${{ secrets.GH_TOKEN }}
+          cache_key: ${{ steps.cache_key.outputs.cache_key }}
+
+      - name: Retrieve cached findings
+        # FIXME: Switch branch to 'main' after https://github.com/github/continuous-ai-for-accessibility-scanner/pull/24 is merged
+        uses: github/continuous-ai-for-accessibility-scanner/.github/actions/gh-cache/restore@smockle/cache_key
+        with:
+          path: ${{ steps.cache_key.outputs.cache_key }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add PR URLs to findings
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            if (!process.env.FINDINGS_PATH || !fs.existsSync(process.env.FINDINGS_PATH)) {
+              core.info("Skipping 'Add PR URLs to findings' (no cached findings).");
+              return;
+            }
+            const findings = JSON.parse(fs.readFileSync(process.env.FINDINGS_PATH, 'utf-8'));
+            for (const finding of findings) {
+              if (!finding.issueUrl) {
+                continue;
+              }
+              const { owner, repo, issueNumber } = /https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/]+)\/issues\/(?<issueNumber>\d+)/.exec(finding.issueUrl).groups;
+              const query = `query($owner: String!, $repo: String!, $issueNumber: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  issue(number: $issueNumber) {
+                    timelineItems(first: 100, itemTypes: [CONNECTED_EVENT, CROSS_REFERENCED_EVENT]) {
+                      nodes {
+                        ... on CrossReferencedEvent { source { ... on PullRequest { url } } }
+                        ... on ConnectedEvent { subject { ... on PullRequest { url } } }
+                      }
+                    }
+                  }
+                }
+              }`;
+              const variables = { owner, repo, issueNumber: parseInt(issueNumber, 10) }
+              const result = await github.graphql(query, variables)
+              let pullRequest;
+              if ('source' in result.repository?.issue?.timelineItems.nodes[0]) {
+                pullRequest = result.repository?.issue?.timelineItems.nodes[0].source;
+              } else if ('subject' in result.repository?.issue?.timelineItems.nodes[0]) {
+                pullRequest = result.repository?.issue?.timelineItems.nodes[0].subject;
+              }
+              if (pullRequest) {
+                finding.pullRequestUrl = pullRequest.url;
+              }
+            }
+            fs.writeFileSync(process.env.FINDINGS_PATH, JSON.stringify(findings));
+        env:
+          FINDINGS_PATH: ${{ steps.cache_key.outputs.cache_key }}
+
+      - name: Validate scan results (${{ matrix.site }})
+        run: |
+          npm ci
+          npm run test
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FINDINGS_PATH: ${{ steps.cache_key.outputs.cache_key }}
+
+      - name: Clean up issues and pull requests
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! -f "${{ steps.cache_key.outputs.cache_key }}" ]]; then
+            echo "Skipping 'Clean up issues and pull requests' (no cached findings)."
+            exit 0
+          fi
+          jq -r '
+            (if type=="string" then fromjson else . end)
+            | .[] | .issueUrl, .pullRequestUrl
+            | select(. != null)
+          ' "${{ steps.cache_key.outputs.cache_key }}" \
+            | while read -r URL; do
+                if [[ "$URL" == *"/pull/"* ]]; then
+                  echo "Closing pull request: $URL"
+                  gh pr close "$URL" || echo "Failed to close pull request: $URL"
+                elif [[ "$URL" == *"/issues/"* ]]; then
+                  echo "Closing issue: $URL"
+                  gh issue close "$URL" || echo "Failed to close issue: $URL"
+                else
+                  echo "Skipping unrecognized url: $URL"
+                fi
+              done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean up cached findings
+        if: ${{ always() }}
+        # FIXME: Switch branch to 'main' after https://github.com/github/continuous-ai-for-accessibility-scanner/pull/24 is merged
+        uses: github/continuous-ai-for-accessibility-scanner/.github/actions/gh-cache/delete@smockle/cache_key
+        with:
+          path: ${{ steps.cache_key.outputs.cache_key }}
+          token: ${{ secrets.GITHUB_TOKEN }}
