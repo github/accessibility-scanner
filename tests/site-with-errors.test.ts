@@ -152,7 +152,7 @@ describe("site-with-errors", () => {
       for (const pullRequest of pullRequests) {
         expect(pullRequest.user.login).toBe("Copilot");
         expect(pullRequest.state).toBe("open");
-        expect(pullRequest.assignees).toBeDefined()
+        expect(pullRequest.assignees).toBeDefined();
         expect(pullRequest.assignees!.some(a => a.login === "Copilot")).toBe(true);
       }
     });
