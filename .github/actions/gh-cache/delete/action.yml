@@ -1,17 +1,13 @@
-name: "restore"
-description: "Checkout a file or directory from an orphaned 'gh-cache' branch"
+name: "delete"
+description: "Delete a file or directory from the orphaned 'gh-cache' branch"
 
 inputs:
   path:
-    description: "Relative path to a file or directory to restore."
+    description: "Relative path to a file or directory to delete"
     required: true
   token:
-    description: "Token with fine-grained permissions 'contents: read'"
+    description: "Token with fine-grained permissions 'contents: write'"
     required: true
-  fail_on_cache_miss:
-    description: "Fail the workflow if cached item is not found."
-    required: false
-    default: 'false'
 
 runs:
   using: "composite"
@@ -51,37 +47,39 @@ runs:
         path: .gh-cache-${{ github.run_id }}
         show-progress: 'false'
 
-    - name: Switch to 'gh-cache' branch if it exists
+    - name: Switch to gh-cache branch (or create orphan)
       shell: bash
       working-directory: .gh-cache-${{ github.run_id }}
       run: |
         if git ls-remote --exit-code --heads origin gh-cache >/dev/null; then
-          git fetch origin gh-cache:gh-cache >/dev/null 2>&1
           git checkout gh-cache >/dev/null 2>&1
+          echo "Checked out existing 'gh-cache' branch"
         else
-          echo "Branch 'gh-cache' does not exist"
-          if [[ "${{ inputs.fail_on_cache_miss }}" == "true" ]]; then
-            echo "Exiting with error because 'fail_on_cache_miss' is 'true'"
-            exit 1
-          fi
+          git checkout --orphan gh-cache >/dev/null 2>&1
+          git rm -rfq . # Clear files from the initial checkout, to avoid adding them to the orphaned branch
+          echo "Created new orphaned 'gh-cache' branch"
         fi
 
-    - name: Restore cached item
+    - name: Copy file to repo
       shell: bash
       run: |
-        src=".gh-cache-${{ github.run_id }}/${{ inputs.path }}"
-        dest="${{ inputs.path }}"
-        if [ -e "$src" ]; then
-          mkdir -p "$(dirname "$dest")"
-          cp -Rf "$src" "$dest"
-          echo "Restored '${{ inputs.path }}' from cache"
-        else
-          echo "'${{ inputs.path }}' not found in cache"
-          if [[ "${{ inputs.fail_on_cache_miss }}" == "true" ]]; then
-            echo "Exiting with error because 'fail_on_cache_miss' is 'true'"
-            exit 1
-          fi
+        if [ -f "${{ inputs.path }}" ]; then
+          rm -Rf "${{ inputs.path }}"
+          rm -Rf ".gh-cache-${{ github.run_id }}/${{ inputs.path }}"
+          echo "Deleted '${{ inputs.path }}' from 'gh-cache' branch"
         fi
+
+    - name: Commit and push
+      shell: bash
+      working-directory: .gh-cache-${{ github.run_id }}
+      run: |
+        git add "${{ inputs.path }}" || true
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git commit -m "$(printf 'Delete artifact: %s' "${{ inputs.path }}")" \
+          && echo "Committed '${{ inputs.path }}' to 'gh-cache' branch" \
+          || echo "No changes to commit"
+        git push origin gh-cache
 
     - name: Clean up temporary directory
       shell: bash
@@ -89,5 +87,5 @@ runs:
         rm -rf .gh-cache-${{ github.run_id }}
 
 branding:
-  icon: "download"
-  color: "blue"
+  icon: "trash"
+  color: "red"

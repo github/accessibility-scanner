@@ -12,15 +12,28 @@ inputs:
   token:
     description: "Personal access token (PAT) with fine-grained permissions 'contents: write', 'issues: write', and 'pull_requests: write'"
     required: true
+  cache_key:
+    description: "Custom key for caching findings across runs"
+    required: false
 
 runs:
   using: "composite"
   steps:
+    - name: Generate cache key
+      id: cache_key
+      shell: bash
+      run: |
+        CACHE_KEY="${{ inputs.cache_key }}"
+        if [[ -z "$CACHE_KEY" ]]; then
+          # If cache_key is not provided, generate a default one using the branch name, replacing characters (e.g. `/`) which would create unexpected paths.
+          CACHE_KEY=$(printf 'cached_findings-%s' "${{ github.ref_name }}" | tr -cs 'A-Za-z0-9._-' '_')
+        fi
+        echo "cache_key=$CACHE_KEY" >> $GITHUB_OUTPUT
     - name: Restore cached_findings
       id: restore
       uses: github/continuous-ai-for-accessibility-scanner/.github/actions/gh-cache/cache@main
       with:
-        key: cached_findings-${{ github.ref_name }}
+        key: ${{ steps.cache_key.outputs.cache_key }}
         token: ${{ inputs.token }}
     - name: Find
       id: find
@@ -45,7 +58,7 @@ runs:
     - name: Save cached_findings
       uses: github/continuous-ai-for-accessibility-scanner/.github/actions/gh-cache/cache@main
       with:
-        key: cached_findings-${{ github.ref_name }}
+        key: ${{ steps.cache_key.outputs.cache_key }}
         value: ${{ steps.file.outputs.findings }}
         token: ${{ inputs.token }}
 

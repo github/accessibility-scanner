@@ -24,6 +24,10 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "github-actions"
+    directory: "/.github/actions/gh-cache/delete"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "github-actions"
     directory: "/.github/actions/gh-cache/restore"
     schedule:
       interval: "weekly"
