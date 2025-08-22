@@ -1,0 +1,96 @@
+name: "delete"
+description: "Delete a file or directory from the orphaned 'gh-cache' branch"
+
+inputs:
+  path:
+    description: "Relative path to a file or directory to delete"
+    required: true
+  token:
+    description: "Token with fine-grained permissions 'contents: write'"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Validate path
+      shell: bash
+      run: |
+        # Check for empty
+        if [[ -z "${{ inputs.path }}" ]]; then
+          echo "Invalid 'path' input (empty)"
+          exit 1
+        fi
+        # Check for absolute paths
+        if [[ "${{ inputs.path }}" == /* ]]; then
+          echo "Invalid 'path' input (absolute path): ${{ inputs.path }}"
+          exit 1
+        fi
+        # Check for directory traversal
+        if [[
+          "${{ inputs.path }}" == "~"* ||
+          "${{ inputs.path }}" =~ (^|/)\.\.(/|$)
+        ]]; then
+          echo "Invalid 'path' input (directory traversal): ${{ inputs.path }}"
+          exit 1
+        fi
+        # Check for disallowed characters (to ensure portability)
+        if [[ ! "${{ inputs.path }}" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+          echo "Invalid 'path' input (disallowed characters): ${{ inputs.path }}"
+          exit 1
+        fi
+
+    - name: Checkout repository to temporary directory
+      uses: actions/checkout@v5
+      with:
+        token: ${{ inputs.token }}
+        fetch-depth: 0
+        path: .gh-cache-${{ github.run_id }}
+        show-progress: 'false'
+
+    - name: Switch to gh-cache branch (or create orphan)
+      shell: bash
+      working-directory: .gh-cache-${{ github.run_id }}
+      run: |
+        if git ls-remote --exit-code --heads origin gh-cache >/dev/null; then
+          git checkout gh-cache >/dev/null 2>&1
+          echo "Checked out existing 'gh-cache' branch"
+        else
+          git checkout --orphan gh-cache >/dev/null 2>&1
+          git rm -rfq . # Clear files from the initial checkout, to avoid adding them to the orphaned branch
+          echo "Created new orphaned 'gh-cache' branch"
+        fi
+
+    - name: Copy file to repo
+      shell: bash
+      run: |
+        if [ -f "${{ inputs.path }}" ]; then
+          rm -Rf "${{ inputs.path }}"
+          rm -Rf ".gh-cache-${{ github.run_id }}/${{ inputs.path }}"
+          echo "Deleted '${{ inputs.path }}' from 'gh-cache' branch"
+        fi
+
+    - name: Commit and push
+      shell: bash
+      working-directory: .gh-cache-${{ github.run_id }}
+      run: |
+        if [ -f "${{ inputs.path }}" ]; then
+          git add "${{ inputs.path }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "$(printf 'Delete artifact: %s' "${{ inputs.path }}")" \
+            && echo "Committed '${{ inputs.path }}' to 'gh-cache' branch" \
+            || echo "No changes to commit"
+          git push origin gh-cache
+        else
+          echo "'${{ inputs.path }}' does not exist"
+          echo "Skipping commit and push"
+        fi
+
+    - name: Clean up temporary directory
+      shell: bash
+      run: |
+        rm -rf .gh-cache-${{ github.run_id }}
+
+branding:
+  icon: "trash"
+  color: "red"
