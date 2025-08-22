@@ -73,18 +73,13 @@ runs:
       shell: bash
       working-directory: .gh-cache-${{ github.run_id }}
       run: |
-        if [ -f "${{ inputs.path }}" ]; then
-          git add "${{ inputs.path }}"
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -m "$(printf 'Delete artifact: %s' "${{ inputs.path }}")" \
-            && echo "Committed '${{ inputs.path }}' to 'gh-cache' branch" \
-            || echo "No changes to commit"
-          git push origin gh-cache
-        else
-          echo "'${{ inputs.path }}' does not exist"
-          echo "Skipping commit and push"
-        fi
+        git add "${{ inputs.path }}" || true
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git commit -m "$(printf 'Delete artifact: %s' "${{ inputs.path }}")" \
+          && echo "Committed '${{ inputs.path }}' to 'gh-cache' branch" \
+          || echo "No changes to commit"
+        git push origin gh-cache
 
     - name: Clean up temporary directory
       shell: bash
