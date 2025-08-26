@@ -7,14 +7,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/github/continuous-ai-for-accessibility-scanner.git"
+    "url": "git+https://github.com/github-community-projects/continuous-ai-for-accessibility-scanner.git"
   },
   "author": "GitHub Inc.",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/github/continuous-ai-for-accessibility-scanner/issues"
+    "url": "https://github.com/github-community-projects/continuous-ai-for-accessibility-scanner/issues"
   },
-  "homepage": "https://github.com/github/continuous-ai-for-accessibility-scanner#readme",
+  "homepage": "https://github.com/github-community-projects/continuous-ai-for-accessibility-scanner#readme",
   "devDependencies": {
     "@actions/core": "^1.11.1",
     "@octokit/core": "^7.0.3",
