@@ -50,19 +50,19 @@ jobs:
           echo "cache_key=$(printf 'cached_findings-%s-%s.json' "${{ github.ref_name }}" "${{ matrix.site }}" | tr -cs 'A-Za-z0-9._-' '_')" >> $GITHUB_OUTPUT
 
       - name: Scan site (${{ matrix.site }})
-        uses: github/continuous-ai-for-accessibility-scanner@main
+        uses: github-community-projects/continuous-ai-for-accessibility-scanner@main
         with:
           urls: |
             http://127.0.0.1:4000/
             http://127.0.0.1:4000/jekyll/update/2025/07/30/welcome-to-jekyll.html
             http://127.0.0.1:4000/about/
             http://127.0.0.1:4000/404.html
-          repository: github/continuous-ai-for-accessibility-scanner
+          repository: github-community-projects/continuous-ai-for-accessibility-scanner
           token: ${{ secrets.GH_TOKEN }}
           cache_key: ${{ steps.cache_key.outputs.cache_key }}
 
       - name: Retrieve cached findings
-        uses: github/continuous-ai-for-accessibility-scanner/.github/actions/gh-cache/restore@main
+        uses: github-community-projects/continuous-ai-for-accessibility-scanner/.github/actions/gh-cache/restore@main
         with:
           path: ${{ steps.cache_key.outputs.cache_key }}
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -149,7 +149,7 @@ jobs:
 
       - name: Clean up cached findings
         if: ${{ always() }}
-        uses: github/continuous-ai-for-accessibility-scanner/.github/actions/gh-cache/delete@main
+        uses: github-community-projects/continuous-ai-for-accessibility-scanner/.github/actions/gh-cache/delete@main
         with:
           path: ${{ steps.cache_key.outputs.cache_key }}
           token: ${{ secrets.GITHUB_TOKEN }}
