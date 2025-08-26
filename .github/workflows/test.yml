@@ -2,10 +2,10 @@ name: Test
 on:
   pull_request:
     types:
+      - opened
+      - reopened
       - synchronize
-  push:
-    branches:
-      - main
+      - ready_for_review
   workflow_dispatch:
 
 permissions:
@@ -13,10 +13,16 @@ permissions:
   issues: write
   pull-requests: write
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false # Allow previous workflows’ clean-up steps to complete
+
 jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    # Run if triggered manually, or for a non-draft PR
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     strategy:
       matrix:
         site: [ "sites/site-with-errors" ]
