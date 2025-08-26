@@ -25,7 +25,7 @@ runs:
   using: "composite"
   steps:
     - name: Restore cached value
-      uses: github/continuous-ai-for-accessibility-scanner/.github/actions/gh-cache/restore@main
+      uses: github-community-projects/continuous-ai-for-accessibility-scanner/.github/actions/gh-cache/restore@main
       with:
         path: ${{ inputs.key }}
         token: ${{ inputs.token }}
@@ -41,7 +41,7 @@ runs:
 
     - if: ${{ inputs.value }}
       name: Save cached value
-      uses: github/continuous-ai-for-accessibility-scanner/.github/actions/gh-cache/save@main
+      uses: github-community-projects/continuous-ai-for-accessibility-scanner/.github/actions/gh-cache/save@main
       with:
         path: ${{ inputs.key }}
         token: ${{ inputs.token }}

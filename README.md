@@ -37,7 +37,7 @@ jobs:
   continuous_accessibility_scanner:
     runs-on: ubuntu-latest
     steps:
-      - uses: github/continuous-ai-for-accessibility-scanner@main
+      - uses: github-community-projects/continuous-ai-for-accessibility-scanner@main
         with:
           urls: |
             https://primer.style/octicons/
