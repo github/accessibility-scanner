@@ -1,8 +1,60 @@
 # continuous-ai-for-accessibility-scanner
 
-Finds potential accessibility gaps, files GitHub issues to track them, and attempts to fix them with Copilot.
+This repo contains code for a GitHub Actions action named `github-community-projects/continuous-ai-for-accessibility-scanner` (“scanner”, for short). The scanner finds potential accessibility gaps on a provided list of URLs, files GitHub issues to track them, and attempts to fix them with Copilot. For more information about GitHub Actions, check out [“Understanding GitHub Actions” (GitHub Docs)](https://docs.github.com/en/actions/get-started/understand-github-actions).
 
-## Usage
+## Getting started
+
+### Adding a workflow file
+
+To use the scanner, create a GitHub Actions workflow in the `.github/workflows` directory of one of your repositories (for example, a file named `scan.yml`), commit it, and push the commit.
+
+For general workflow authoring tips, check out [“Writing workflows” (GitHub Docs)](https://docs.github.com/en/actions/how-tos/write-workflows); specifics are below.
+
+The contents of the workflow file should look similar to the example below:
+
+```YAML
+name: Continuous Accessibility Scanner
+on: workflow_dispatch # This configures the workflow to run manually, instead of (e.g.) automatically in every PR. Check out https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#on for more options.
+
+jobs:
+  continuous_accessibility_scanner:
+    runs-on: ubuntu-latest
+    steps:
+      # Retrieve the scanner code
+      - uses: actions/checkout@v5
+        with:
+          repository: github-community-projects/continuous-ai-for-accessibility-scanner
+          token: ${{ secrets.GH_COMMUNITY_PROJECTS_TOKEN }} # This token must have read access to github-community-projects/continuous-ai-for-accessibility-scanner; more information below.
+          path: ./.github/actions/continuous-ai-for-accessibility-scanner
+      # Prepare the scanner to run
+      - shell: bash
+        run: cp -Rf ./.github/actions/continuous-ai-for-accessibility-scanner/.github/actions/* ./.github/actions
+      # Run the scannner
+      - uses: ./.github/actions/continuous-ai-for-accessibility-scanner
+        with:
+          urls: | # Provide a newline-delimited list of URLs to scan; more information below.
+            REPLACE_THIS
+          repository: REPLACE_THIS/REPLACE_THIS # Provide a repository name-with-owner (in the format "primer/primer-docs"). This is where issues will be filed and where Copilot will open PRs; more information below.
+          token: ${{ secrets.GH_TOKEN }} # This token must have write access to the repo above (contents, issues, and PRs); more information below.
+```
+
+All instances of `REPLACE_THIS` must be replaced before the workflow will run. For more information, check out the [`urls` input’s documentation](#urls) and the [`repository` input’s documentation](#repository).
+
+### Creating tokens and adding secrets
+
+After you’ve committed the workflow file to your repository, create two tokens, then add them as repository secrets named `GH_COMMUNITY_PROJECTS_TOKEN` and `GH_TOKEN`, respectively.
+
+- `GH_COMMUNITY_PROJECTS_TOKEN` should be a fine-grained personal access token (PAT) with the `contents: read` and `metadata: read` permission for the `github-community-projects/continuous-ai-for-accessibility-scanner` repository.
+
+- `GH_TOKEN` should be a fine-grained PAT with `contents: write`, `issues: write`, `pull-requests: write`, and `metadata: read` for the repository referenced in your workflow (the `repository` input).
+
+Check out [“Creating a fine-grained personal access token” (GitHub Docs)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token) and [“Creating secrets for a repository” (GitHub Docs)](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-a-repository) for step-by-step guidance.
+
+### Scanning your website
+
+Run your newly-added workflow, by following the instructions in [“Running a workflow” (GitHub Docs)](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow#running-a-workflow).
+
+## Configuring the action
 
 ### Inputs
 
@@ -21,33 +73,8 @@ https://primer.style/octicons/
 
 #### `token`
 
-**Required** Personal access token (PAT) with fine-grained permissions 'contents: write', 'issues: write', and 'pull_requests: write'.
+**Required** Personal access token (PAT) with fine-grained permissions 'contents: write', 'issues: write', 'pull_requests: write', and 'metadata: read'.
 
 #### `cache_key`
 
 **Optional** Custom key for caching findings across runs. Allowed characters are `A-Za-z0-9._/-`. For example: `cached_findings-main-primer.style.json`.
-
-### Example workflow
-
-```YAML
-name: Continuous Accessibility Scanner
-on: workflow_dispatch
-
-jobs:
-  continuous_accessibility_scanner:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          repository: github-community-projects/continuous-ai-for-accessibility-scanner
-          token: ${{ secrets.GH_COMMUNITY_PROJECTS_TOKEN }}
-          path: ./.github/actions/continuous-ai-for-accessibility-scanner
-      - shell: bash
-        run: cp -Rf ./.github/actions/continuous-ai-for-accessibility-scanner/.github/actions/* ./.github/actions
-      - uses: ./.github/actions/continuous-ai-for-accessibility-scanner
-        with:
-          urls: |
-            https://primer.style/octicons/
-          repository: github/accessibility-sandbox
-          token: ${{ secrets.GH_TOKEN }}
-```
