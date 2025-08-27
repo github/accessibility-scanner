@@ -37,7 +37,14 @@ jobs:
   continuous_accessibility_scanner:
     runs-on: ubuntu-latest
     steps:
-      - uses: github-community-projects/continuous-ai-for-accessibility-scanner@main
+      - uses: actions/checkout@v5
+        with:
+          repository: github-community-projects/continuous-ai-for-accessibility-scanner
+          token: ${{ secrets.GH_COMMUNITY_PROJECTS_TOKEN }}
+          path: ./.github/actions/continuous-ai-for-accessibility-scanner
+      - shell: bash
+        run: cp -Rf ./.github/actions/continuous-ai-for-accessibility-scanner/.github/actions/* ./.github/actions
+      - uses: ./.github/actions/continuous-ai-for-accessibility-scanner
         with:
           urls: |
             https://primer.style/octicons/
