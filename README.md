@@ -6,7 +6,7 @@ This repo contains code for a GitHub Actions action named `github-community-proj
 
 ### Adding a workflow file
 
-To use the scanner, create a GitHub Actions workflow in the `.github/workflows` directory of one of your repositories (for example, a file named `scan.yml`), commit it, and push the commit.
+To use the scanner, create a GitHub Actions workflow (for example, a file named `scan.yml`) in the `.github/workflows` directory of one of your repositories, commit it, and push the commit.
 
 For general workflow authoring tips, check out [“Writing workflows” (GitHub Docs)](https://docs.github.com/en/actions/how-tos/write-workflows); specifics are below.
 
@@ -42,7 +42,7 @@ All instances of `REPLACE_THIS` must be replaced before the workflow will run. F
 
 ### Creating tokens and adding secrets
 
-After you’ve committed the workflow file to your repository, create two tokens, then add them as repository secrets named `GH_COMMUNITY_PROJECTS_TOKEN` and `GH_TOKEN`, respectively.
+Create two tokens, then add them as repository secrets named `GH_COMMUNITY_PROJECTS_TOKEN` and `GH_TOKEN`, respectively.
 
 - `GH_COMMUNITY_PROJECTS_TOKEN` should be a fine-grained personal access token (PAT) with the `contents: read` and `metadata: read` permission for the `github-community-projects/continuous-ai-for-accessibility-scanner` repository.
 
