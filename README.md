@@ -78,3 +78,9 @@ https://primer.style/octicons/
 #### `cache_key`
 
 **Optional** Custom key for caching findings across runs. Allowed characters are `A-Za-z0-9._/-`. For example: `cached_findings-main-primer.style.json`.
+
+## Configuring Copilot
+
+The scanner leverages Copilot coding agent, which can be configured by providing custom instructions. Check out [“Adding repository custom instructions for GitHub Copilot”](https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions) to learn how to get started with custom instructions.
+
+As announced in [“GitHub Copilot coding agent now supports .instructions.md custom instructions” (GitHub Blog)](https://github.blog/changelog/2025-07-23-github-copilot-coding-agent-now-supports-instructions-md-custom-instructions/), Copilot coding agent—and, by extension, this scanner action—supports custom instructions provided in `.github/copilot-instructions.md` _and_ `.instructions.md` files stored under `.github/instructions` (which can be scoped to specific files or directories).
