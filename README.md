@@ -1,6 +1,8 @@
 # continuous-ai-for-accessibility-scanner
 
-This repo contains code for a GitHub Actions action named `github-community-projects/continuous-ai-for-accessibility-scanner` (“scanner”, for short). The scanner finds potential accessibility gaps on a provided list of URLs, files GitHub issues to track them, and attempts to fix them with Copilot. For more information about GitHub Actions, check out [“Understanding GitHub Actions” (GitHub Docs)](https://docs.github.com/en/actions/get-started/understand-github-actions).
+This repo contains code for a GitHub Actions action named `github-community-projects/continuous-ai-for-accessibility-scanner` (“scanner”, for short). The scanner finds potential accessibility gaps for a provided list of URLs, files GitHub issues to track them, and attempts to fix them with Copilot.
+
+For an introduction to GitHub Actions, check out [“Understanding GitHub Actions” (GitHub Docs)](https://docs.github.com/en/actions/get-started/understand-github-actions).
 
 ## Getting started
 
