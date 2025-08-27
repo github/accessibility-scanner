@@ -68,7 +68,7 @@ jobs:
           cache_key: ${{ steps.cache_key.outputs.cache_key }}
 
       - name: Retrieve cached findings
-        uses: github-community-projects/continuous-ai-for-accessibility-scanner/.github/actions/gh-cache/restore@main
+        uses: ./.github/actions/gh-cache/restore
         with:
           path: ${{ steps.cache_key.outputs.cache_key }}
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -155,7 +155,7 @@ jobs:
 
       - name: Clean up cached findings
         if: ${{ always() }}
-        uses: github-community-projects/continuous-ai-for-accessibility-scanner/.github/actions/gh-cache/delete@main
+        uses: ./.github/actions/gh-cache/delete
         with:
           path: ${{ steps.cache_key.outputs.cache_key }}
           token: ${{ secrets.GITHUB_TOKEN }}
