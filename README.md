@@ -73,7 +73,7 @@ https://primer.style/octicons/
 
 #### `token`
 
-**Required** Personal access token (PAT) with fine-grained permissions 'contents: write', 'issues: write', 'pull_requests: write', and 'metadata: read'.
+**Required** Personal access token (PAT) with fine-grained permissions `contents: write`, `issues: write`, `pull-requests: write`, and `metadata: read`.
 
 #### `cache_key`
 
