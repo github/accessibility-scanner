@@ -29,7 +29,7 @@ jobs:
       # Prepare the scanner to run
       - shell: bash
         run: cp -Rf ./.github/actions/continuous-ai-for-accessibility-scanner/.github/actions/* ./.github/actions
-      # Run the scannner
+      # Run the scanner
       - uses: ./.github/actions/continuous-ai-for-accessibility-scanner
         with:
           urls: | # Provide a newline-delimited list of URLs to scan; more information below.
