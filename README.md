@@ -35,7 +35,7 @@ jobs:
           urls: | # Provide a newline-delimited list of URLs to scan; more information below.
             REPLACE_THIS
           repository: REPLACE_THIS/REPLACE_THIS # Provide a repository name-with-owner (in the format "primer/primer-docs"). This is where issues will be filed and where Copilot will open PRs; more information below.
-          token: ${{ secrets.GH_TOKEN }} # This token must have write access to the repo above (contents, issues, and PRs); more information below.
+          token: ${{ secrets.GH_TOKEN }} # This token must have write access to the repo above (contents, issues, and PRs); more information below. Note: GitHub Actions’ `GITHUB_TOKEN` (https://docs.github.com/en/actions/tutorials/authenticate-with-github_token) cannot be used here.
 ```
 
 All instances of `REPLACE_THIS` must be replaced before the workflow will run. For more information, check out the [`urls` input’s documentation](#urls) and the [`repository` input’s documentation](#repository).
