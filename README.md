@@ -19,11 +19,11 @@ The a11y scanner helps teams:
 Create a workflow file in `.github/workflows/` (e.g., `a11y-scan.yml`) in your repository:
 
 ```YAML
-name: Continuous Accessibility Scanner
+name: Accessibility Scanner
 on: workflow_dispatch # This configures the workflow to run manually, instead of (e.g.) automatically in every PR. Check out https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#on for more options.
 
 jobs:
-  continuous_accessibility_scanner:
+  accessibility_scanner:
     runs-on: ubuntu-latest
     steps:
       # Retrieve the scanner code
@@ -47,6 +47,7 @@ jobs:
 > 👉 Update all `REPLACE_THIS` placeholders with your actual values. See [Action Inputs](#action-inputs) for details.
 
 Required Permissions:
+
 - Write access to add or update workflows
 - Admin access to add repository secrets
 
@@ -58,14 +59,16 @@ Required Permissions:
 
 The a11y scanner requires two Personal Access Tokens (PATs) as repository secrets:
 
-#### The `GH_COMMUNITY_PROJECTS_TOKEN` is a fine-grained PAT with:
+#### The `GH_COMMUNITY_PROJECTS_TOKEN` is a fine-grained PAT with
+
 - `contents: read`
 - `metadata: read`
 - Scope: [`github-community-projects/continuous-ai-for-accessibility-scanner`](https://github.com/github-community-projects/continuous-ai-for-accessibility-scanner)
 
-#### The `GH_TOKEN` is a fine-grained PAT with:
+#### The `GH_TOKEN` is a fine-grained PAT with
+
 - `contents: write`
-- `issues: write` 
+- `issues: write`
 - `pull-requests: write`
 - `metadata: read`
 - Scope: Your target repository (where issues and PRs will be created)
