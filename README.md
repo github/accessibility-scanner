@@ -8,7 +8,7 @@ The a11y scanner helps teams:
 - 📝 Create actionable GitHub issues that can be assigned to Copilot
 - 🤖 Propose fixes with Copilot, with humans reviewing before merging
 
-> ⚠️ The a11y scanner is currently in beta. It can help identify accessibility gaps but cannot guarantee fully accessible code suggestions. Always review before merging.
+> ⚠️ **Note:** The a11y scanner is currently in beta. It can help identify accessibility gaps but cannot guarantee fully accessible code suggestions. Always review before merging!
 
 ---
 
@@ -44,7 +44,7 @@ jobs:
           token: ${{ secrets.GH_TOKEN }} # This token must have write access to the repo above (contents, issues, and PRs); more information below. Note: GitHub Actions’ `GITHUB_TOKEN` (https://docs.github.com/en/actions/tutorials/authenticate-with-github_token) cannot be used here.
 ```
 
-> Update all `REPLACE_THIS` placeholders with your actual values. See [Action Inputs](#action-inputs) for more details.
+> 👉 Update all `REPLACE_THIS` placeholders with your actual values. See [Action Inputs](#action-inputs) for details.
 
 Required Permissions:
 - Write access to add or update workflows
@@ -70,7 +70,7 @@ The a11y scanner requires two Personal Access Tokens (PATs) as repository secret
 - `metadata: read`
 - Scope: Your target repository (where issues and PRs will be created)
 
-> GitHub Actions' default `GITHUB_TOKEN` cannot be used here.
+> 👉 GitHub Actions' default `GITHUB_TOKEN` cannot be used here.
 
 📚 [Creating a fine-grained PAT](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token) | [Creating repository secrets](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-a-repository)
 
@@ -78,11 +78,7 @@ The a11y scanner requires two Personal Access Tokens (PATs) as repository secret
 
 ### 3. Run Your First Scan
 
-Trigger the workflow, either manually or automatically based on your configuration. The a11y scanner will:
-
-- 🔎 Analyze your target URLs, files, or repos
-- 📝 File issues for accessibility findings
-- 🤖 Optionally assign issues to Copilot to create PRs with proposed fixes
+Trigger the workflow manually or automatically based on your configuration. The scanner will run and create issues for any accessibility findings. When issues are assigned to Copilot, always review proposed fixes before merging.
 
 📚 [Running a workflow manually](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow#running-a-workflow)
 
