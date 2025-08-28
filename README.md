@@ -30,6 +30,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           repository: github-community-projects/continuous-ai-for-accessibility-scanner
+          ref: v1
           token: ${{ secrets.GH_COMMUNITY_PROJECTS_TOKEN }} # This token must have read access to github-community-projects/continuous-ai-for-accessibility-scanner; more information below.
           path: ./.github/actions/continuous-ai-for-accessibility-scanner
       # Prepare the scanner to run
