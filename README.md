@@ -1,18 +1,22 @@
-# continuous-ai-for-accessibility-scanner
+# AI-powered Accessibility Scanner
 
-This repo contains code for a GitHub Actions action named `github-community-projects/continuous-ai-for-accessibility-scanner` (“scanner”, for short). The scanner finds potential accessibility gaps for a provided list of URLs, files GitHub issues to track them, and attempts to fix them with Copilot.
+The AI-powered Accessibility Scanner (a11y scanner) is a GitHub Action that detects accessibility barriers across your digital products, creates trackable issues, and leverages Copilot for AI-powered fixes.
 
-For an introduction to GitHub Actions, check out [“Understanding GitHub Actions” (GitHub Docs)](https://docs.github.com/en/actions/get-started/understand-github-actions).
+The a11y scanner helps teams:
 
-## Getting started
+- 🔍 Scan websites, files, repositories, and dynamic content for accessibility issues
+- 📝 Create actionable GitHub issues that can be assigned to Copilot
+- 🤖 Propose fixes with Copilot, with humans reviewing before merging
 
-### Adding a workflow file
+> ⚠️ The a11y scanner is currently in beta. It can help identify accessibility gaps but cannot guarantee fully accessible code suggestions. Always review before merging.
 
-To use the scanner, create a GitHub Actions workflow (for example, a file named `scan.yml`) in the `.github/workflows` directory of one of your repositories, commit it, and push the commit.
+---
 
-For general workflow authoring tips, check out [“Writing workflows” (GitHub Docs)](https://docs.github.com/en/actions/how-tos/write-workflows); specifics are below.
+## Getting Started
 
-The contents of the workflow file should look similar to the example below:
+### 1. Add a Workflow File
+
+Create a workflow file in `.github/workflows/` (e.g., `a11y-scan.yml`) in your repository:
 
 ```YAML
 name: Continuous Accessibility Scanner
@@ -40,49 +44,76 @@ jobs:
           token: ${{ secrets.GH_TOKEN }} # This token must have write access to the repo above (contents, issues, and PRs); more information below. Note: GitHub Actions’ `GITHUB_TOKEN` (https://docs.github.com/en/actions/tutorials/authenticate-with-github_token) cannot be used here.
 ```
 
-All instances of `REPLACE_THIS` must be replaced before the workflow will run. For more information, check out the [`urls` input’s documentation](#urls) and the [`repository` input’s documentation](#repository).
+> Update all `REPLACE_THIS` placeholders with your actual values. See [Action Inputs](#action-inputs) for more details.
 
-### Creating tokens and adding secrets
+Required Permissions:
+- Write access to add or update workflows
+- Admin access to add repository secrets
 
-Create two tokens, then add them as repository secrets named `GH_COMMUNITY_PROJECTS_TOKEN` and `GH_TOKEN`, respectively.
+📚 [Understanding GitHub Actions](https://docs.github.com/en/actions/get-started/understand-github-actions) | [Managing GitHub Actions settings](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository) | [Writing workflows](https://docs.github.com/en/actions/how-tos/write-workflows)
 
-- `GH_COMMUNITY_PROJECTS_TOKEN` should be a fine-grained personal access token (PAT) with the `contents: read` and `metadata: read` permission for the `github-community-projects/continuous-ai-for-accessibility-scanner` repository.
+---
 
-- `GH_TOKEN` should be a fine-grained PAT with `contents: write`, `issues: write`, `pull-requests: write`, and `metadata: read` for the repository referenced in your workflow (the `repository` input).
+### 2. Create Tokens and Add Secrets
 
-Check out [“Creating a fine-grained personal access token” (GitHub Docs)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token) and [“Creating secrets for a repository” (GitHub Docs)](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-a-repository) for step-by-step guidance.
+The a11y scanner requires two Personal Access Tokens (PATs) as repository secrets:
 
-### Scanning your website
+#### The `GH_COMMUNITY_PROJECTS_TOKEN` is a fine-grained PAT with:
+- `contents: read`
+- `metadata: read`
+- Scope: [`github-community-projects/continuous-ai-for-accessibility-scanner`](https://github.com/github-community-projects/continuous-ai-for-accessibility-scanner)
 
-Run your newly-added workflow, by following the instructions in [“Running a workflow” (GitHub Docs)](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow#running-a-workflow).
+#### The `GH_TOKEN` is a fine-grained PAT with:
+- `contents: write`
+- `issues: write` 
+- `pull-requests: write`
+- `metadata: read`
+- Scope: Your target repository (where issues and PRs will be created)
 
-## Configuring the action
+> GitHub Actions' default `GITHUB_TOKEN` cannot be used here.
 
-### Inputs
+📚 [Creating a fine-grained PAT](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token) | [Creating repository secrets](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-a-repository)
 
-#### `urls`
+---
 
-**Required** Newline-delimited list of URLs to check for accessibility issues. For example:
+### 3. Run Your First Scan
 
-```txt
-https://primer.style
-https://primer.style/octicons/
-```
+Trigger the workflow, either manually or automatically based on your configuration. The a11y scanner will:
 
-#### `repository`
+- 🔎 Analyze your target URLs, files, or repos
+- 📝 File issues for accessibility findings
+- 🤖 Optionally assign issues to Copilot to create PRs with proposed fixes
 
-**Required** Repository (with owner) to file issues in. For example: `primer/primer-docs`.
+📚 [Running a workflow manually](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow#running-a-workflow)
 
-#### `token`
+---
 
-**Required** Personal access token (PAT) with fine-grained permissions `contents: write`, `issues: write`, `pull-requests: write`, and `metadata: read`.
+## Action Inputs
 
-#### `cache_key`
+| Input | Required | Description | Example |
+|-------|----------|-------------|---------|
+| `urls` | Yes | Newline-delimited list of URLs to scan | `https://primer.style`<br>`https://primer.style/octicons` |
+| `repository` | Yes | Repository (with owner) for issues and PRs | `primer/primer-docs` |
+| `token` | Yes | PAT with write permissions (see above) | `${{ secrets.GH_TOKEN }}` |
+| `cache_key` | No | Custom key for caching findings across runs<br>Allowed: `A-Za-z0-9._/-` | `cached_findings-main-primer.style.json` |
 
-**Optional** Custom key for caching findings across runs. Allowed characters are `A-Za-z0-9._/-`. For example: `cached_findings-main-primer.style.json`.
+---
 
 ## Configuring Copilot
 
-The scanner leverages Copilot coding agent, which can be configured by providing custom instructions. Check out [“Adding repository custom instructions for GitHub Copilot”](https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions) to learn how to get started with custom instructions.
+The a11y scanner leverages Copilot coding agent, which can be configured with custom instructions:
 
-As announced in [“GitHub Copilot coding agent now supports .instructions.md custom instructions” (GitHub Blog)](https://github.blog/changelog/2025-07-23-github-copilot-coding-agent-now-supports-instructions-md-custom-instructions/), Copilot coding agent—and, by extension, this scanner action—supports custom instructions provided in `.github/copilot-instructions.md` _and_ `.instructions.md` files stored under `.github/instructions` (which can be scoped to specific files or directories).
+- Repository-wide: `.github/copilot-instructions.md`
+- Directory/file-scoped: `.github/instructions/*.instructions.md`
+
+📚 [Adding repository custom instructions](https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions) | [Copilot .instructions.md support](https://github.blog/changelog/2025-07-23-github-copilot-coding-agent-now-supports-instructions-md-custom-instructions/)
+
+---
+
+## Feedback
+
+Beta participants have direct contact for questions and suggestions. A public feedback form will be available once the project is open-sourced.
+
+---
+
+*Last updated: 2025-08-28*
