@@ -45,7 +45,7 @@ runs:
         token: ${{ inputs.token }}
         fetch-depth: 0
         path: .gh-cache-${{ github.run_id }}
-        show-progress: 'false'
+        show-progress: "false"
 
     - name: Switch to gh-cache branch (or create orphan)
       shell: bash
@@ -79,6 +79,10 @@ runs:
           git commit -m "$(printf 'Save artifact: %s' "${{ inputs.path }}")" \
             && echo "Committed '${{ inputs.path }}' to 'gh-cache' branch" \
             || echo "No changes to commit"
+          if git ls-remote --exit-code --heads origin gh-cache >/dev/null; then
+            git fetch origin gh-cache
+            git rebase origin/gh-cache
+          fi
           git push origin gh-cache
         else
           echo "'${{ inputs.path }}' does not exist"
