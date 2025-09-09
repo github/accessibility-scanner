@@ -106,7 +106,7 @@ The a11y scanner leverages Copilot coding agent, which can be configured with cu
 - Repository-wide: `.github/copilot-instructions.md`
 - Directory/file-scoped: `.github/instructions/*.instructions.md`
 
-📚 [Adding repository custom instructions](https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions) | [Copilot .instructions.md support](https://github.blog/changelog/2025-07-23-github-copilot-coding-agent-now-supports-instructions-md-custom-instructions/)
+📚 [Adding repository custom instructions](https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions) | [Copilot .instructions.md support](https://github.blog/changelog/2025-07-23-github-copilot-coding-agent-now-supports-instructions-md-custom-instructions/) | [Copilot agents.md support](https://github.blog/changelog/2025-08-28-copilot-coding-agent-now-supports-agents-md-custom-instructions)
 
 ---
 
