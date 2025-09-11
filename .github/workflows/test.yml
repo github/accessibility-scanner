@@ -25,7 +25,7 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     strategy:
       matrix:
-        site: [ "sites/site-with-errors" ]
+        site: ["sites/site-with-errors"]
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -103,14 +103,12 @@ jobs:
               }`;
               const variables = { owner, repo, issueNumber: parseInt(issueNumber, 10) }
               const result = await github.graphql(query, variables)
-              let pullRequest;
-              if ('source' in result.repository?.issue?.timelineItems.nodes[0]) {
-                pullRequest = result.repository?.issue?.timelineItems.nodes[0].source;
-              } else if ('subject' in result.repository?.issue?.timelineItems.nodes[0]) {
-                pullRequest = result.repository?.issue?.timelineItems.nodes[0].subject;
-              }
-              if (pullRequest) {
-                finding.pullRequestUrl = pullRequest.url;
+              const timelineNodes = result?.repository?.issue?.timelineItems?.nodes || [];
+              const pullRequestNode = timelineNodes.find(n => n?.source?.url || n?.subject?.url);
+              if (pullRequestNode) {
+                finding.pullRequestUrl = pullRequestNode.source?.url || pullRequestNode.subject?.url;
+              } else {
+                core.info(`No pull request found for issue: ${finding.issueUrl}`);
               }
             }
             fs.writeFileSync(process.env.FINDINGS_PATH, JSON.stringify(findings));
