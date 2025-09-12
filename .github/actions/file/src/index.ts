@@ -1,10 +1,12 @@
 import type { Finding } from "./types.d.js";
 import process from "node:process";
 import core from "@actions/core";
-import { Octokit } from '@octokit/core';
+import { Octokit } from "@octokit/core";
+import { throttling } from "@octokit/plugin-throttling";
 import { toFindingsMap } from "./toFindingsMap.js"
 import { closeIssueForFinding } from "./closeIssueForFinding.js";
 import { openIssueForFinding } from "./openIssueForFinding.js";
+const OctokitWithThrottling = Octokit.plugin(throttling);
 
 export default async function () {
   core.info("Started 'file' action");
@@ -19,7 +21,25 @@ export default async function () {
   const findingsMap = toFindingsMap(findings);
   const cachedFindingsMap = toFindingsMap(cachedFindings);
 
-  const octokit = new Octokit({ auth: token });
+  const octokit = new OctokitWithThrottling({
+    auth: token,
+    throttle: {
+      onRateLimit: (retryAfter, options, octokit, retryCount) => {
+        octokit.log.warn(`Request quota exhausted for request ${options.method} ${options.url}`);
+        if (retryCount < 3) {
+          octokit.log.info(`Retrying after ${retryAfter} seconds!`);
+          return true;
+        }
+      },
+      onSecondaryRateLimit: (retryAfter, options, octokit, retryCount) => {
+        octokit.log.warn(`Secondary rate limit hit for request ${options.method} ${options.url}`);
+        if (retryCount < 3) {
+          octokit.log.info(`Retrying after ${retryAfter} seconds!`);
+          return true;
+        }
+      },
+    }
+  });
   const closedIssueUrls = [];
   const openedIssueUrls = [];
   const repeatIssueUrls = [];

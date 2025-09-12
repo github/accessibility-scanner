@@ -3,6 +3,8 @@ import type { Finding } from "./types.d.js";
 import fs from "node:fs";
 import { describe, it, expect, beforeAll } from "vitest";
 import { Octokit } from "@octokit/core";
+import { throttling } from "@octokit/plugin-throttling";
+const OctokitWithThrottling = Octokit.plugin(throttling);
 
 describe("site-with-errors", () => {
   let findings: Finding[];
@@ -99,7 +101,25 @@ describe("site-with-errors", () => {
     let pullRequests: Endpoints["GET /repos/{owner}/{repo}/pulls/{pull_number}"]["response"]["data"][];
 
     beforeAll(async () => {
-      octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
+      octokit = new OctokitWithThrottling({
+        auth: process.env.GITHUB_TOKEN,
+        throttle: {
+          onRateLimit: (retryAfter, options, octokit, retryCount) => {
+            octokit.log.warn(`Request quota exhausted for request ${options.method} ${options.url}`);
+            if (retryCount < 3) {
+              octokit.log.info(`Retrying after ${retryAfter} seconds!`);
+              return true;
+            }
+          },
+          onSecondaryRateLimit: (retryAfter, options, octokit, retryCount) => {
+            octokit.log.warn(`Secondary rate limit hit for request ${options.method} ${options.url}`);
+            if (retryCount < 3) {
+              octokit.log.info(`Retrying after ${retryAfter} seconds!`);
+              return true;
+            }
+          },
+        }
+      });
       // Fetch issues referenced in the findings file
       issues = await Promise.all(findings.map(async ({ issueUrl }) => {
         expect(issueUrl).toBeDefined();
