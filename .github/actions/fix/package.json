@@ -14,7 +14,7 @@
   "type": "module",
   "dependencies": {
     "@actions/core": "^1.11.1",
-    "@octokit/core": "^7.0.3",
+    "@octokit/core": "^7.0.4",
     "@octokit/plugin-throttling": "^11.0.1"
   },
   "devDependencies": {
