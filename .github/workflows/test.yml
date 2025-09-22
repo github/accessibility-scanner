@@ -64,7 +64,7 @@ jobs:
             http://127.0.0.1:4000/about/
             http://127.0.0.1:4000/404.html
           repository: github-community-projects/continuous-ai-for-accessibility-scanner
-          token: ${{ secrets.TEST }}
+          token: ${{ secrets.GH_TOKEN }}
           cache_key: ${{ steps.cache_key.outputs.cache_key }}
 
       - name: Retrieve cached findings
