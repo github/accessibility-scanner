@@ -66,17 +66,13 @@ The a11y scanner requires two Personal Access Tokens (PATs) as repository secret
 - `metadata: read`
 - Scope: [`github-community-projects/continuous-ai-for-accessibility-scanner`](https://github.com/github-community-projects/continuous-ai-for-accessibility-scanner)
 
-#### The `GH_TOKEN` is a fine-grained PAT with
+#### The `GH_TOKEN` is a classic PAT with
 
-- `contents: write`
-- `issues: write`
-- `pull-requests: write`
-- `metadata: read`
-- Scope: Your target repository (where issues and PRs will be created)
+- `repo` scope
 
-> 👉 GitHub Actions' default `GITHUB_TOKEN` cannot be used here.
+> 👉 Neither GitHub Actions' default `GITHUB_TOKEN` nor a fine-grained PAT can be used here.
 
-📚 [Creating a fine-grained PAT](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token) | [Creating repository secrets](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-a-repository)
+📚 [Creating a fine-grained PAT](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token) | [Creating a classic PAT](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic) | [Creating repository secrets](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-a-repository)
 
 ---
 
