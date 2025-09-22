@@ -15,6 +15,10 @@ inputs:
   cache_key:
     description: "Custom key for caching findings across runs"
     required: false
+  skip_copilot_assignment:
+    description: "Whether to skip assigning filed issues to Copilot"
+    required: false
+    default: "false"
 
 runs:
   using: "composite"
@@ -48,7 +52,8 @@ runs:
         repository: ${{ inputs.repository }}
         token: ${{ inputs.token }}
         cached_findings: ${{ steps.restore.outputs.value }}
-    - name: Fix
+    - if: ${{ inputs.skip_copilot_assignment != 'true' }}
+      name: Fix
       id: fix
       uses: ./.github/actions/fix
       with:
