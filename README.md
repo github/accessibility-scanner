@@ -96,6 +96,7 @@ Trigger the workflow manually or automatically based on your configuration. The 
 | `repository` | Yes | Repository (with owner) for issues and PRs | `primer/primer-docs` |
 | `token` | Yes | PAT with write permissions (see above) | `${{ secrets.GH_TOKEN }}` |
 | `cache_key` | No | Custom key for caching findings across runs<br>Allowed: `A-Za-z0-9._/-` | `cached_findings-main-primer.style.json` |
+| `skip_copilot_assignment` | No | Whether to skip assigning filed issues to Copilot | `true` |
 
 ---
 
