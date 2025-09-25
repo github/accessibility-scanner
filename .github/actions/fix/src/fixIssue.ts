@@ -31,6 +31,7 @@ export async function fixIssue(octokit: Octokit, { owner, repository, issueNumbe
   // Get GraphQL identifier for issue (unless already provided)
   let issueId = nodeId;
   if (!issueId) {
+    console.debug(`Fetching identifier for issue ${owner}/${repository}#${issueNumber}`);
     const issueResponse = await octokit.graphql<{
       repository: {
         issue: { id: string }
@@ -44,8 +45,12 @@ export async function fixIssue(octokit: Octokit, { owner, repository, issueNumbe
       { owner, repository, issueNumber }
     );
     issueId = issueResponse?.repository?.issue?.id;
+    console.debug(`Fetched identifier for issue ${owner}/${repository}#${issueNumber}: ${issueId}`);
+  } else {
+    console.debug(`Using provided identifier for issue ${owner}/${repository}#${issueNumber}: ${issueId}`);
   }
   if (!issueId) {
+    console.warn(`Couldn’t get identifier for issue ${owner}/${repository}#${issueNumber}. Skipping assignment to Copilot.`);
     return;
   }
   // Assign issue to Copilot
