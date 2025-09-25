@@ -9,3 +9,10 @@ export type Finding = {
   solutionLong?: string;
   issueUrl?: string;
 }
+
+export type Issue = {
+  id: number;
+  nodeId: string;
+  url: string;
+  title: string;
+}
