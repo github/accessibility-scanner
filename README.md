@@ -68,6 +68,7 @@ The a11y scanner requires two Personal Access Tokens (PATs) as repository secret
 
 #### The `GH_TOKEN` is a fine-grained PAT with
 
+- `actions: write`
 - `contents: write`
 - `issues: write`
 - `pull-requests: write`
@@ -117,4 +118,4 @@ Beta participants have direct contact for questions and suggestions. A public fe
 
 ---
 
-*Last updated: 2025-09-23*
+*Last updated: 2025-09-25*
