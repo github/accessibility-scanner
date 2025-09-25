@@ -18,12 +18,18 @@ inputs:
 outputs:
   findings:
     description: "List of potential accessibility gaps (plus issue URLs), as stringified JSON"
+  closed_issues:
+    description: "List of closed issues, as stringified JSON"
+  opened_issues:
+    description: "List of newly-opened issues, as stringified JSON"
+  repeated_issues:
+    description: "List of repeated issues, as stringified JSON"
   closed_issue_urls:
-    description: "List of URLs for closed issues, as stringified JSON"
+    description: "DEPRECATED: List of URLs for closed issues, as stringified JSON"
   opened_issue_urls:
-    description: "List of URLs for newly-opened issues, as stringified JSON"
+    description: "DEPRECATED: List of URLs for newly-opened issues, as stringified JSON"
   repeated_issue_urls:
-    description: "List of URLs for repeated issues, as stringified JSON"
+    description: "DEPRECATED: List of URLs for repeated issues, as stringified JSON"
 
 runs:
   using: "node20"
