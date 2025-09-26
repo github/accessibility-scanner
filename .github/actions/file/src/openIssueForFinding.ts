@@ -38,8 +38,7 @@ export async function openIssueForFinding(octokit: Octokit, repoWithOwner: strin
 - [ ] This PR MUST NOT introduce any new accessibility issues or regressions.
 `
 
-    const body = `
-    ## What
+    const body = `## What
 An accessibility scan flagged the element \`${finding.html}\` on ${finding.url} because ${finding.problemShort}. Learn more about why this was flagged by visiting ${finding.problemUrl}.
 
 To fix this, ${finding.solutionShort}.
