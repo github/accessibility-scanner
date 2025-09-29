@@ -1,4 +1,4 @@
-import type { Finding } from "./types.d.js";
+import type { Finding, Issue } from "./types.d.js";
 import process from "node:process";
 import core from "@actions/core";
 import { Octokit } from "@octokit/core";
@@ -40,15 +40,27 @@ export default async function () {
       },
     }
   });
-  const closedIssueUrls = [];
-  const openedIssueUrls = [];
-  const repeatIssueUrls = [];
+  const closedIssues: Issue[] = [];
+  const openedIssues: Issue[] = [];
+  const repeatedIssues: Issue[] = [];
+  /** @deprecated Use `closedIssues` instead. */
+  const closedIssueUrls: string[] = [];
+  /** @deprecated Use `openedIssues` instead. */
+  const openedIssueUrls: string[] = [];
+  /** @deprecated Use `repeatedIssues` instead. */
+  const repeatedIssueUrls: string[] = [];
 
   for (const cachedFinding of cachedFindings) {
     if (!findingsMap.has(`${cachedFinding.url};${cachedFinding.problemShort};${cachedFinding.html}`)) {
       try {
         // Finding was not found in the latest run, so close its issue (if necessary)
         const response = await closeIssueForFinding(octokit, repoWithOwner, cachedFinding);
+        closedIssues.push({
+          id: response.data.id,
+          nodeId: response.data.node_id,
+          url: response.data.html_url,
+          title: response.data.title,
+        });
         closedIssueUrls.push(response.data.html_url);
         core.info(`Closed issue: ${response.data.title} (${repoWithOwner}#${response.data.number})`);
       } catch (error) {
@@ -66,10 +78,22 @@ export default async function () {
       finding.issueUrl = response.data.html_url;
       if (response.data.html_url === cachedIssueUrl) {
         // Finding was found in previous and latest runs, so reopen its issue (if necessary)
-        repeatIssueUrls.push(response.data.html_url);
+        repeatedIssues.push({
+          id: response.data.id,
+          nodeId: response.data.node_id,
+          url: response.data.html_url,
+          title: response.data.title,
+        });
+        repeatedIssueUrls.push(response.data.html_url);
         core.info(`Repeated issue: ${response.data.title} (${repoWithOwner}#${response.data.number})`);
       } else {
         // New finding was found in the latest run, so create its issue
+        openedIssues.push({
+          id: response.data.id,
+          nodeId: response.data.node_id,
+          url: response.data.html_url,
+          title: response.data.title,
+        });
         openedIssueUrls.push(response.data.html_url);
         core.info(`Created issue: ${response.data.title} (${repoWithOwner}#${response.data.number})`);
       }
@@ -79,13 +103,25 @@ export default async function () {
     }
   }
 
+  core.setOutput("closed_issues", JSON.stringify(closedIssues));
+  core.setOutput("opened_issues", JSON.stringify(openedIssues));
+  core.setOutput("repeated_issues", JSON.stringify(repeatedIssues));
+  core.setOutput("findings", JSON.stringify(findings));
+  core.debug(`Output: 'closed_issues: ${JSON.stringify(closedIssues)}'`);
+  core.debug(`Output: 'opened_issues: ${JSON.stringify(openedIssues)}'`);
+  core.debug(`Output: 'repeated_issues: ${JSON.stringify(repeatedIssues)}'`);
+  core.debug(`Output: 'findings: ${JSON.stringify(findings)}'`);
+
+  // Deprecated outputs
   core.setOutput("closed_issue_urls", JSON.stringify(closedIssueUrls));
   core.setOutput("opened_issue_urls", JSON.stringify(openedIssueUrls));
-  core.setOutput("repeated_issue_urls", JSON.stringify(repeatIssueUrls));
-  core.setOutput("findings", JSON.stringify(findings));
+  core.setOutput("repeated_issue_urls", JSON.stringify(repeatedIssueUrls));
+  core.warning("The 'closed_issue_urls' output is deprecated and will be removed in v2. If you use the 'closed_issue_urls' output, please migrate to the 'closed_issues' output.");
   core.debug(`Output: 'closed_issue_urls: ${JSON.stringify(closedIssueUrls)}'`);
+  core.warning("The 'opened_issue_urls' output is deprecated and will be removed in v2. If you use the 'opened_issue_urls' output, please migrate to the 'opened_issues' output.");
   core.debug(`Output: 'opened_issue_urls: ${JSON.stringify(openedIssueUrls)}'`);
-  core.debug(`Output: 'repeated_issue_urls: ${JSON.stringify(repeatIssueUrls)}'`);
-  core.debug(`Output: 'findings: ${JSON.stringify(findings)}'`);
+  core.warning("The 'repeated_issue_urls' output is deprecated and will be removed in v2. If you use the 'repeated_issue_urls' output, please migrate to the 'repeated_issues' output.");
+  core.debug(`Output: 'repeated_issue_urls: ${JSON.stringify(repeatedIssueUrls)}'`);
+
   core.info("Finished 'file' action");
 }

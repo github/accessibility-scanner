@@ -1,15 +1,28 @@
+import type { IssueInput } from "./types.d.js";
 import process from "node:process";
 import core from "@actions/core";
 import { Octokit } from "@octokit/core";
 import { throttling } from "@octokit/plugin-throttling";
 import { fixIssue } from "./fixIssue.js";
+import { Issue } from "./Issue.js";
 const OctokitWithThrottling = Octokit.plugin(throttling);
 
 export default async function () {
   core.info("Started 'fix' action");
-  const issueUrls = JSON.parse(core.getInput('issue_urls', { required: true }));
+  /** @deprecated Use `issues` instead. */
+  const issueUrls: string[] = JSON.parse(
+    core.getInput('issue_urls', { required: false }) || "[]"
+  );
+  const issues: IssueInput[] = JSON.parse(
+    core.getInput('issues', { required: false }) || JSON.stringify(issueUrls.map(url => ({ url })))
+  );
+  if (issues.length === 0) {
+    core.setFailed("Neither 'issues' nor 'issue_urls' was provided, but one is required.");
+    process.exit(1);
+  }
   const repoWithOwner = core.getInput('repository', { required: true });
   const token = core.getInput('token', { required: true });
+  core.debug(`Input: 'issues: ${JSON.stringify(issues)}'`);
   core.debug(`Input: 'issue_urls: ${JSON.stringify(issueUrls)}'`);
   core.debug(`Input: 'repository: ${repoWithOwner}'`);
 
@@ -32,12 +45,13 @@ export default async function () {
       },
     }
   });
-  for (const issueUrl of issueUrls) {
+  for (const issueInput of issues) {
     try {
-      await fixIssue(octokit, repoWithOwner, issueUrl);
-      core.info(`Assigned ${repoWithOwner}#${issueUrl.split('/').pop()} to Copilot!`);
+      const issue = new Issue(issueInput);
+      await fixIssue(octokit, issue);
+      core.info(`Assigned ${issue.owner}/${issue.repository}#${issue.issueNumber} to Copilot!`);
     } catch (error) {
-      core.setFailed(`Failed to assign ${repoWithOwner}#${issueUrl.split('/').pop()} to Copilot: ${error}`);
+      core.setFailed(`Failed to assign ${issueInput.url} to Copilot: ${error}`);
       process.exit(1);
     }
   }
