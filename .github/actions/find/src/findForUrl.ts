@@ -15,11 +15,11 @@ export async function findForUrl(url: string): Promise<Finding[]> {
       scannerType: 'axe',
       url,
       html: violation.nodes[0].html,
-      problemShort: violation.help.toLowerCase(),
-      problemUrl: violation.helpUrl,
+      problemShort: violation.help.toLowerCase().replace(/[']/g, '’'),
+      problemUrl: violation.helpUrl.replace(/[']/g, '’'),
       ruleId: violation.id,
-      solutionShort: violation.description.toLowerCase(),
-      solutionLong: violation.nodes[0].failureSummary
+      solutionShort: violation.description.toLowerCase().replace(/[']/g, '’'),
+      solutionLong: violation.nodes[0].failureSummary?.replace(/[']/g, '’')
     }));
   } catch (e) {
     // do something with the error
