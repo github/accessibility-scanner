@@ -1,5 +1,4 @@
 import crypto from "node:crypto";
-import fs from "node:fs/promises";
 import process from "node:process";
 import * as url from "node:url";
 import core from "@actions/core";
@@ -18,13 +17,12 @@ export default async function () {
     const password = core.getInput("password", { required: true });
     core.setSecret(password);
 
-    // Create a temporary directory for authenticated session state
+    // Determine storage path for authenticated session state
+    // Playwright will create missing directories, if needed
     const actionDirectory = `${url.fileURLToPath(new URL(import.meta.url))}/..`;
-    const sessionStateDirectory = `${
+    const sessionStatePath = `${
       process.env.RUNNER_TEMP ?? actionDirectory
-    }/.auth/${crypto.randomUUID()}`;
-    await fs.mkdir(sessionStateDirectory, { recursive: true });
-    const sessionStatePath = `${sessionStateDirectory}/sessionState.json`;
+    }/.auth/${crypto.randomUUID()}/sessionState.json`;
 
     // Launch a headless browser
     browser = await playwright.chromium.launch({
