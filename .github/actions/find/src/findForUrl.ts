@@ -10,14 +10,8 @@ export async function findForUrl(url: string, sessionStatePath?: string): Promis
   const page = await context.newPage();
   await page.goto(url);
 
-  try {
-    console.log("Sleeping for 5 seconds to allow page to load completely...");
-    await sleep(5000);
-    console.log(page.url());
-  } catch (error) {
-    console.error('Error occurred while sleeping or logging URL:', error);
-  }
-  console.log("Continuing with accessibility scan...");
+  await sleep(5000);
+  console.log(page.url());
 
   let findings: Finding[] = [];
   try {
