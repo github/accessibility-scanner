@@ -8,10 +8,6 @@ export async function findForUrl(url: string, sessionStatePath?: string): Promis
   const page = await context.newPage();
   await page.goto(url);
 
-  console.log(page.url());
-  await page.waitForURL("https://ui.githubapp.com/storybook/?path=/docs/introduction--docs");
-  console.log(page.url());
-
   let findings: Finding[] = [];
   try {
     const rawFindings = await new AxeBuilder({ page }).analyze();
