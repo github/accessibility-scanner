@@ -1,6 +1,5 @@
 import { readFile } from 'node:fs/promises';
 import type { Finding } from './types.d.js';
-import { sleep } from './sleep.js';
 import AxeBuilder from '@axe-core/playwright'
 import playwright from 'playwright';
 
@@ -10,7 +9,8 @@ export async function findForUrl(url: string, sessionStatePath?: string): Promis
   const page = await context.newPage();
   await page.goto(url);
 
-  await sleep(5000);
+  console.log(page.url());
+  await page.waitForURL("https://ui.githubapp.com/storybook/?path=/docs/introduction--docs");
   console.log(page.url());
 
   let findings: Finding[] = [];
