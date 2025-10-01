@@ -1,4 +1,3 @@
-import { readFile } from 'node:fs/promises';
 import type { Finding } from './types.d.js';
 import AxeBuilder from '@axe-core/playwright'
 import playwright from 'playwright';
