@@ -15,6 +15,10 @@ https://primer.style
 https://primer.style/octicons/
 ```
 
+#### `session_state_path`
+
+**Optional** Path to a file containing authenticated session state.
+
 ### Outputs
 
 #### `findings`
