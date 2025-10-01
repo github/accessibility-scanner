@@ -1,9 +1,9 @@
-import crypto from 'node:crypto';
-import fs from 'node:fs/promises';
-import process from 'node:process';
-import * as url from 'node:url';
+import crypto from "node:crypto";
+import fs from "node:fs/promises";
+import process from "node:process";
+import * as url from "node:url";
 import core from "@actions/core";
-import playwright from 'playwright';
+import playwright from "playwright";
 
 export default async function () {
   core.info("Starting 'auth' action");
@@ -13,32 +13,38 @@ export default async function () {
   let page: playwright.Page | undefined;
   try {
     // Get inputs
-    const loginUrl = core.getInput('login_url', { required: true });
-    const username = core.getInput('username', { required: true });
-    const password = core.getInput('password', { required: true });
+    const loginUrl = core.getInput("login_url", { required: true });
+    const username = core.getInput("username", { required: true });
+    const password = core.getInput("password", { required: true });
     core.setSecret(password);
 
     // Create a temporary directory for authenticated session state
     const actionDirectory = `${url.fileURLToPath(new URL(import.meta.url))}/..`;
-    const sessionStateDirectory = `${process.env.RUNNER_TEMP ?? actionDirectory}/.auth/${crypto.randomUUID()}`;
+    const sessionStateDirectory = `${
+      process.env.RUNNER_TEMP ?? actionDirectory
+    }/.auth/${crypto.randomUUID()}`;
     await fs.mkdir(sessionStateDirectory, { recursive: true });
     const sessionStatePath = `${sessionStateDirectory}/sessionState.json`;
 
     // Launch a headless browser
-    browser = await playwright.chromium.launch({ headless: true, executablePath: process.env.CI ? '/usr/bin/google-chrome' : undefined });
+    browser = await playwright.chromium.launch({
+      headless: true,
+      executablePath: process.env.CI ? "/usr/bin/google-chrome" : undefined,
+    });
     context = await browser.newContext();
     page = await context.newPage();
 
     // Log in
     core.info("Navigating to login page");
     await page.goto(loginUrl);
-    core.info('Filling username');
+    core.info("Filling username");
     await page.getByLabel(/username/i).fill(username);
-    core.info('Filling password');
+    core.info("Filling password");
     await page.getByLabel(/password/i).fill(password);
-    core.info('Logging in');
-    await page.getByLabel(/password/i)
-      .locator('xpath=ancestor::form')
+    core.info("Logging in");
+    await page
+      .getByLabel(/password/i)
+      .locator("xpath=ancestor::form")
       .evaluate((form) => (form as HTMLFormElement).submit());
 
     // Write authenticated session state to a file and output its path
