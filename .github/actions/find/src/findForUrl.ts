@@ -1,10 +1,19 @@
+import { readFile } from 'node:fs/promises';
 import type { Finding } from './types.d.js';
 import AxeBuilder from '@axe-core/playwright'
 import playwright from 'playwright';
 
 export async function findForUrl(url: string, sessionStatePath?: string): Promise<Finding[]> {
   const browser = await playwright.chromium.launch({ headless: true, executablePath: process.env.CI ? '/usr/bin/google-chrome' : undefined });
-  const context = await browser.newContext({ storageState: sessionStatePath });
+  let sessionState;
+  if (sessionStatePath) {
+    try {
+      sessionState = JSON.parse(await readFile(sessionStatePath, 'utf8'));
+    } catch (error) {
+      console.error(`Error reading or parsing session state file at path: ${sessionStatePath}`, error);
+    }
+  }
+  const context = await browser.newContext({ storageState: sessionState });
   const page = await context.newPage();
   await page.goto(url);
 
