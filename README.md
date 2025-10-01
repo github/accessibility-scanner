@@ -97,8 +97,19 @@ Trigger the workflow manually or automatically based on your configuration. The 
 | `repository` | Yes | Repository (with owner) for issues and PRs | `primer/primer-docs` |
 | `token` | Yes | PAT with write permissions (see above) | `${{ secrets.GH_TOKEN }}` |
 | `cache_key` | No | Custom key for caching findings across runs<br>Allowed: `A-Za-z0-9._/-` | `cached_findings-main-primer.style.json` |
-| `session_state_path` | No | Path to a file containing authenticated session state | `/tmp/.auth/12345678/sessionState.json` |
+| `login_url` | No | If scanned pages require authentication, the URL of the login page | `https://github.com/login` |
+| `username` | No | If scanned pages require authentication, the username to use for login | `some-user` |
+| `password` | No | If scanned pages require authentication, the password to use for login | `correct-horse-battery-staple` |
+| `session_state_path` | No | If scanned pages require authentication, the path to a file containing authenticated session state | `/tmp/.auth/12345678/sessionState.json` |
 | `skip_copilot_assignment` | No | Whether to skip assigning filed issues to Copilot | `true` |
+
+---
+
+## Authentication
+
+If access to a page requires logging-in first, and logging-in requires only a username and password, then provide the `login_url`, `username`, and `password` inputs.
+
+If your login flow is more complex—if it requires two-factor authentication, single sign-on, passkeys, etc.–and you have a custom action that [authenticates with Playwright](https://playwright.dev/docs/auth) and persists authenticated session state to a file, then provide the `session_state_path` input. (If `session_state_path` is provided, `login_url`, `username`, and `password` will be ignored.)
 
 ---
 
@@ -119,4 +130,4 @@ Beta participants have direct contact for questions and suggestions. A public fe
 
 ---
 
-*Last updated: 2025-09-25*
+*Last updated: 2025-10-01*

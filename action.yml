@@ -15,8 +15,17 @@ inputs:
   cache_key:
     description: "Custom key for caching findings across runs"
     required: false
+  login_url:
+    description: "If scanned pages require authentication, the URL of the login page"
+    required: false
+  username:
+    description: "If scanned pages require authentication, the username to use for login"
+    required: false
+  password:
+    description: "If scanned pages require authentication, the password to use for login"
+    required: false
   session_state_path:
-    description: "Path to a file containing authenticated session state"
+    description: "If scanned pages require authentication, the path to a file containing authenticated session state"
     required: false
   skip_copilot_assignment:
     description: "Whether to skip assigning filed issues to Copilot"
@@ -42,12 +51,20 @@ runs:
       with:
         key: ${{ steps.cache_key.outputs.cache_key }}
         token: ${{ inputs.token }}
+    - if: ${{ inputs.login_url && inputs.username && inputs.password && !inputs.session_state_path }}
+      name: Authenticate
+      id: auth
+      uses: ./.github/actions/auth
+      with:
+        login_url: ${{ inputs.login_url }}
+        username: ${{ inputs.username }}
+        password: ${{ inputs.password }}
     - name: Find
       id: find
       uses: ./.github/actions/find
       with:
         urls: ${{ inputs.urls }}
-        session_state_path: ${{ inputs.session_state_path }}
+        session_state_path:  ${{ inputs.session_state_path || steps.auth.outputs.session_state_path }}
     - name: File
       id: file
       uses: ./.github/actions/file

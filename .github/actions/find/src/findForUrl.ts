@@ -4,7 +4,7 @@ import playwright from 'playwright';
 
 export async function findForUrl(url: string, sessionStatePath?: string): Promise<Finding[]> {
   const browser = await playwright.chromium.launch({ headless: true, executablePath: process.env.CI ? '/usr/bin/google-chrome' : undefined });
-  const context = await browser.newContext({ storageState: sessionStatePath });
+  const context = await browser.newContext({ storageState: !!sessionStatePath ? sessionStatePath : undefined });
   const page = await context.newPage();
   await page.goto(url);
 
