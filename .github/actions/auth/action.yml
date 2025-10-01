@@ -1,0 +1,25 @@
+name: "Auth"
+description: "Log in using Playwright, then write authenticated session state to a file for reuse in other Playwright sessions."
+
+inputs:
+  login_url:
+    description: "Login page URL"
+    required: true
+  username:
+    description: "Username"
+    required: true
+  password:
+    description: "Password"
+    required: true
+
+outputs:
+  session_state_path:
+    description: "Path to a file containing authenticated session state"
+
+runs:
+  using: "node20"
+  main: "bootstrap.js"
+
+branding:
+  icon: "lock"
+  color: "blue"
