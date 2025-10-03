@@ -54,7 +54,7 @@ jobs:
           set -euo pipefail
           bundle exec puma -b tcp://127.0.0.1:4000 &
           echo "Starting Puma on port 4000"
-          curl -fsS --retry 25 --retry-delay 1 --retry-all-errors "http://127.0.0.1:4000/" > /dev/null
+          curl -fsS --retry 25 --retry-delay 1 --retry-all-errors -u "${TEST_USERNAME}:${TEST_PASSWORD}" "http://127.0.0.1:4000/" > /dev/null
           echo "Puma has started"
 
       - name: Generate cache key
