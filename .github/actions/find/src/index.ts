@@ -5,11 +5,13 @@ export default async function () {
   core.info("Starting 'find' action");
   const urls = core.getMultilineInput('urls', { required: true });
   core.debug(`Input: 'urls: ${JSON.stringify(urls)}'`);
+  const sessionStatePath = core.getInput('session_state_path', { required: false });
+  core.debug(`Input: 'session_state_path: ${sessionStatePath}'`);
 
   let findings = [];
   for (const url of urls) {
     core.info(`Scanning ${url}`)
-    const findingsForUrl = await findForUrl(url);
+    const findingsForUrl = await findForUrl(url, sessionStatePath);
     if (findingsForUrl.length === 0) {
       core.info(`No accessibility gaps were found on ${url}`);
       continue;

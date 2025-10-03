@@ -6,6 +6,9 @@ inputs:
     description: "Newline-delimited list of URLs to check for accessibility issues"
     required: true
     multiline: true
+  session_state_path:
+    description: "Path to a file containing authenticated session state"
+    required: false
 
 outputs:
   findings:
