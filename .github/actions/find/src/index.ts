@@ -1,6 +1,6 @@
 import type { AuthContextInput } from "./types.js";
 import core from "@actions/core";
-import { AuthContext } from "./authContext.js";
+import { AuthContext } from "./AuthContext.js";
 import { findForUrl } from "./findForUrl.js";
 
 export default async function () {
