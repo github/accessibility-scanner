@@ -2,9 +2,9 @@ import type { Finding } from './types.d.js';
 import AxeBuilder from '@axe-core/playwright'
 import playwright from 'playwright';
 
-export async function findForUrl(url: string, sessionStatePath?: string): Promise<Finding[]> {
+export async function findForUrl(url: string, playwrightContextOptions?: playwright.BrowserContextOptions): Promise<Finding[]> {
   const browser = await playwright.chromium.launch({ headless: true, executablePath: process.env.CI ? '/usr/bin/google-chrome' : undefined });
-  const context = await browser.newContext({ storageState: !!sessionStatePath ? sessionStatePath : undefined });
+  const context = await browser.newContext(playwrightContextOptions);
   const page = await context.newPage();
   await page.goto(url);
 

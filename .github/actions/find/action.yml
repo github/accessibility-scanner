@@ -6,8 +6,8 @@ inputs:
     description: "Newline-delimited list of URLs to check for accessibility issues"
     required: true
     multiline: true
-  session_state_path:
-    description: "Path to a file containing authenticated session state"
+  playwright_context_options:
+    description: "Stringified JSON object containing Playwright 'BrowserContext' options, including 'httpCredentials' and 'storageState'"
     required: false
 
 outputs:

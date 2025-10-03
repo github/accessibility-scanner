@@ -23,6 +23,6 @@ Authenticate with Playwright and save session state. Supports HTTP Basic and for
 
 ### Outputs
 
-#### `session_state_path`
+#### `playwright_context_options`
 
-Path to a file containing authenticated session state.
+Stringified JSON object containing [Playwright `BrowserContext`](https://playwright.dev/docs/api/class-browsercontext) options, including `httpCredentials` and `storageState`. For example: `{"httpCredentials":{"username":"some-user",password:"correct-horse-battery-staple"},"storageState":"/tmp/.auth/12345678/sessionState.json"}`

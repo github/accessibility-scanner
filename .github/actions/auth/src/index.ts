@@ -32,8 +32,8 @@ export default async function () {
     context = await browser.newContext({
       // Try HTTP Basic authentication
       httpCredentials: {
-        username: username,
-        password: password,
+        username,
+        password,
       },
     });
     page = await context.newPage();
@@ -66,8 +66,14 @@ export default async function () {
 
     // Write authenticated session state to a file and output its path
     await context.storageState({ path: sessionStatePath });
-    core.setOutput("session_state_path", sessionStatePath);
     core.info(`Wrote authenticated session state to ${sessionStatePath}`);
+    core.setOutput(
+      "playwright_context_options",
+      JSON.stringify({
+        httpCredentials: { username, password },
+        storageState: sessionStatePath,
+      })
+    );
   } catch (error) {
     if (page) {
       core.info(`Errored at page URL: ${page.url()}`);

@@ -13,8 +13,8 @@ inputs:
     required: true
 
 outputs:
-  session_state_path:
-    description: "Path to a file containing authenticated session state"
+  playwright_context_options:
+    description: "Stringified JSON object containing Playwright 'BrowserContext' options, including 'httpCredentials' and 'storageState'"
 
 runs:
   using: "node20"

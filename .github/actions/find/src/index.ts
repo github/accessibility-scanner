@@ -1,17 +1,22 @@
+import type playwright from "playwright";
 import core from "@actions/core";
 import { findForUrl } from "./findForUrl.js";
 
 export default async function () {
   core.info("Starting 'find' action");
-  const urls = core.getMultilineInput('urls', { required: true });
+  const urls = core.getMultilineInput("urls", { required: true });
   core.debug(`Input: 'urls: ${JSON.stringify(urls)}'`);
-  const sessionStatePath = core.getInput('session_state_path', { required: false });
-  core.debug(`Input: 'session_state_path: ${sessionStatePath}'`);
+  const playwrightContextOptions: playwright.BrowserContextOptions = JSON.parse(
+    core.getInput("playwright_context_options", { required: false }) ?? "{}"
+  );
+  if (playwrightContextOptions?.httpCredentials?.password) {
+    core.setSecret(playwrightContextOptions.httpCredentials.password);
+  }
 
   let findings = [];
   for (const url of urls) {
-    core.info(`Scanning ${url}`)
-    const findingsForUrl = await findForUrl(url, sessionStatePath);
+    core.info(`Scanning ${url}`);
+    const findingsForUrl = await findForUrl(url, playwrightContextOptions);
     if (findingsForUrl.length === 0) {
       core.info(`No accessibility gaps were found on ${url}`);
       continue;
