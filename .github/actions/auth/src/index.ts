@@ -43,17 +43,20 @@ export default async function () {
     await page.goto(loginUrl);
 
     // Check for a login form
-    const usernameField = await page.getByLabel(/username/i).first();
-    const passwordField = await page.getByLabel(/password/i).first();
-    if (
-      (await usernameField.count()) > 0 &&
-      (await passwordField.count()) > 0
-    ) {
+    const [usernameField, passwordField] = await Promise.all([
+      page.getByLabel(/username/i).first(),
+      page.getByLabel(/password/i).first(),
+    ]);
+    const [usernameFieldExists, passwordFieldExists] = await Promise.all([
+      usernameField.count(),
+      passwordField.count(),
+    ]);
+    if (usernameFieldExists && passwordFieldExists) {
       // Try form authentication
       core.info("Filling username");
-      await page.getByLabel(/username/i).fill(username);
+      await usernameField.fill(username);
       core.info("Filling password");
-      await page.getByLabel(/password/i).fill(password);
+      await passwordField.fill(password);
       core.info("Logging in");
       await page
         .getByLabel(/password/i)
