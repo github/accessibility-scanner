@@ -111,6 +111,9 @@ If access to a page requires logging-in first, and logging-in requires only a us
 
 If your login flow is more complex—if it requires two-factor authentication, single sign-on, passkeys, etc.–and you have a custom action that [authenticates with Playwright](https://playwright.dev/docs/auth) and persists authenticated session state to a file, then provide the `session_state_path` input. (If `session_state_path` is provided, `login_url`, `username`, and `password` will be ignored.)
 
+> [!IMPORTANT]
+> Don’t put passwords in your workflow as plain text; instead reference a [repository secret](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-a-repository).
+
 ---
 
 ## Configuring Copilot

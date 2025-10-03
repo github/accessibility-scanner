@@ -18,6 +18,9 @@ Log in using Playwright, then write authenticated session state to a file for re
 
 **Required** Password.
 
+> [!IMPORTANT]
+> Don’t put passwords in your workflow as plain text; instead reference a [repository secret](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-a-repository).
+
 ### Outputs
 
 #### `session_state_path`
