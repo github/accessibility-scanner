@@ -72,14 +72,6 @@ describe("site-with-errors", () => {
         problemUrl: "https://dequeuniversity.com/rules/axe/4.10/color-contrast?application=playwright",
         ruleId: "color-contrast",
         solutionShort: "ensure the contrast between foreground and background colors meets wcag 2 aa minimum contrast ratio thresholds",
-      }, {
-        scannerType: "axe",
-        url: "http://127.0.0.1:4000/jekyll/update/2025/07/30/welcome-to-jekyll.html",
-        html: '<h1 class="post-title"></h1>',
-        problemShort: "headings should not be empty",
-        problemUrl: "https://dequeuniversity.com/rules/axe/4.10/empty-heading?application=playwright",
-        ruleId: "empty-heading",
-        solutionShort: "ensure headings have discernible text",
       },
     ];
     // Check that:
@@ -157,7 +149,6 @@ describe("site-with-errors", () => {
         "Accessibility issue: Headings should not be empty on /404.html",
         "Accessibility issue: Elements must meet minimum color contrast ratio thresholds on /about/",
         "Accessibility issue: Elements must meet minimum color contrast ratio thresholds on /jekyll/update/2025/07/30/welcome-to-jekyll.html",
-        "Accessibility issue: Headings should not be empty on /jekyll/update/2025/07/30/welcome-to-jekyll.html",
       ];
       expect(actualTitles).toHaveLength(expectedTitles.length);
       expect(actualTitles).toEqual(expect.arrayContaining(expectedTitles));
