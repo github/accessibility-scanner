@@ -1,6 +1,6 @@
 # auth
 
-Log in using Playwright, then write authenticated session state to a file for reuse in other Playwright sessions.
+Authenticate with Playwright and save session state. Supports HTTP Basic and form authentication.
 
 ## Usage
 

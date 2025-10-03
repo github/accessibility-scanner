@@ -29,21 +29,40 @@ export default async function () {
       headless: true,
       executablePath: process.env.CI ? "/usr/bin/google-chrome" : undefined,
     });
-    context = await browser.newContext();
+    context = await browser.newContext({
+      // Try HTTP Basic authentication
+      httpCredentials: {
+        username: username,
+        password: password,
+      },
+    });
     page = await context.newPage();
 
-    // Log in
+    // Navigate to login page
     core.info("Navigating to login page");
     await page.goto(loginUrl);
-    core.info("Filling username");
-    await page.getByLabel(/username/i).fill(username);
-    core.info("Filling password");
-    await page.getByLabel(/password/i).fill(password);
-    core.info("Logging in");
-    await page
-      .getByLabel(/password/i)
-      .locator("xpath=ancestor::form")
-      .evaluate((form) => (form as HTMLFormElement).submit());
+
+    // Check for a login form
+    const usernameField = await page.getByLabel(/username/i).first();
+    const passwordField = await page.getByLabel(/password/i).first();
+    if (
+      (await usernameField.count()) > 0 &&
+      (await passwordField.count()) > 0
+    ) {
+      // Try form authentication
+      core.info("Filling username");
+      await page.getByLabel(/username/i).fill(username);
+      core.info("Filling password");
+      await page.getByLabel(/password/i).fill(password);
+      core.info("Logging in");
+      await page
+        .getByLabel(/password/i)
+        .locator("xpath=ancestor::form")
+        .evaluate((form) => (form as HTMLFormElement).submit());
+    } else {
+      core.info("No login form detected");
+      // This occurs if HTTP Basic auth succeeded, or if the page does not require authentication.
+    }
 
     // Write authenticated session state to a file and output its path
     await context.storageState({ path: sessionStatePath });
