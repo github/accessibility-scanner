@@ -43,7 +43,9 @@ export default async function () {
     core.info("Navigating to login page");
     await page.goto(loginUrl);
 
-    // Check for a login form
+    // Check for a login form.
+    // If no login form is found, then either HTTP Basic auth succeeded, or the page does not require authentication.
+    core.info("Checking for login form");
     const [usernameField, passwordField] = await Promise.all([
       page.getByLabel(/username/i).first(),
       page.getByLabel(/password/i).first(),
