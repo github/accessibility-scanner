@@ -23,6 +23,6 @@ Authenticate with Playwright and save session state. Supports HTTP Basic and for
 
 ### Outputs
 
-#### `playwright_context_options`
+#### `auth_context`
 
-Stringified JSON object containing [Playwright `BrowserContext`](https://playwright.dev/docs/api/class-browsercontext) options, including `httpCredentials` and `storageState`. For example: `{"httpCredentials":{"username":"some-user",password:"correct-horse-battery-staple"},"storageState":"/tmp/.auth/12345678/sessionState.json"}`
+Stringified JSON object containing `username`, `password`, `cookies`, and/or `localStorage` from an authenticated session. For example: `{"username":"some-user","password":"correct-horse-battery-staple","cookies":[{"name":"theme-preference","value":"light","domain":"primer.style","path":"/"}],"localStorage":{"https://primer.style":{"theme-preference":"light"}}}`

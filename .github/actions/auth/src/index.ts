@@ -1,3 +1,4 @@
+import type { AuthContextOutput } from "./types.d.js";
 import crypto from "node:crypto";
 import process from "node:process";
 import * as url from "node:url";
@@ -67,16 +68,22 @@ export default async function () {
       // This occurs if HTTP Basic auth succeeded, or if the page does not require authentication.
     }
 
-    // Write authenticated session state to a file and output its path
-    await context.storageState({ path: sessionStatePath });
-    core.info(`Wrote authenticated session state to ${sessionStatePath}`);
-    core.setOutput(
-      "playwright_context_options",
-      JSON.stringify({
-        httpCredentials: { username, password },
-        storageState: sessionStatePath,
-      })
-    );
+    // Output authenticated session state
+    const { cookies, origins } = await context.storageState();
+    const authContextOutput: AuthContextOutput = {
+      username,
+      password,
+      cookies,
+      localStorage: origins.reduce((acc, { origin, localStorage }) => {
+        acc[origin] = localStorage.reduce((acc, { name, value }) => {
+          acc[name] = value;
+          return acc;
+        }, {} as Record<string, string>);
+        return acc;
+      }, {} as Record<string, Record<string, string>>),
+    };
+    core.setOutput("auth_context", JSON.stringify(authContextOutput));
+    core.debug("Output: 'auth_context'");
   } catch (error) {
     if (page) {
       core.info(`Errored at page URL: ${page.url()}`);

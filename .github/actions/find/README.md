@@ -15,9 +15,9 @@ https://primer.style
 https://primer.style/octicons/
 ```
 
-#### `playwright_context_options`
+#### `auth_context`
 
-**Optional** Stringified JSON object containing [Playwright `BrowserContext`](https://playwright.dev/docs/api/class-browsercontext) options, including `httpCredentials` and `storageState`. For example: `{"httpCredentials":{"username":"some-user",password:"correct-horse-battery-staple"},"storageState":"/tmp/.auth/12345678/sessionState.json"}`
+**Optional** Stringified JSON object containing `username`, `password`, `cookies`, and/or `localStorage` from an authenticated session. For example: `{"username":"some-user","password":"correct-horse-battery-staple","cookies":[{"name":"theme-preference","value":"light","domain":"primer.style","path":"/"}],"localStorage":{"https://primer.style":{"theme-preference":"light"}}}`
 
 ### Outputs
 

@@ -24,8 +24,8 @@ inputs:
   password:
     description: "If scanned pages require authentication, the password to use for login"
     required: false
-  playwright_context_options:
-    description: "If scanned pages require authentication, a stringified JSON object containing Playwright 'BrowserContext' options"
+  auth_context:
+    description: "If scanned pages require authentication, a stringified JSON object containing 'username', 'password', 'cookies', and/or 'localStorage' from an authenticated session"
     required: false
   skip_copilot_assignment:
     description: "Whether to skip assigning filed issues to Copilot"
@@ -51,7 +51,7 @@ runs:
       with:
         key: ${{ steps.cache_key.outputs.cache_key }}
         token: ${{ inputs.token }}
-    - if: ${{ inputs.login_url && inputs.username && inputs.password && !inputs.playwright_context_options }}
+    - if: ${{ inputs.login_url && inputs.username && inputs.password && !inputs.auth_context }}
       name: Authenticate
       id: auth
       uses: ./.github/actions/auth
@@ -64,7 +64,7 @@ runs:
       uses: ./.github/actions/find
       with:
         urls: ${{ inputs.urls }}
-        playwright_context_options: ${{ inputs.playwright_context_options || steps.auth.outputs.playwright_context_options }}
+        auth_context: ${{ inputs.auth_context || steps.auth.outputs.auth_context }}
     - name: File
       id: file
       uses: ./.github/actions/file

@@ -13,8 +13,8 @@ inputs:
     required: true
 
 outputs:
-  playwright_context_options:
-    description: "Stringified JSON object containing Playwright 'BrowserContext' options, including 'httpCredentials' and 'storageState'"
+  auth_context:
+    description: "Stringified JSON object containing 'username', 'password', 'cookies', and/or 'localStorage' from an authenticated session"
 
 runs:
   using: "node20"

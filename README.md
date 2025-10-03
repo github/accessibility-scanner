@@ -100,7 +100,7 @@ Trigger the workflow manually or automatically based on your configuration. The 
 | `login_url` | No | If scanned pages require authentication, the URL of the login page | `https://github.com/login` |
 | `username` | No | If scanned pages require authentication, the username to use for login | `some-user` |
 | `password` | No | If scanned pages require authentication, the password to use for login | `correct-horse-battery-staple` |
-| `playwright_context_options` | No | If scanned pages require authentication, a stringified JSON object containing [Playwright `BrowserContext`](https://playwright.dev/docs/api/class-browsercontext) options | `{"storageState":"/tmp/.auth/12345678/sessionState.json"}` |
+| `auth_context` | No | If scanned pages require authentication, a stringified JSON object containing username, password, cookies, and/or localStorage from an authenticated session | `{"username":"some-user","password":"correct-horse-battery-staple","cookies":[{"name":"theme-preference","value":"light","domain":"primer.style","path":"/"}],"localStorage":{"https://primer.style":{"theme-preference":"light"}}}` |
 | `skip_copilot_assignment` | No | Whether to skip assigning filed issues to Copilot | `true` |
 
 ---
@@ -109,7 +109,7 @@ Trigger the workflow manually or automatically based on your configuration. The 
 
 If access to a page requires logging-in first, and logging-in requires only a username and password, then provide the `login_url`, `username`, and `password` inputs.
 
-If your login flow is more complex—if it requires two-factor authentication, single sign-on, passkeys, etc.–and you have a custom action that [authenticates with Playwright](https://playwright.dev/docs/auth) and persists authenticated session state to a file, then provide the `playwright_context_options` input. (If `playwright_context_options` is provided, `login_url`, `username`, and `password` will be ignored.)
+If your login flow is more complex—if it requires two-factor authentication, single sign-on, passkeys, etc.–and you have a custom action that [authenticates with Playwright](https://playwright.dev/docs/auth) and persists authenticated session state to a file, then provide the `auth_context` input. (If `auth_context` is provided, `login_url`, `username`, and `password` will be ignored.)
 
 > [!IMPORTANT]
 > Don’t put passwords in your workflow as plain text; instead reference a [repository secret](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-a-repository).
