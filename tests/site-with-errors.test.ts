@@ -43,7 +43,7 @@ describe("site-with-errors", () => {
       }, {
         scannerType: "axe",
         url: "http://127.0.0.1:4000/jekyll/update/2025/07/30/welcome-to-jekyll.html",
-        html: `<time class="dt-published" datetime="2025-07-30T13:32:33-04:00" itemprop="datePublished">Jul 30, 2025
+        html: `<time class="dt-published" datetime="2025-07-30T17:32:33+00:00" itemprop="datePublished">Jul 30, 2025
       </time>`,
         problemShort: "elements must meet minimum color contrast ratio thresholds",
         problemUrl: "https://dequeuniversity.com/rules/axe/4.10/color-contrast?application=playwright",
