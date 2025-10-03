@@ -42,6 +42,23 @@ describe("site-with-errors", () => {
         solutionShort: "ensure that the page, or at least one of its frames contains a level-one heading"
       }, {
         scannerType: "axe",
+        url: "http://127.0.0.1:4000/jekyll/update/2025/07/30/welcome-to-jekyll.html",
+        html: `<time class="dt-published" datetime="2025-07-30T13:32:33-04:00" itemprop="datePublished">Jul 30, 2025
+      </time>`,
+        problemShort: "elements must meet minimum color contrast ratio thresholds",
+        problemUrl: "https://dequeuniversity.com/rules/axe/4.10/color-contrast?application=playwright",
+        ruleId: "color-contrast",
+        solutionShort: "ensure the contrast between foreground and background colors meets wcag 2 aa minimum contrast ratio thresholds",
+      }, {
+        scannerType: "axe",
+        url: "http://127.0.0.1:4000/about/",
+        html: '<a href="https://jekyllrb.com/">jekyllrb.com</a>',
+        problemShort: "elements must meet minimum color contrast ratio thresholds",
+        problemUrl: "https://dequeuniversity.com/rules/axe/4.10/color-contrast?application=playwright",
+        ruleId: "color-contrast",
+        solutionShort: "ensure the contrast between foreground and background colors meets wcag 2 aa minimum contrast ratio thresholds",
+      }, {
+        scannerType: "axe",
         url: "http://127.0.0.1:4000/404.html",
         html: '<li class="p-name">Continuous Accessibility Scanner Demo</li>',
         problemShort: "elements must meet minimum color contrast ratio thresholds",
@@ -56,23 +73,6 @@ describe("site-with-errors", () => {
         problemUrl: "https://dequeuniversity.com/rules/axe/4.10/empty-heading?application=playwright",
         ruleId: "empty-heading",
         solutionShort: "ensure headings have discernible text",
-      }, {
-        scannerType: "axe",
-        url: "http://127.0.0.1:4000/about/",
-        html: '<a href="https://jekyllrb.com/">jekyllrb.com</a>',
-        problemShort: "elements must meet minimum color contrast ratio thresholds",
-        problemUrl: "https://dequeuniversity.com/rules/axe/4.10/color-contrast?application=playwright",
-        ruleId: "color-contrast",
-        solutionShort: "ensure the contrast between foreground and background colors meets wcag 2 aa minimum contrast ratio thresholds",
-      }, {
-        scannerType: "axe",
-        url: "http://127.0.0.1:4000/jekyll/update/2025/07/30/welcome-to-jekyll.html",
-        html: `<time class="dt-published" datetime="2025-07-30T13:32:33-04:00" itemprop="datePublished">Jul 30, 2025
-      </time>`,
-        problemShort: "elements must meet minimum color contrast ratio thresholds",
-        problemUrl: "https://dequeuniversity.com/rules/axe/4.10/color-contrast?application=playwright",
-        ruleId: "color-contrast",
-        solutionShort: "ensure the contrast between foreground and background colors meets wcag 2 aa minimum contrast ratio thresholds",
       },
     ];
     // Check that:
