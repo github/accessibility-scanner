@@ -17,7 +17,7 @@
   "homepage": "https://github.com/github-community-projects/continuous-ai-for-accessibility-scanner#readme",
   "devDependencies": {
     "@actions/core": "^1.11.1",
-    "@octokit/core": "^7.0.3",
+    "@octokit/core": "^7.0.5",
     "@octokit/plugin-throttling": "^11.0.2",
     "@octokit/types": "^15.0.0",
     "@types/node": "^24.7.0",
