@@ -15,10 +15,10 @@
   "dependencies": {
     "@actions/core": "^1.11.1",
     "@axe-core/playwright": "^4.10.2",
-    "playwright": "^1.55.1"
+    "playwright": "^1.56.0"
   },
   "devDependencies": {
     "@types/node": "^24.7.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.3"
   }
 }
