@@ -1,6 +1,6 @@
 # auth
 
-Log in using Playwright, then write authenticated session state to a file for reuse in other Playwright sessions.
+Authenticate with Playwright and save session state. Supports HTTP Basic and form authentication.
 
 ## Usage
 
@@ -23,6 +23,6 @@ Log in using Playwright, then write authenticated session state to a file for re
 
 ### Outputs
 
-#### `session_state_path`
+#### `auth_context`
 
-Path to a file containing authenticated session state.
+Stringified JSON object containing `username`, `password`, `cookies`, and/or `localStorage` from an authenticated session. For example: `{"username":"some-user","password":"correct-horse-battery-staple","cookies":[{"name":"theme-preference","value":"light","domain":"primer.style","path":"/"}],"localStorage":{"https://primer.style":{"theme-preference":"light"}}}`

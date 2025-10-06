@@ -1,3 +1,4 @@
+import type { AuthContextOutput } from "./types.d.js";
 import crypto from "node:crypto";
 import process from "node:process";
 import * as url from "node:url";
@@ -29,26 +30,62 @@ export default async function () {
       headless: true,
       executablePath: process.env.CI ? "/usr/bin/google-chrome" : undefined,
     });
-    context = await browser.newContext();
+    context = await browser.newContext({
+      // Try HTTP Basic authentication
+      httpCredentials: {
+        username,
+        password,
+      },
+    });
     page = await context.newPage();
 
-    // Log in
+    // Navigate to login page
     core.info("Navigating to login page");
     await page.goto(loginUrl);
-    core.info("Filling username");
-    await page.getByLabel(/username/i).fill(username);
-    core.info("Filling password");
-    await page.getByLabel(/password/i).fill(password);
-    core.info("Logging in");
-    await page
-      .getByLabel(/password/i)
-      .locator("xpath=ancestor::form")
-      .evaluate((form) => (form as HTMLFormElement).submit());
 
-    // Write authenticated session state to a file and output its path
-    await context.storageState({ path: sessionStatePath });
-    core.setOutput("session_state_path", sessionStatePath);
-    core.info(`Wrote authenticated session state to ${sessionStatePath}`);
+    // Check for a login form.
+    // If no login form is found, then either HTTP Basic auth succeeded, or the page does not require authentication.
+    core.info("Checking for login form");
+    const [usernameField, passwordField] = await Promise.all([
+      page.getByLabel(/username/i).first(),
+      page.getByLabel(/password/i).first(),
+    ]);
+    const [usernameFieldExists, passwordFieldExists] = await Promise.all([
+      usernameField.count(),
+      passwordField.count(),
+    ]);
+    if (usernameFieldExists && passwordFieldExists) {
+      // Try form authentication
+      core.info("Filling username");
+      await usernameField.fill(username);
+      core.info("Filling password");
+      await passwordField.fill(password);
+      core.info("Logging in");
+      await page
+        .getByLabel(/password/i)
+        .locator("xpath=ancestor::form")
+        .evaluate((form) => (form as HTMLFormElement).submit());
+    } else {
+      core.info("No login form detected");
+      // This occurs if HTTP Basic auth succeeded, or if the page does not require authentication.
+    }
+
+    // Output authenticated session state
+    const { cookies, origins } = await context.storageState();
+    const authContextOutput: AuthContextOutput = {
+      username,
+      password,
+      cookies,
+      localStorage: origins.reduce((acc, { origin, localStorage }) => {
+        acc[origin] = localStorage.reduce((acc, { name, value }) => {
+          acc[name] = value;
+          return acc;
+        }, {} as Record<string, string>);
+        return acc;
+      }, {} as Record<string, Record<string, string>>),
+    };
+    core.setOutput("auth_context", JSON.stringify(authContextOutput));
+    core.debug("Output: 'auth_context'");
   } catch (error) {
     if (page) {
       core.info(`Errored at page URL: ${page.url()}`);

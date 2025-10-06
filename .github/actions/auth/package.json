@@ -1,7 +1,7 @@
 {
   "name": "auth",
   "version": "1.0.0",
-  "description": "Log in using Playwright, then write authenticated session state to a file for reuse in other Playwright sessions.",
+  "description": "Authenticate with Playwright and save session state. Supports HTTP Basic and form authentication.",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "scripts": {

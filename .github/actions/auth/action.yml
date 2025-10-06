@@ -1,5 +1,5 @@
 name: "Auth"
-description: "Log in using Playwright, then write authenticated session state to a file for reuse in other Playwright sessions."
+description: "Authenticate with Playwright and save session state. Supports HTTP Basic and form authentication."
 
 inputs:
   login_url:
@@ -13,8 +13,8 @@ inputs:
     required: true
 
 outputs:
-  session_state_path:
-    description: "Path to a file containing authenticated session state"
+  auth_context:
+    description: "Stringified JSON object containing 'username', 'password', 'cookies', and/or 'localStorage' from an authenticated session"
 
 runs:
   using: "node20"

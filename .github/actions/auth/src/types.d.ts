@@ -1,12 +1,3 @@
-export type Finding = {
-  url: string;
-  html: string;
-  problemShort: string;
-  problemUrl: string;
-  solutionShort: string;
-  solutionLong?: string;
-};
-
 export type Cookie = {
   name: string;
   value: string;
@@ -24,7 +15,7 @@ export type LocalStorage = {
   };
 };
 
-export type AuthContextInput = {
+export type AuthContextOutput = {
   username?: string;
   password?: string;
   cookies?: Cookie[];
