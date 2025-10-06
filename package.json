@@ -19,7 +19,7 @@
     "@actions/core": "^1.11.1",
     "@octokit/core": "^7.0.3",
     "@octokit/plugin-throttling": "^11.0.1",
-    "@octokit/types": "^14.1.0",
+    "@octokit/types": "^15.0.0",
     "@types/node": "^24.3.0",
     "vitest": "^3.2.4"
   }
