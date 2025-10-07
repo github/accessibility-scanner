@@ -1,7 +1,7 @@
 {
-  "name": "file",
+  "name": "auth",
   "version": "1.0.0",
-  "description": "Files GitHub issues to track potential accessibility gaps.",
+  "description": "Authenticate with Playwright and save session state. Supports HTTP Basic and form authentication.",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "scripts": {
@@ -14,8 +14,7 @@
   "type": "module",
   "dependencies": {
     "@actions/core": "^1.11.1",
-    "@octokit/core": "^7.0.5",
-    "@octokit/plugin-throttling": "^11.0.2"
+    "playwright": "^1.56.0"
   },
   "devDependencies": {
     "@types/node": "^24.7.0",

@@ -37,17 +37,25 @@ jobs:
           bundler-cache: true
           working-directory: ${{ matrix.site }}
 
-      - name: Start Jekyll (${{ matrix.site }})
+      - name: Build Jekyll site (${{ matrix.site }})
         shell: bash
         working-directory: ${{ matrix.site }}
         env:
           JEKYLL_ENV: production
+        run: bundle exec jekyll build
+
+      - name: Start Puma (${{ matrix.site }})
+        shell: bash
+        working-directory: ${{ matrix.site }}
+        env:
+          TEST_USERNAME: ${{ secrets.TEST_USERNAME }}
+          TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
         run: |
           set -euo pipefail
-          bundle exec jekyll serve --no-watch --detach
-          echo "Starting Jekyll on port 4000"
-          curl -fsS --retry 25 --retry-delay 1 --retry-all-errors "http://127.0.0.1:4000/" > /dev/null
-          echo "Jekyll has started"
+          bundle exec puma -b tcp://127.0.0.1:4000 &
+          echo "Starting Puma on port 4000"
+          curl -fsS --retry 25 --retry-delay 1 --retry-all-errors -u "${TEST_USERNAME}:${TEST_PASSWORD}" "http://127.0.0.1:4000/" > /dev/null
+          echo "Puma has started"
 
       - name: Generate cache key
         id: cache_key
@@ -63,6 +71,9 @@ jobs:
             http://127.0.0.1:4000/jekyll/update/2025/07/30/welcome-to-jekyll.html
             http://127.0.0.1:4000/about/
             http://127.0.0.1:4000/404.html
+          login_url: http://127.0.0.1:4000/
+          username: ${{ secrets.TEST_USERNAME }}
+          password: ${{ secrets.TEST_PASSWORD }}
           repository: github-community-projects/continuous-ai-for-accessibility-scanner
           token: ${{ secrets.GH_TOKEN }}
           cache_key: ${{ steps.cache_key.outputs.cache_key }}

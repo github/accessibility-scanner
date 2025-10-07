@@ -1,0 +1,25 @@
+name: "Auth"
+description: "Authenticate with Playwright and save session state. Supports HTTP Basic and form authentication."
+
+inputs:
+  login_url:
+    description: "Login page URL"
+    required: true
+  username:
+    description: "Username"
+    required: true
+  password:
+    description: "Password"
+    required: true
+
+outputs:
+  auth_context:
+    description: "Stringified JSON object containing 'username', 'password', 'cookies', and/or 'localStorage' from an authenticated session"
+
+runs:
+  using: "node20"
+  main: "bootstrap.js"
+
+branding:
+  icon: "lock"
+  color: "blue"
