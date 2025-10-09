@@ -26,7 +26,7 @@ outputs:
     description: "DEPRECATED: List of repeated issues, as stringified JSON"
 
 runs:
-  using: "node20"
+  using: "node24"
   main: "bootstrap.js"
 
 branding:
