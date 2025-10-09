@@ -4,10 +4,7 @@ description: "Attempts to fix issues with Copilot."
 inputs:
   issues:
     description: "List of issues to attempt to fix, as stringified JSON"
-    required: false
-  issue_urls:
-    description: "List of issue URLs to attempt to fix, as stringified JSON"
-    required: false
+    required: true
   repository:
     description: "Repository (with owner) containing issues"
     required: true

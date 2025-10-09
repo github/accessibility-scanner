@@ -9,23 +9,12 @@ const OctokitWithThrottling = Octokit.plugin(throttling);
 
 export default async function () {
   core.info("Started 'fix' action");
-  /** @deprecated Use `issues` instead. */
-  const issueUrls: string[] | null = JSON.parse(
-    core.getInput("issue_urls", { required: false }) || "null"
+  const issues: IssueInput[] = JSON.parse(
+    core.getInput("issues", { required: true }) || "[]"
   );
-  const issues: IssueInput[] | null = JSON.parse(
-    core.getInput("issues", { required: false }) || "null"
-  );
-  if (issueUrls === null && issues === null) {
-    core.setFailed(
-      "Neither 'issues' nor 'issue_urls' was provided, but one is required."
-    );
-    process.exit(1);
-  }
   const repoWithOwner = core.getInput("repository", { required: true });
   const token = core.getInput("token", { required: true });
   core.debug(`Input: 'issues: ${JSON.stringify(issues)}'`);
-  core.debug(`Input: 'issue_urls: ${JSON.stringify(issueUrls)}'`);
   core.debug(`Input: 'repository: ${repoWithOwner}'`);
 
   const octokit = new OctokitWithThrottling({
@@ -51,9 +40,7 @@ export default async function () {
       },
     },
   });
-  const issueInputs: IssueInput[] =
-    issues ?? issueUrls?.map((url) => ({ url })) ?? [];
-  for (const issueInput of issueInputs) {
+  for (const issueInput of issues) {
     try {
       const issue = new Issue(issueInput);
       await fixIssue(octokit, issue);
