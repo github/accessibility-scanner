@@ -13,8 +13,8 @@ inputs:
     description: "Personal access token (PAT) with fine-grained permissions 'contents: write', 'issues: write', and 'pull_requests: write'"
     required: true
   cache_key:
-    description: "Custom key for caching findings across runs"
-    required: false
+    description: "Key for caching findings across runs"
+    required: true
   login_url:
     description: "If scanned pages require authentication, the URL of the login page"
     required: false
@@ -35,21 +35,11 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Generate cache key
-      id: cache_key
-      shell: bash
-      run: |
-        CACHE_KEY="${{ inputs.cache_key }}"
-        if [[ -z "$CACHE_KEY" ]]; then
-          # If cache_key is not provided, generate a default one using the branch name, replacing characters (e.g. `/`) which would create unexpected paths.
-          CACHE_KEY=$(printf 'cached_findings-%s' "${{ github.ref_name }}" | tr -cs 'A-Za-z0-9._-' '_')
-        fi
-        echo "cache_key=$CACHE_KEY" >> $GITHUB_OUTPUT
     - name: Restore cached_findings
       id: restore
       uses: ./.github/actions/gh-cache/cache
       with:
-        key: ${{ steps.cache_key.outputs.cache_key }}
+        key: ${{ inputs.cache_key }}
         token: ${{ inputs.token }}
     - if: ${{ inputs.login_url && inputs.username && inputs.password && !inputs.auth_context }}
       name: Authenticate
@@ -84,7 +74,7 @@ runs:
     - name: Save cached_findings
       uses: ./.github/actions/gh-cache/cache
       with:
-        key: ${{ steps.cache_key.outputs.cache_key }}
+        key: ${{ inputs.cache_key }}
         value: ${{ steps.file.outputs.findings }}
         token: ${{ inputs.token }}
 
