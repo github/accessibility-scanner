@@ -17,7 +17,7 @@ outputs:
     description: "Stringified JSON object containing 'username', 'password', 'cookies', and/or 'localStorage' from an authenticated session"
 
 runs:
-  using: "node20"
+  using: "node24"
   main: "bootstrap.js"
 
 branding:
