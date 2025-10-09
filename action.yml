@@ -68,7 +68,7 @@ runs:
       id: fix
       uses: ./.github/actions/fix
       with:
-        issue_urls: ${{ steps.file.outputs.opened_issue_urls }}
+        issues: ${{ steps.file.outputs.opened_issues }}
         repository: ${{ inputs.repository }}
         token: ${{ inputs.token }}
     - name: Save cached_findings

@@ -40,15 +40,12 @@ export default async function () {
       },
     }
   });
+  /** @deprecated */
   const closedIssues: Issue[] = [];
+  /** @deprecated */
   const openedIssues: Issue[] = [];
+  /** @deprecated */
   const repeatedIssues: Issue[] = [];
-  /** @deprecated Use `closedIssues` instead. */
-  const closedIssueUrls: string[] = [];
-  /** @deprecated Use `openedIssues` instead. */
-  const openedIssueUrls: string[] = [];
-  /** @deprecated Use `repeatedIssues` instead. */
-  const repeatedIssueUrls: string[] = [];
 
   for (const cachedFinding of cachedFindings) {
     if (!findingsMap.has(`${cachedFinding.url};${cachedFinding.problemShort};${cachedFinding.html}`)) {
@@ -61,7 +58,6 @@ export default async function () {
           url: response.data.html_url,
           title: response.data.title,
         });
-        closedIssueUrls.push(response.data.html_url);
         core.info(`Closed issue: ${response.data.title} (${repoWithOwner}#${response.data.number})`);
       } catch (error) {
         core.setFailed(`Failed to close issue for finding: ${error}`);
@@ -84,7 +80,6 @@ export default async function () {
           url: response.data.html_url,
           title: response.data.title,
         });
-        repeatedIssueUrls.push(response.data.html_url);
         core.info(`Repeated issue: ${response.data.title} (${repoWithOwner}#${response.data.number})`);
       } else {
         // New finding was found in the latest run, so create its issue
@@ -94,7 +89,6 @@ export default async function () {
           url: response.data.html_url,
           title: response.data.title,
         });
-        openedIssueUrls.push(response.data.html_url);
         core.info(`Created issue: ${response.data.title} (${repoWithOwner}#${response.data.number})`);
       }
     } catch (error) {
@@ -103,6 +97,7 @@ export default async function () {
     }
   }
 
+  // Deprecated outputs
   core.setOutput("closed_issues", JSON.stringify(closedIssues));
   core.setOutput("opened_issues", JSON.stringify(openedIssues));
   core.setOutput("repeated_issues", JSON.stringify(repeatedIssues));
@@ -111,17 +106,10 @@ export default async function () {
   core.debug(`Output: 'opened_issues: ${JSON.stringify(openedIssues)}'`);
   core.debug(`Output: 'repeated_issues: ${JSON.stringify(repeatedIssues)}'`);
   core.debug(`Output: 'findings: ${JSON.stringify(findings)}'`);
-
-  // Deprecated outputs
-  core.setOutput("closed_issue_urls", JSON.stringify(closedIssueUrls));
-  core.setOutput("opened_issue_urls", JSON.stringify(openedIssueUrls));
-  core.setOutput("repeated_issue_urls", JSON.stringify(repeatedIssueUrls));
-  core.warning("The 'closed_issue_urls' output is deprecated and will be removed in v2. If you use the 'closed_issue_urls' output, please migrate to the 'closed_issues' output.");
-  core.debug(`Output: 'closed_issue_urls: ${JSON.stringify(closedIssueUrls)}'`);
-  core.warning("The 'opened_issue_urls' output is deprecated and will be removed in v2. If you use the 'opened_issue_urls' output, please migrate to the 'opened_issues' output.");
-  core.debug(`Output: 'opened_issue_urls: ${JSON.stringify(openedIssueUrls)}'`);
-  core.warning("The 'repeated_issue_urls' output is deprecated and will be removed in v2. If you use the 'repeated_issue_urls' output, please migrate to the 'repeated_issues' output.");
-  core.debug(`Output: 'repeated_issue_urls: ${JSON.stringify(repeatedIssueUrls)}'`);
+  core.warning("The 'closed_issues' output is deprecated and will be removed in v2.");
+  core.warning("The 'opened_issues' output is deprecated and will be removed in v2.");
+  core.warning("The 'repeated_issues' output is deprecated and will be removed in v2.");
+  core.warning("The 'findings' output is deprecated and will be removed in v2.");
 
   core.info("Finished 'file' action");
 }
