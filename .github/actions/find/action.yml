@@ -15,7 +15,7 @@ outputs:
     description: "List of potential accessibility gaps, as stringified JSON"
 
 runs:
-  using: "node20"
+  using: "node24"
   main: "bootstrap.js"
 
 branding:
