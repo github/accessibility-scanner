@@ -12,6 +12,11 @@ The a11y scanner helps teams:
 
 ---
 
+## Requirements
+
+TODO: Includes a description of the kind of environment required to run the software and instructions for setting it up.
+It clearly states the external dependencies and directions for installing them.
+
 ## Getting Started
 
 ### 1. Add a Workflow File
@@ -27,11 +32,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Retrieve the scanner code
-      - uses: actions/checkout@v5
+      - uses: github-community-projects/continuous-ai-for-accessibility-scanner@v2
         with:
           repository: github-community-projects/continuous-ai-for-accessibility-scanner
           ref: v1
-          token: ${{ secrets.GH_COMMUNITY_PROJECTS_TOKEN }} # This token must have read access to github-community-projects/continuous-ai-for-accessibility-scanner; more information below.
           path: ./.github/actions/continuous-ai-for-accessibility-scanner
       # Prepare the scanner to run
       - shell: bash
@@ -56,15 +60,9 @@ Required Permissions:
 
 ---
 
-### 2. Create Tokens and Add Secrets
+### 2. Create a Token and Add a Secret
 
-The a11y scanner requires two Personal Access Tokens (PATs) as repository secrets:
-
-#### The `GH_COMMUNITY_PROJECTS_TOKEN` is a fine-grained PAT with
-
-- `contents: read`
-- `metadata: read`
-- Scope: [`github-community-projects/continuous-ai-for-accessibility-scanner`](https://github.com/github-community-projects/continuous-ai-for-accessibility-scanner)
+The a11y scanner requires a Personal Access Token (PAT) as repository secret:
 
 #### The `GH_TOKEN` is a fine-grained PAT with
 
@@ -129,8 +127,24 @@ The a11y scanner leverages Copilot coding agent, which can be configured with cu
 
 ## Feedback
 
-Beta participants have direct contact for questions and suggestions. A public feedback form will be available once the project is open-sourced.
+Please refer to the [CONTRIBUTING](./CONTRIBUTING.md) file for more information.
+
+## License 
+
+This project is licensed under the terms of the MIT open source license. Please refer to the [LICENSE](./LICENSE) file for the full terms.
+
+## Maintainers 
+
+TODO: Enter at least one maintainer in here or point to codeowners file.
+
+## Support
+
+Please refer to the [SUPPORT](./SUPPORT.md) file for more information.
+
+## Acknowledgement
+
+TODO: Thank you to our beta testers for their help in testing this project.
 
 ---
 
-*Last updated: 2025-10-01*
+*Last updated: 2025-10-09*
