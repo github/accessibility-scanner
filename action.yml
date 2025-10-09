@@ -78,8 +78,9 @@ runs:
       id: get_issues_from_filings
       shell: bash
       run: |
-        # Get issues with 'state: open' from Filing objects
-        echo "issues=$(echo '${{ steps.file.outputs.filings }}' | jq '[.[] | select(.issue.state == "open") | .issue]')" >> $GITHUB_OUTPUT
+        # Extract open issues from Filing objects and output as a single-line JSON array
+        issues=$(jq -c '[.[] | select(.issue.state == "open") | .issue]' <<< '${{ steps.file.outputs.filings }}')
+        echo "issues=$issues" >> "$GITHUB_OUTPUT"
     - if: ${{ inputs.skip_copilot_assignment != 'true' }}
       name: Fix
       id: fix
