@@ -12,6 +12,10 @@ inputs:
     description: "Personal access token (PAT) with fine-grained permissions 'issues: write' and 'pull_requests: write'"
     required: true
 
+outputs:
+  fixings:
+    description: "List of pull requests filed (and their associated issues), as stringified JSON"
+
 runs:
   using: "node24"
   main: "bootstrap.js"

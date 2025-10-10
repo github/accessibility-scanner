@@ -54,7 +54,7 @@ export async function fixIssue(octokit: Octokit, { owner, repository, issueNumbe
     return;
   }
   // Assign issue to Copilot
-  await octokit.graphql<{
+  const response = await octokit.graphql<{
     replaceActorsForAssignable: {
       assignable: {
         id: string;
@@ -83,4 +83,9 @@ export async function fixIssue(octokit: Octokit, { owner, repository, issueNumbe
     }`,
     { issueId, assigneeId: suggestedActorsResponse?.repository?.suggestedActors?.nodes[0]?.id }
   );
+  return {
+    nodeId: response.replaceActorsForAssignable.assignable.id,
+    url: response.replaceActorsForAssignable.assignable.url,
+    title: response.replaceActorsForAssignable.assignable.title,
+  }
 }

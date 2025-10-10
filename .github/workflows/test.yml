@@ -61,7 +61,7 @@ jobs:
         id: cache_key
         shell: bash
         run: |
-          echo "cache_key=$(printf 'cached_filings-%s-%s.json' "${{ matrix.site }}" "${{ github.ref_name }}" | tr -cs 'A-Za-z0-9._-' '_')" >> $GITHUB_OUTPUT
+          echo "cache_key=$(printf 'cached_results-%s-%s.json' "${{ matrix.site }}" "${{ github.ref_name }}" | tr -cs 'A-Za-z0-9._-' '_')" >> $GITHUB_OUTPUT
 
       - name: Scan site (${{ matrix.site }})
         uses: ./
@@ -78,53 +78,11 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
           cache_key: ${{ steps.cache_key.outputs.cache_key }}
 
-      - name: Retrieve cached filings
+      - name: Retrieve cached results
         uses: ./.github/actions/gh-cache/restore
         with:
           path: ${{ steps.cache_key.outputs.cache_key }}
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Add PR URLs to filings
-        uses: actions/github-script@v8
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const fs = require('fs');
-            if (!process.env.CACHE_PATH || !fs.existsSync(process.env.CACHE_PATH)) {
-              core.info("Skipping 'Add PR URLs to filings' (no cached filings).");
-              return;
-            }
-            const filings = JSON.parse(fs.readFileSync(process.env.CACHE_PATH, 'utf-8'));
-            for (const filing of filings) {
-              if (!filing?.issue.url) {
-                continue;
-              }
-              const { owner, repo, issueNumber } = /https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/]+)\/issues\/(?<issueNumber>\d+)/.exec(filing.issue.url).groups;
-              const query = `query($owner: String!, $repo: String!, $issueNumber: Int!) {
-                repository(owner: $owner, name: $repo) {
-                  issue(number: $issueNumber) {
-                    timelineItems(first: 100, itemTypes: [CONNECTED_EVENT, CROSS_REFERENCED_EVENT]) {
-                      nodes {
-                        ... on CrossReferencedEvent { source { ... on PullRequest { url } } }
-                        ... on ConnectedEvent { subject { ... on PullRequest { url } } }
-                      }
-                    }
-                  }
-                }
-              }`;
-              const variables = { owner, repo, issueNumber: parseInt(issueNumber, 10) }
-              const result = await github.graphql(query, variables)
-              const timelineNodes = result?.repository?.issue?.timelineItems?.nodes || [];
-              const pullRequestNode = timelineNodes.find(n => n?.source?.url || n?.subject?.url);
-              if (pullRequestNode) {
-                filing.pullRequest = { url: pullRequestNode.source?.url || pullRequestNode.subject?.url };
-              } else {
-                core.info(`No pull request found for issue: ${filing.issue.url}`);
-              }
-            }
-            fs.writeFileSync(process.env.CACHE_PATH, JSON.stringify(filings));
-        env:
-          CACHE_PATH: ${{ steps.cache_key.outputs.cache_key }}
 
       - name: Validate scan results (${{ matrix.site }})
         run: |
@@ -140,7 +98,7 @@ jobs:
         run: |
           set -euo pipefail
           if [[ ! -f "${{ steps.cache_key.outputs.cache_key }}" ]]; then
-            echo "Skipping 'Clean up issues and pull requests' (no cached filings)."
+            echo "Skipping 'Clean up issues and pull requests' (no cached results)."
             exit 0
           fi
           jq -r '
@@ -162,7 +120,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Clean up cached filings
+      - name: Clean up cached results
         if: ${{ always() }}
         uses: ./.github/actions/gh-cache/delete
         with:

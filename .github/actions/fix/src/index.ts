@@ -1,4 +1,4 @@
-import type { IssueInput } from "./types.d.js";
+import type { Issue as IssueInput, Fixing } from "./types.d.js";
 import process from "node:process";
 import core from "@actions/core";
 import { Octokit } from "@octokit/core";
@@ -40,17 +40,27 @@ export default async function () {
       },
     },
   });
-  for (const issueInput of issues) {
+  const fixings: Fixing[] = issues.map((issue) => ({ issue })) as Fixing[];
+
+  for (const fixing of fixings) {
     try {
-      const issue = new Issue(issueInput);
-      await fixIssue(octokit, issue);
+      const issue = new Issue(fixing.issue);
+      const response = await fixIssue(octokit, issue);
+      if (response) {
+        fixing.pullRequest = response;
+      }
       core.info(
         `Assigned ${issue.owner}/${issue.repository}#${issue.issueNumber} to Copilot!`
       );
     } catch (error) {
-      core.setFailed(`Failed to assign ${issueInput.url} to Copilot: ${error}`);
+      core.setFailed(
+        `Failed to assign ${fixing.issue.url} to Copilot: ${error}`
+      );
       process.exit(1);
     }
   }
+
+  core.setOutput("fixings", JSON.stringify(fixings));
+  core.debug(`Output: 'fixings: ${JSON.stringify(fixings)}'`);
   core.info("Finished 'fix' action");
 }

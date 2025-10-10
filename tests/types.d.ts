@@ -19,6 +19,7 @@ export type Issue = {
 
 export type PullRequest = {
   url: string;
+  nodeId: string;
 };
 
 export type Result = {

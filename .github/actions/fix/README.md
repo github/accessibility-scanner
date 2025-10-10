@@ -17,3 +17,9 @@ Attempts to fix issues with Copilot.
 #### `token`
 
 **Required** Personal access token (PAT) with fine-grained permissions 'issues: write' and 'pull_requests: write'.
+
+### Outputs
+
+#### `fixings`
+
+List of pull requests filed (and their associated issues), as stringified JSON. For example: `'[{"issue":{"id":1,"nodeId":"SXNzdWU6MQ==","url":"https://github.com/github/docs/issues/123","title":"Accessibility issue: 1"},"pullRequest":{"url":"https://github.com/github/docs/pulls/124"}}]'`
