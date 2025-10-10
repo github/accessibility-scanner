@@ -12,6 +12,11 @@ The a11y scanner helps teams:
 
 ---
 
+## Requirements
+
+This project is a GitHub Actions action. A GitHub Actions workflow is required to run it, and you must have available GitHub Actions minutes.
+
+📚 [Understanding GitHub Actions](https://docs.github.com/en/actions/get-started/understand-github-actions) | [Quickstart for GitHub Actions](https://docs.github.com/en/actions/get-started/quickstart) | [Writing workflows](https://docs.github.com/en/actions/how-tos/write-workflows) | [GitHub Actions billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions)
 ## Getting Started
 
 ### 1. Add a Workflow File
@@ -26,23 +31,13 @@ jobs:
   accessibility_scanner:
     runs-on: ubuntu-latest
     steps:
-      # Retrieve the scanner code
-      - uses: actions/checkout@v5
-        with:
-          repository: github-community-projects/continuous-ai-for-accessibility-scanner
-          ref: v1
-          token: ${{ secrets.GH_COMMUNITY_PROJECTS_TOKEN }} # This token must have read access to github-community-projects/continuous-ai-for-accessibility-scanner; more information below.
-          path: ./.github/actions/continuous-ai-for-accessibility-scanner
-      # Prepare the scanner to run
-      - shell: bash
-        run: cp -Rf ./.github/actions/continuous-ai-for-accessibility-scanner/.github/actions/* ./.github/actions
-      # Run the scanner
-      - uses: ./.github/actions/continuous-ai-for-accessibility-scanner
+      - uses: github-community-projects/continuous-ai-for-accessibility-scanner@v1
         with:
           urls: | # Provide a newline-delimited list of URLs to scan; more information below.
             REPLACE_THIS
           repository: REPLACE_THIS/REPLACE_THIS # Provide a repository name-with-owner (in the format "primer/primer-docs"). This is where issues will be filed and where Copilot will open PRs; more information below.
           token: ${{ secrets.GH_TOKEN }} # This token must have write access to the repo above (contents, issues, and PRs); more information below. Note: GitHub Actions’ `GITHUB_TOKEN` (https://docs.github.com/en/actions/tutorials/authenticate-with-github_token) cannot be used here.
+          cache_key: REPLACE_THIS # Provide a filename that will be used when caching results. We recommend including the name or domain of the site being scanning.
 ```
 
 > 👉 Update all `REPLACE_THIS` placeholders with your actual values. See [Action Inputs](#action-inputs) for details.
@@ -56,15 +51,9 @@ Required Permissions:
 
 ---
 
-### 2. Create Tokens and Add Secrets
+### 2. Create a Token and Add a Secret
 
-The a11y scanner requires two Personal Access Tokens (PATs) as repository secrets:
-
-#### The `GH_COMMUNITY_PROJECTS_TOKEN` is a fine-grained PAT with
-
-- `contents: read`
-- `metadata: read`
-- Scope: [`github-community-projects/continuous-ai-for-accessibility-scanner`](https://github.com/github-community-projects/continuous-ai-for-accessibility-scanner)
+The a11y scanner requires a Personal Access Token (PAT) as repository secret:
 
 #### The `GH_TOKEN` is a fine-grained PAT with
 
@@ -73,7 +62,7 @@ The a11y scanner requires two Personal Access Tokens (PATs) as repository secret
 - `issues: write`
 - `pull-requests: write`
 - `metadata: read`
-- Scope: Your target repository (where issues and PRs will be created)
+- Scope: Your target repository (where issues and PRs will be created) and the repository containing your workflow
 
 > 👉 GitHub Actions' default `GITHUB_TOKEN` cannot be used here.
 
@@ -129,8 +118,24 @@ The a11y scanner leverages Copilot coding agent, which can be configured with cu
 
 ## Feedback
 
-Beta participants have direct contact for questions and suggestions. A public feedback form will be available once the project is open-sourced.
+Please refer to the [CONTRIBUTING](./CONTRIBUTING.md) file for more information.
+
+## License 
+
+This project is licensed under the terms of the MIT open source license. Please refer to the [LICENSE](./LICENSE) file for the full terms.
+
+## Maintainers 
+
+Please refer to the [CODEOWNERS](./.github/CODEOWNERS) file for more information.
+
+## Support
+
+Please refer to the [SUPPORT](./SUPPORT.md) file for more information.
+
+## Acknowledgement
+
+Thank you to our beta testers for their help in testing this project.
 
 ---
 
-*Last updated: 2025-10-01*
+*Last updated: 2025-10-09*
