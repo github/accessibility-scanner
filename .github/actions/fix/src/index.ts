@@ -48,14 +48,21 @@ export default async function () {
     try {
       const issue = new Issue(fixing.issue);
       await assignIssue(octokit, issue);
+      core.info(
+        `Assigned ${issue.owner}/${issue.repository}#${issue.issueNumber} to Copilot!`
+      );
       await sleep(1000); // Wait for Copilot to open a PR
       const pullRequest = await getLinkedPR(octokit, issue);
       if (pullRequest) {
         fixing.pullRequest = pullRequest;
+        core.info(
+          `Found linked PR for ${issue.owner}/${issue.repository}#${issue.issueNumber}: ${pullRequest.url}`
+        );
+      } else {
+        core.info(
+          `No linked PR was found for ${issue.owner}/${issue.repository}#${issue.issueNumber}`
+        );
       }
-      core.info(
-        `Assigned ${issue.owner}/${issue.repository}#${issue.issueNumber} to Copilot!`
-      );
     } catch (error) {
       core.setFailed(
         `Failed to assign ${fixing.issue.url} to Copilot: ${error}`
