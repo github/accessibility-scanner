@@ -14,7 +14,7 @@ inputs:
   fail_on_cache_miss:
     description: "Fail the workflow if cached item is not found."
     required: false
-    default: "false"
+    default: 'false'
 
 outputs:
   value:
