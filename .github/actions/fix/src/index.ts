@@ -5,7 +5,7 @@ import { Octokit } from "@octokit/core";
 import { throttling } from "@octokit/plugin-throttling";
 import { assignIssue } from "./assignIssue.js";
 import { getLinkedPR } from "./getLinkedPR.js";
-import { sleep } from "./sleep.js";
+import { retry } from "./retry.js";
 import { Issue } from "./Issue.js";
 const OctokitWithThrottling = Octokit.plugin(throttling);
 
@@ -51,8 +51,7 @@ export default async function () {
       core.info(
         `Assigned ${issue.owner}/${issue.repository}#${issue.issueNumber} to Copilot!`
       );
-      await sleep(5000); // Wait for Copilot to open a PR
-      const pullRequest = await getLinkedPR(octokit, issue);
+      const pullRequest = await retry(() => getLinkedPR(octokit, issue));
       if (pullRequest) {
         fixing.pullRequest = pullRequest;
         core.info(
