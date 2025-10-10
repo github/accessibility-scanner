@@ -14,9 +14,9 @@ The a11y scanner helps teams:
 
 ## Requirements
 
-TODO: Includes a description of the kind of environment required to run the software and instructions for setting it up.
-It clearly states the external dependencies and directions for installing them.
+This project is a GitHub Actions action. A GitHub Actions workflow is required to run it, and you must have available GitHub Actions minutes.
 
+📚 [Understanding GitHub Actions](https://docs.github.com/en/actions/get-started/understand-github-actions) | [Quickstart for GitHub Actions](https://docs.github.com/en/actions/get-started/quickstart) | [Writing workflows](https://docs.github.com/en/actions/how-tos/write-workflows) | [GitHub Actions billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions)
 ## Getting Started
 
 ### 1. Add a Workflow File
