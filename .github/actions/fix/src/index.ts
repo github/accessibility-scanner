@@ -3,7 +3,9 @@ import process from "node:process";
 import core from "@actions/core";
 import { Octokit } from "@octokit/core";
 import { throttling } from "@octokit/plugin-throttling";
-import { fixIssue } from "./fixIssue.js";
+import { assignIssue } from "./assignIssue.js";
+import { getLinkedPR } from "./getLinkedPR.js";
+import { sleep } from "./sleep.js";
 import { Issue } from "./Issue.js";
 const OctokitWithThrottling = Octokit.plugin(throttling);
 
@@ -45,9 +47,11 @@ export default async function () {
   for (const fixing of fixings) {
     try {
       const issue = new Issue(fixing.issue);
-      const response = await fixIssue(octokit, issue);
-      if (response) {
-        fixing.pullRequest = response;
+      await assignIssue(octokit, issue);
+      await sleep(1000); // Wait for Copilot to open a PR
+      const pullRequest = await getLinkedPR(octokit, issue);
+      if (pullRequest) {
+        fixing.pullRequest = pullRequest;
       }
       core.info(
         `Assigned ${issue.owner}/${issue.repository}#${issue.issueNumber} to Copilot!`

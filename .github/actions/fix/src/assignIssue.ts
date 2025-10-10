@@ -2,7 +2,7 @@ import type { Octokit } from '@octokit/core';
 import { Issue } from './Issue.js';
 
 // https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/coding-agent/assign-copilot-to-an-issue#assigning-an-existing-issue
-export async function fixIssue(octokit: Octokit, { owner, repository, issueNumber, nodeId }: Issue) {
+export async function assignIssue(octokit: Octokit, { owner, repository, issueNumber, nodeId }: Issue) {
   // Check whether issues can be assigned to Copilot
   const suggestedActorsResponse = await octokit.graphql<{
     repository: {
@@ -54,7 +54,7 @@ export async function fixIssue(octokit: Octokit, { owner, repository, issueNumbe
     return;
   }
   // Assign issue to Copilot
-  const response = await octokit.graphql<{
+  await octokit.graphql<{
     replaceActorsForAssignable: {
       assignable: {
         id: string;
@@ -84,9 +84,4 @@ export async function fixIssue(octokit: Octokit, { owner, repository, issueNumbe
     }`,
     { issueId, assigneeId: suggestedActorsResponse?.repository?.suggestedActors?.nodes[0]?.id }
   );
-  return {
-    nodeId: response.replaceActorsForAssignable.assignable.id,
-    url: response.replaceActorsForAssignable.assignable.url,
-    title: response.replaceActorsForAssignable.assignable.title,
-  }
 }
