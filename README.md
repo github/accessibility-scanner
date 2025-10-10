@@ -134,7 +134,7 @@ Please refer to the [SUPPORT](./SUPPORT.md) file for more information.
 
 ## Acknowledgement
 
-TODO: Thank you to our beta testers for their help in testing this project.
+Thank you to our beta testers for their help in testing this project.
 
 ---
 
