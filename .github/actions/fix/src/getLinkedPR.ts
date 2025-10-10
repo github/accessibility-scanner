@@ -3,7 +3,7 @@ import { Issue } from "./Issue.js";
 
 export async function getLinkedPR(
   octokit: Octokit,
-  { owner, repository, issueNumber, nodeId }: Issue
+  { owner, repository, issueNumber }: Issue
 ) {
   // Check whether issues can be assigned to Copilot
   const response = await octokit.graphql<{
@@ -18,8 +18,8 @@ export async function getLinkedPR(
       };
     };
   }>(
-    `query($owner: String!, $repo: String!, $issueNumber: Int!) {
-      repository(owner: $owner, name: $repo) {
+    `query($owner: String!, $repository: String!, $issueNumber: Int!) {
+      repository(owner: $owner, name: $repository) {
         issue(number: $issueNumber) {
           timelineItems(first: 100, itemTypes: [CONNECTED_EVENT, CROSS_REFERENCED_EVENT]) {
             nodes {
