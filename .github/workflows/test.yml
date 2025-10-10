@@ -74,7 +74,7 @@ jobs:
           login_url: http://127.0.0.1:4000/
           username: ${{ secrets.TEST_USERNAME }}
           password: ${{ secrets.TEST_PASSWORD }}
-          repository: github-community-projects/continuous-ai-for-accessibility-scanner
+          repository: github-community-projects/continuous-ai-for-accessibility-scanner-testing
           token: ${{ secrets.GH_TOKEN }}
           cache_key: ${{ steps.cache_key.outputs.cache_key }}
 
