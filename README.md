@@ -31,7 +31,7 @@ jobs:
   accessibility_scanner:
     runs-on: ubuntu-latest
     steps:
-      - uses: github-community-projects/continuous-ai-for-accessibility-scanner@v1
+      - uses: github/accessibility-scanner@v1
         with:
           urls: | # Provide a newline-delimited list of URLs to scan; more information below.
             REPLACE_THIS
