@@ -51,7 +51,7 @@ export default async function () {
       core.info(
         `Assigned ${issue.owner}/${issue.repository}#${issue.issueNumber} to Copilot!`
       );
-      await sleep(1000); // Wait for Copilot to open a PR
+      await sleep(5000); // Wait for Copilot to open a PR
       const pullRequest = await getLinkedPR(octokit, issue);
       if (pullRequest) {
         fixing.pullRequest = pullRequest;
