@@ -71,6 +71,7 @@ export async function fixIssue(octokit: Octokit, { owner, repository, issueNumbe
         assignable {
           ... on Issue {
             id
+            url
             title
             assignees(first: 10) {
               nodes {
