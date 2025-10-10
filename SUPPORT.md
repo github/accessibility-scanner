@@ -8,7 +8,7 @@ For help or questions about using this project, please open an issue for support
 
 ## Project Maintenance Status
 
-This repo `continuous-ai-for-accessibility-scanner` is under active development and maintained by GitHub staff during the private preview state. We will do our best to respond to support, feature requests, and community questions in a timely manner.
+This repo `continuous-ai-for-accessibility-scanner` is under active development and maintained by GitHub staff during the public preview state. We will do our best to respond to support, feature requests, and community questions in a timely manner.
 
 ## Important Notice
 
