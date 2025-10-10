@@ -60,7 +60,7 @@ describe("site-with-errors", () => {
       }, {
         scannerType: "axe",
         url: "http://127.0.0.1:4000/404.html",
-        html: '<li class="p-name">Continuous Accessibility Scanner Demo</li>',
+        html: '<li class="p-name">Accessibility Scanner Demo</li>',
         problemShort: "elements must meet minimum color contrast ratio thresholds",
         problemUrl: "https://dequeuniversity.com/rules/axe/4.10/color-contrast?application=playwright",
         ruleId: "color-contrast",
