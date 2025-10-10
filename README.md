@@ -126,7 +126,7 @@ This project is licensed under the terms of the MIT open source license. Please 
 
 ## Maintainers 
 
-TODO: Enter at least one maintainer in here or point to codeowners file.
+Please refer to the [CODEOWNERS](./.github/CODEOWNERS) file for more information.
 
 ## Support
 
