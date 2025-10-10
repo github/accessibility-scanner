@@ -13,7 +13,7 @@ inputs:
     description: "Personal access token (PAT) with fine-grained permissions 'contents: write', 'issues: write', and 'pull_requests: write'"
     required: true
   cache_key:
-    description: "Key for caching findings across runs"
+    description: "Key for caching results across runs"
     required: true
   login_url:
     description: "If scanned pages require authentication, the URL of the login page"
@@ -31,6 +31,10 @@ inputs:
     description: "Whether to skip assigning filed issues to Copilot"
     required: false
     default: "false"
+
+outputs:
+  results:
+    description: "List of issues and pull requests filed (and their associated finding(s)), as stringified JSON"
 
 runs:
   using: "composite"
@@ -89,11 +93,35 @@ runs:
         issues: ${{ steps.get_issues_from_filings.outputs.issues }}
         repository: ${{ inputs.repository }}
         token: ${{ inputs.token }}
+    - name: Set results output
+      id: results
+      uses: actions/github-script@v8
+      with:
+        script: |
+          const filings = JSON.parse(process.env.FILINGS || '[]');
+          const fixings = JSON.parse(process.env.FIXINGS || '[]');
+          const fixingsByIssueUrl = fixings.reduce((acc, fixing) => {
+            if (fixing.issue && fixing.issue.url) {
+              acc[fixing.issue.url] = fixing;
+            }
+            return acc;
+          }, {});
+          const results = filings;
+          for (const result of results) {
+            if (result.issue && result.issue.url && fixingsByIssueUrl[result.issue.url]) {
+              result.pullRequest = fixingsByIssueUrl[result.issue.url].pullRequest;
+            }
+          }
+          core.setOutput('results', JSON.stringify(results));
+          core.debug(`Results: ${JSON.stringify(results)}`);
+      env:
+        FILINGS: ${{ steps.file.outputs.filings }}
+        FIXINGS: ${{ steps.fix.outputs.fixings }}
     - name: Save cached results
       uses: ./.github/actions/gh-cache/cache
       with:
         key: ${{ inputs.cache_key }}
-        value: ${{ steps.file.outputs.filings }}
+        value: ${{ steps.results.outputs.results }}
         token: ${{ inputs.token }}
 
 branding:

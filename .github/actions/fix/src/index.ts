@@ -1,9 +1,11 @@
-import type { IssueInput } from "./types.d.js";
+import type { Issue as IssueInput, Fixing } from "./types.d.js";
 import process from "node:process";
 import core from "@actions/core";
 import { Octokit } from "@octokit/core";
 import { throttling } from "@octokit/plugin-throttling";
-import { fixIssue } from "./fixIssue.js";
+import { assignIssue } from "./assignIssue.js";
+import { getLinkedPR } from "./getLinkedPR.js";
+import { retry } from "./retry.js";
 import { Issue } from "./Issue.js";
 const OctokitWithThrottling = Octokit.plugin(throttling);
 
@@ -40,17 +42,35 @@ export default async function () {
       },
     },
   });
-  for (const issueInput of issues) {
+  const fixings: Fixing[] = issues.map((issue) => ({ issue })) as Fixing[];
+
+  for (const fixing of fixings) {
     try {
-      const issue = new Issue(issueInput);
-      await fixIssue(octokit, issue);
+      const issue = new Issue(fixing.issue);
+      await assignIssue(octokit, issue);
       core.info(
         `Assigned ${issue.owner}/${issue.repository}#${issue.issueNumber} to Copilot!`
       );
+      const pullRequest = await retry(() => getLinkedPR(octokit, issue));
+      if (pullRequest) {
+        fixing.pullRequest = pullRequest;
+        core.info(
+          `Found linked PR for ${issue.owner}/${issue.repository}#${issue.issueNumber}: ${pullRequest.url}`
+        );
+      } else {
+        core.info(
+          `No linked PR was found for ${issue.owner}/${issue.repository}#${issue.issueNumber}`
+        );
+      }
     } catch (error) {
-      core.setFailed(`Failed to assign ${issueInput.url} to Copilot: ${error}`);
+      core.setFailed(
+        `Failed to assign ${fixing.issue.url} to Copilot: ${error}`
+      );
       process.exit(1);
     }
   }
+
+  core.setOutput("fixings", JSON.stringify(fixings));
+  core.debug(`Output: 'fixings: ${JSON.stringify(fixings)}'`);
   core.info("Finished 'fix' action");
 }

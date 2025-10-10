@@ -1,12 +1,6 @@
-import { IssueInput } from "./types.d.js";
+import { Issue as IssueInput } from "./types.d.js";
 
-interface IIssue extends IssueInput{
-  owner: string;
-  repository: string;
-  issueNumber: number;
-}
-
-export class Issue implements IIssue {
+export class Issue implements IssueInput {
   /**
    * Extracts owner, repository, and issue number from a GitHub issue URL.
    * @param issueUrl A GitHub issue URL (e.g. `https://github.com/owner/repo/issues/42`).
