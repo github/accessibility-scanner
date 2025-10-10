@@ -1,5 +1,5 @@
 {
-  "name": "continuous-ai-for-accessibility-scanner",
+  "name": "accessibility-scanner",
   "version": "0.0.0-development",
   "description": "Finds potential accessibility gaps, files GitHub issues to track them, and attempts to fix them with Copilot",
   "scripts": {
@@ -7,20 +7,20 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/github-community-projects/continuous-ai-for-accessibility-scanner.git"
+    "url": "git+https://github.com/github/accessibility-scanner.git"
   },
   "author": "GitHub Inc.",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/github-community-projects/continuous-ai-for-accessibility-scanner/issues"
+    "url": "https://github.com/github/accessibility-scanner/issues"
   },
-  "homepage": "https://github.com/github-community-projects/continuous-ai-for-accessibility-scanner#readme",
+  "homepage": "https://github.com/github/accessibility-scanner#readme",
   "devDependencies": {
     "@actions/core": "^1.11.1",
     "@octokit/core": "^7.0.5",
     "@octokit/plugin-throttling": "^11.0.2",
     "@octokit/types": "^15.0.0",
-    "@types/node": "^24.7.0",
+    "@types/node": "^24.7.1",
     "vitest": "^3.2.4"
   }
 }
