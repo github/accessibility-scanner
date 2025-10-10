@@ -131,7 +131,7 @@ jobs:
           npm ci
           npm run test
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           FINDINGS_PATH: ${{ steps.cache_key.outputs.cache_key }}
 
       - name: Clean up issues and pull requests
