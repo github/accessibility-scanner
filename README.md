@@ -62,7 +62,7 @@ The a11y scanner requires a Personal Access Token (PAT) as repository secret:
 - `issues: write`
 - `pull-requests: write`
 - `metadata: read`
-- Scope: Your target repository (where issues and PRs will be created)
+- Scope: Your target repository (where issues and PRs will be created) and the repository containing your workflow
 
 > 👉 GitHub Actions' default `GITHUB_TOKEN` cannot be used here.
 
