@@ -61,7 +61,7 @@ jobs:
         id: cache_key
         shell: bash
         run: |
-          echo "cache_key=$(printf 'cached_findings-%s-%s.json' "${{ github.ref_name }}" "${{ matrix.site }}" | tr -cs 'A-Za-z0-9._-' '_')" >> $GITHUB_OUTPUT
+          echo "cache_key=$(printf 'cached_filings-%s-%s.json' "${{ matrix.site }}" "${{ github.ref_name }}" | tr -cs 'A-Za-z0-9._-' '_')" >> $GITHUB_OUTPUT
 
       - name: Scan site (${{ matrix.site }})
         uses: ./
@@ -78,28 +78,28 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
           cache_key: ${{ steps.cache_key.outputs.cache_key }}
 
-      - name: Retrieve cached findings
+      - name: Retrieve cached filings
         uses: ./.github/actions/gh-cache/restore
         with:
           path: ${{ steps.cache_key.outputs.cache_key }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Add PR URLs to findings
+      - name: Add PR URLs to filings
         uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GH_TOKEN }}
           script: |
             const fs = require('fs');
-            if (!process.env.FINDINGS_PATH || !fs.existsSync(process.env.FINDINGS_PATH)) {
-              core.info("Skipping 'Add PR URLs to findings' (no cached findings).");
+            if (!process.env.CACHE_PATH || !fs.existsSync(process.env.CACHE_PATH)) {
+              core.info("Skipping 'Add PR URLs to filings' (no cached filings).");
               return;
             }
-            const findings = JSON.parse(fs.readFileSync(process.env.FINDINGS_PATH, 'utf-8'));
-            for (const finding of findings) {
-              if (!finding.issueUrl) {
+            const filings = JSON.parse(fs.readFileSync(process.env.CACHE_PATH, 'utf-8'));
+            for (const filing of filings) {
+              if (!filing?.issue.url) {
                 continue;
               }
-              const { owner, repo, issueNumber } = /https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/]+)\/issues\/(?<issueNumber>\d+)/.exec(finding.issueUrl).groups;
+              const { owner, repo, issueNumber } = /https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/]+)\/issues\/(?<issueNumber>\d+)/.exec(filing.issue.url).groups;
               const query = `query($owner: String!, $repo: String!, $issueNumber: Int!) {
                 repository(owner: $owner, name: $repo) {
                   issue(number: $issueNumber) {
@@ -117,14 +117,14 @@ jobs:
               const timelineNodes = result?.repository?.issue?.timelineItems?.nodes || [];
               const pullRequestNode = timelineNodes.find(n => n?.source?.url || n?.subject?.url);
               if (pullRequestNode) {
-                finding.pullRequestUrl = pullRequestNode.source?.url || pullRequestNode.subject?.url;
+                filing.pullRequest = { url: pullRequestNode.source?.url || pullRequestNode.subject?.url };
               } else {
-                core.info(`No pull request found for issue: ${finding.issueUrl}`);
+                core.info(`No pull request found for issue: ${filing.issue.url}`);
               }
             }
-            fs.writeFileSync(process.env.FINDINGS_PATH, JSON.stringify(findings));
+            fs.writeFileSync(process.env.CACHE_PATH, JSON.stringify(filings));
         env:
-          FINDINGS_PATH: ${{ steps.cache_key.outputs.cache_key }}
+          CACHE_PATH: ${{ steps.cache_key.outputs.cache_key }}
 
       - name: Validate scan results (${{ matrix.site }})
         run: |
@@ -132,7 +132,7 @@ jobs:
           npm run test
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          FINDINGS_PATH: ${{ steps.cache_key.outputs.cache_key }}
+          CACHE_PATH: ${{ steps.cache_key.outputs.cache_key }}
 
       - name: Clean up issues and pull requests
         if: ${{ always() }}
@@ -140,12 +140,12 @@ jobs:
         run: |
           set -euo pipefail
           if [[ ! -f "${{ steps.cache_key.outputs.cache_key }}" ]]; then
-            echo "Skipping 'Clean up issues and pull requests' (no cached findings)."
+            echo "Skipping 'Clean up issues and pull requests' (no cached filings)."
             exit 0
           fi
           jq -r '
             (if type=="string" then fromjson else . end)
-            | .[] | .issueUrl, .pullRequestUrl
+            | .[] | .issue.url, .pullRequest.url
             | select(. != null)
           ' "${{ steps.cache_key.outputs.cache_key }}" \
             | while read -r URL; do
@@ -162,7 +162,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
-      - name: Clean up cached findings
+      - name: Clean up cached filings
         if: ${{ always() }}
         uses: ./.github/actions/gh-cache/delete
         with:

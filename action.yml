@@ -35,12 +35,22 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Restore cached_findings
+    - name: Restore cached results
       id: restore
       uses: ./.github/actions/gh-cache/cache
       with:
         key: ${{ inputs.cache_key }}
         token: ${{ inputs.token }}
+    - if: ${{ steps.restore.outputs.value }}
+      name: Normalize cache format
+      id: normalize_cache
+      shell: bash
+      run: |
+        # Migrate cache format from v1 to v2:
+        # If cached data is a list of Finding objects, each with 'issueUrl' keys (i.e. v1),
+        # convert to a list of (partial) Result objects, each with 'findings' and 'issue' keys (i.e. v2).
+        # Otherwise, re-output as-is.
+        echo "value=$(echo '${{ steps.restore.outputs.value }}' | jq 'if (type == "array" and length > 0 and .[0] | has("issueUrl")) then map({findings: [del(.issueUrl)], issue: {url: .issueUrl}}) else . end' )" >> $GITHUB_OUTPUT
     - if: ${{ inputs.login_url && inputs.username && inputs.password && !inputs.auth_context }}
       name: Authenticate
       id: auth
@@ -62,20 +72,28 @@ runs:
         findings: ${{ steps.find.outputs.findings }}
         repository: ${{ inputs.repository }}
         token: ${{ inputs.token }}
-        cached_findings: ${{ steps.restore.outputs.value }}
+        cached_filings: ${{ steps.normalize_cache.outputs.value }}
+    - if: ${{ steps.file.outputs.filings }}
+      name: Get issues from filings
+      id: get_issues_from_filings
+      shell: bash
+      run: |
+        # Extract open issues from Filing objects and output as a single-line JSON array
+        issues=$(jq -c '[.[] | select(.issue.state == "open") | .issue]' <<< '${{ steps.file.outputs.filings }}')
+        echo "issues=$issues" >> "$GITHUB_OUTPUT"
     - if: ${{ inputs.skip_copilot_assignment != 'true' }}
       name: Fix
       id: fix
       uses: ./.github/actions/fix
       with:
-        issues: ${{ steps.file.outputs.opened_issues }}
+        issues: ${{ steps.get_issues_from_filings.outputs.issues }}
         repository: ${{ inputs.repository }}
         token: ${{ inputs.token }}
-    - name: Save cached_findings
+    - name: Save cached results
       uses: ./.github/actions/gh-cache/cache
       with:
         key: ${{ inputs.cache_key }}
-        value: ${{ steps.file.outputs.findings }}
+        value: ${{ steps.file.outputs.filings }}
         token: ${{ inputs.token }}
 
 branding:

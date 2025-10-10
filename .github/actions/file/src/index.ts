@@ -1,115 +1,90 @@
-import type { Finding, Issue } from "./types.d.js";
+import type { Finding, ResolvedFiling, RepeatedFiling } from "./types.d.js";
 import process from "node:process";
 import core from "@actions/core";
 import { Octokit } from "@octokit/core";
 import { throttling } from "@octokit/plugin-throttling";
-import { toFindingsMap } from "./toFindingsMap.js"
-import { closeIssueForFinding } from "./closeIssueForFinding.js";
-import { openIssueForFinding } from "./openIssueForFinding.js";
+import { Issue } from "./Issue.js";
+import { closeIssue } from "./closeIssue.js";
+import { isNewFiling } from "./isNewFiling.js";
+import { isRepeatedFiling } from "./isRepeatedFiling.js";
+import { isResolvedFiling } from "./isResolvedFiling.js";
+import { openIssue } from "./openIssue.js";
+import { reopenIssue } from "./reopenIssue.js";
+import { updateFilingsWithNewFindings } from "./updateFilingsWithNewFindings.js";
 const OctokitWithThrottling = Octokit.plugin(throttling);
 
 export default async function () {
   core.info("Started 'file' action");
-  const findings: Finding[] = JSON.parse(core.getInput('findings', { required: true }));
-  const repoWithOwner = core.getInput('repository', { required: true });
-  const token = core.getInput('token', { required: true });
-  const cachedFindings: Finding[] = JSON.parse(core.getInput('cached_findings', { required: false }) || "[]");
+  const findings: Finding[] = JSON.parse(
+    core.getInput("findings", { required: true })
+  );
+  const repoWithOwner = core.getInput("repository", { required: true });
+  const token = core.getInput("token", { required: true });
+  const cachedFilings: (ResolvedFiling | RepeatedFiling)[] = JSON.parse(
+    core.getInput("cached_results", { required: false }) || "[]"
+  );
   core.debug(`Input: 'findings: ${JSON.stringify(findings)}'`);
   core.debug(`Input: 'repository: ${repoWithOwner}'`);
-  core.debug(`Input: 'cached_findings: ${JSON.stringify(cachedFindings)}'`);
-
-  const findingsMap = toFindingsMap(findings);
-  const cachedFindingsMap = toFindingsMap(cachedFindings);
+  core.debug(`Input: 'cached_filings: ${JSON.stringify(cachedFilings)}'`);
 
   const octokit = new OctokitWithThrottling({
     auth: token,
     throttle: {
       onRateLimit: (retryAfter, options, octokit, retryCount) => {
-        octokit.log.warn(`Request quota exhausted for request ${options.method} ${options.url}`);
+        octokit.log.warn(
+          `Request quota exhausted for request ${options.method} ${options.url}`
+        );
         if (retryCount < 3) {
           octokit.log.info(`Retrying after ${retryAfter} seconds!`);
           return true;
         }
       },
       onSecondaryRateLimit: (retryAfter, options, octokit, retryCount) => {
-        octokit.log.warn(`Secondary rate limit hit for request ${options.method} ${options.url}`);
+        octokit.log.warn(
+          `Secondary rate limit hit for request ${options.method} ${options.url}`
+        );
         if (retryCount < 3) {
           octokit.log.info(`Retrying after ${retryAfter} seconds!`);
           return true;
         }
       },
-    }
+    },
   });
-  /** @deprecated */
-  const closedIssues: Issue[] = [];
-  /** @deprecated */
-  const openedIssues: Issue[] = [];
-  /** @deprecated */
-  const repeatedIssues: Issue[] = [];
+  const filings = updateFilingsWithNewFindings(cachedFilings, findings);
 
-  for (const cachedFinding of cachedFindings) {
-    if (!findingsMap.has(`${cachedFinding.url};${cachedFinding.problemShort};${cachedFinding.html}`)) {
-      try {
-        // Finding was not found in the latest run, so close its issue (if necessary)
-        const response = await closeIssueForFinding(octokit, repoWithOwner, cachedFinding);
-        closedIssues.push({
-          id: response.data.id,
-          nodeId: response.data.node_id,
-          url: response.data.html_url,
-          title: response.data.title,
-        });
-        core.info(`Closed issue: ${response.data.title} (${repoWithOwner}#${response.data.number})`);
-      } catch (error) {
-        core.setFailed(`Failed to close issue for finding: ${error}`);
-        process.exit(1);
-      }
-    }
-  }
-
-  for (const finding of findings) {
-    const cachedIssueUrl = cachedFindingsMap.get(`${finding.url};${finding.problemShort};${finding.html}`)?.issueUrl
-    finding.issueUrl = cachedIssueUrl;
+  for (const filing of filings) {
+    let response;
     try {
-      const response = await openIssueForFinding(octokit, repoWithOwner, finding);
-      finding.issueUrl = response.data.html_url;
-      if (response.data.html_url === cachedIssueUrl) {
-        // Finding was found in previous and latest runs, so reopen its issue (if necessary)
-        repeatedIssues.push({
-          id: response.data.id,
-          nodeId: response.data.node_id,
-          url: response.data.html_url,
-          title: response.data.title,
-        });
-        core.info(`Repeated issue: ${response.data.title} (${repoWithOwner}#${response.data.number})`);
-      } else {
-        // New finding was found in the latest run, so create its issue
-        openedIssues.push({
-          id: response.data.id,
-          nodeId: response.data.node_id,
-          url: response.data.html_url,
-          title: response.data.title,
-        });
-        core.info(`Created issue: ${response.data.title} (${repoWithOwner}#${response.data.number})`);
+      if (isResolvedFiling(filing)) {
+        // Close the filing’s issue (if necessary)
+        response = await closeIssue(octokit, new Issue(filing.issue));
+        filing.issue.state = "closed";
+      } else if (isNewFiling(filing)) {
+        // Open a new issue for the filing
+        response = await openIssue(octokit, repoWithOwner, filing.findings[0]);
+        (filing as any).issue = { state: "open" } as Issue;
+      } else if (isRepeatedFiling(filing)) {
+        // Reopen the filing’s issue (if necessary)
+        response = await reopenIssue(octokit, new Issue(filing.issue));
+        filing.issue.state = "reopened";
+      }
+      if (response?.data && filing.issue) {
+        // Update the filing with the latest issue data
+        filing.issue.id = response.data.id;
+        filing.issue.nodeId = response.data.node_id;
+        filing.issue.url = response.data.html_url;
+        filing.issue.title = response.data.title;
+        core.info(
+          `Set issue ${response.data.title} (${repoWithOwner}#${response.data.number}) state to ${filing.issue.state}`
+        );
       }
     } catch (error) {
-      core.setFailed(`Failed to open/reopen issue for finding: ${error}`);
+      core.setFailed(`Failed on filing: ${filing}\n${error}`);
       process.exit(1);
     }
   }
 
-  // Deprecated outputs
-  core.setOutput("closed_issues", JSON.stringify(closedIssues));
-  core.setOutput("opened_issues", JSON.stringify(openedIssues));
-  core.setOutput("repeated_issues", JSON.stringify(repeatedIssues));
-  core.setOutput("findings", JSON.stringify(findings));
-  core.debug(`Output: 'closed_issues: ${JSON.stringify(closedIssues)}'`);
-  core.debug(`Output: 'opened_issues: ${JSON.stringify(openedIssues)}'`);
-  core.debug(`Output: 'repeated_issues: ${JSON.stringify(repeatedIssues)}'`);
-  core.debug(`Output: 'findings: ${JSON.stringify(findings)}'`);
-  core.warning("The 'closed_issues' output is deprecated and will be removed in v2.");
-  core.warning("The 'opened_issues' output is deprecated and will be removed in v2.");
-  core.warning("The 'repeated_issues' output is deprecated and will be removed in v2.");
-  core.warning("The 'findings' output is deprecated and will be removed in v2.");
-
+  core.setOutput("filings", JSON.stringify(filings));
+  core.debug(`Output: 'filings: ${JSON.stringify(filings)}'`);
   core.info("Finished 'file' action");
 }

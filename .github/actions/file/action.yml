@@ -11,19 +11,13 @@ inputs:
   token:
     description: "Token with fine-grained permission 'issues: write'"
     required: true
-  cached_findings:
-    description: "Cached findings from previous runs, as stringified JSON. Without this, duplicate issues may be filed."
+  cached_filings:
+    description: "Cached filings from previous runs, as stringified JSON. Without this, duplicate issues may be filed."
     required: false
 
 outputs:
-  findings:
-    description: "DEPRECATED: List of potential accessibility gaps (plus issue URLs), as stringified JSON"
-  closed_issues:
-    description: "DEPRECATED: List of closed issues, as stringified JSON"
-  opened_issues:
-    description: "DEPRECATED: List of newly-opened issues, as stringified JSON"
-  repeated_issues:
-    description: "DEPRECATED: List of repeated issues, as stringified JSON"
+  filings:
+    description: "List of issues filed (and their associated finding(s)), as stringified JSON"
 
 runs:
   using: "node24"

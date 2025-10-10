@@ -7,6 +7,22 @@ export type Finding = {
   problemUrl: string;
   solutionShort: string;
   solutionLong?: string;
-  issueUrl?: string;
-  pullRequestUrl?: string;
-}
+};
+
+export type Issue = {
+  id: number;
+  nodeId: string;
+  url: string;
+  title: string;
+  state?: "open" | "reopened" | "closed";
+};
+
+export type PullRequest = {
+  url: string;
+};
+
+export type Result = {
+  findings: Finding[];
+  issue: Issue;
+  pullRequest: PullRequest;
+};

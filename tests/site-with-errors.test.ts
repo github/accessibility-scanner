@@ -1,5 +1,5 @@
 import type { Endpoints } from "@octokit/types"
-import type { Finding } from "./types.d.js";
+import type { Result } from "./types.d.js";
 import fs from "node:fs";
 import { describe, it, expect, beforeAll } from "vitest";
 import { Octokit } from "@octokit/core";
@@ -7,16 +7,17 @@ import { throttling } from "@octokit/plugin-throttling";
 const OctokitWithThrottling = Octokit.plugin(throttling);
 
 describe("site-with-errors", () => {
-  let findings: Finding[];
+  let results: Result[];
 
   beforeAll(() => {
-    expect(process.env.FINDINGS_PATH).toBeDefined();
-    expect(fs.existsSync(process.env.FINDINGS_PATH!)).toBe(true);
-    findings = JSON.parse(fs.readFileSync(process.env.FINDINGS_PATH!, "utf-8"));
+    expect(process.env.CACHE_PATH).toBeDefined();
+    expect(fs.existsSync(process.env.CACHE_PATH!)).toBe(true);
+    results = JSON.parse(fs.readFileSync(process.env.CACHE_PATH!, "utf-8"));
   });
 
-  it("cache has expected findings", () => {
-    const actual = findings.map(({ issueUrl, pullRequestUrl, solutionLong, ...finding }) => {
+  it("cache has expected results", () => {
+    const actual = results.map(({ issue: { url: issueUrl }, pullRequest: { url: pullRequestUrl }, findings }) => {
+      const { solutionLong, ...finding } = findings[0];
       // Check volatile fields for existence only
       expect(issueUrl).toBeDefined();
       expect(pullRequestUrl).toBeDefined();
@@ -113,8 +114,8 @@ describe("site-with-errors", () => {
           },
         }
       });
-      // Fetch issues referenced in the findings file
-      issues = await Promise.all(findings.map(async ({ issueUrl }) => {
+      // Fetch issues referenced in the cache file
+      issues = await Promise.all(results.map(async ({ issue: { url: issueUrl } }) => {
         expect(issueUrl).toBeDefined();
         const { owner, repo, issueNumber } =
           /https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/]+)\/issues\/(?<issueNumber>\d+)/.exec(issueUrl!)!.groups!;
@@ -127,7 +128,7 @@ describe("site-with-errors", () => {
         return issue;
       }));
       // Fetch pull requests referenced in the findings file
-      pullRequests = await Promise.all(findings.map(async ({ pullRequestUrl }) => {
+      pullRequests = await Promise.all(results.map(async ({ pullRequest: { url: pullRequestUrl } }) => {
         expect(pullRequestUrl).toBeDefined();
         const { owner, repo, pullNumber } =
           /https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/]+)\/pull\/(?<pullNumber>\d+)/.exec(pullRequestUrl!)!.groups!;
