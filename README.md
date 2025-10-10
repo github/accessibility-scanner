@@ -31,22 +31,13 @@ jobs:
   accessibility_scanner:
     runs-on: ubuntu-latest
     steps:
-      # Retrieve the scanner code
-      - uses: github-community-projects/continuous-ai-for-accessibility-scanner@v2
-        with:
-          repository: github-community-projects/continuous-ai-for-accessibility-scanner
-          ref: v1
-          path: ./.github/actions/continuous-ai-for-accessibility-scanner
-      # Prepare the scanner to run
-      - shell: bash
-        run: cp -Rf ./.github/actions/continuous-ai-for-accessibility-scanner/.github/actions/* ./.github/actions
-      # Run the scanner
-      - uses: ./.github/actions/continuous-ai-for-accessibility-scanner
+      - uses: github-community-projects/continuous-ai-for-accessibility-scanner@v1
         with:
           urls: | # Provide a newline-delimited list of URLs to scan; more information below.
             REPLACE_THIS
           repository: REPLACE_THIS/REPLACE_THIS # Provide a repository name-with-owner (in the format "primer/primer-docs"). This is where issues will be filed and where Copilot will open PRs; more information below.
           token: ${{ secrets.GH_TOKEN }} # This token must have write access to the repo above (contents, issues, and PRs); more information below. Note: GitHub Actions’ `GITHUB_TOKEN` (https://docs.github.com/en/actions/tutorials/authenticate-with-github_token) cannot be used here.
+          cache_key: REPLACE_THIS # Provide a filename that will be used when caching results. We recommend including the name or domain of the site being scanning.
 ```
 
 > 👉 Update all `REPLACE_THIS` placeholders with your actual values. See [Action Inputs](#action-inputs) for details.
