@@ -64,7 +64,7 @@ jobs:
           echo "cache_key=$(printf 'cached_findings-%s-%s.json' "${{ github.ref_name }}" "${{ matrix.site }}" | tr -cs 'A-Za-z0-9._-' '_')" >> $GITHUB_OUTPUT
 
       - name: Scan site (${{ matrix.site }})
-        uses: github-community-projects/continuous-ai-for-accessibility-scanner@main
+        uses: ./
         with:
           urls: |
             http://127.0.0.1:4000/
@@ -74,7 +74,7 @@ jobs:
           login_url: http://127.0.0.1:4000/
           username: ${{ secrets.TEST_USERNAME }}
           password: ${{ secrets.TEST_PASSWORD }}
-          repository: github-community-projects/continuous-ai-for-accessibility-scanner
+          repository: github-community-projects/continuous-ai-for-accessibility-scanner-testing
           token: ${{ secrets.GH_TOKEN }}
           cache_key: ${{ steps.cache_key.outputs.cache_key }}
 
@@ -87,7 +87,7 @@ jobs:
       - name: Add PR URLs to findings
         uses: actions/github-script@v8
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GH_TOKEN }}
           script: |
             const fs = require('fs');
             if (!process.env.FINDINGS_PATH || !fs.existsSync(process.env.FINDINGS_PATH)) {
@@ -131,7 +131,7 @@ jobs:
           npm ci
           npm run test
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           FINDINGS_PATH: ${{ steps.cache_key.outputs.cache_key }}
 
       - name: Clean up issues and pull requests
@@ -160,7 +160,7 @@ jobs:
                 fi
               done
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Clean up cached findings
         if: ${{ always() }}
