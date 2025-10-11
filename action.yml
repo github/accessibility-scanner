@@ -47,27 +47,27 @@ runs:
         echo "cache_key=$CACHE_KEY" >> $GITHUB_OUTPUT
     - name: Restore cached_findings
       id: restore
-      uses: ./.github/actions/gh-cache/cache
+      uses: github/accessibility-scanner/.github/actions/gh-cache/cache@v1
       with:
         key: ${{ steps.cache_key.outputs.cache_key }}
         token: ${{ inputs.token }}
     - if: ${{ inputs.login_url && inputs.username && inputs.password && !inputs.auth_context }}
       name: Authenticate
       id: auth
-      uses: ./.github/actions/auth
+      uses: github/accessibility-scanner/.github/actions/auth@v1
       with:
         login_url: ${{ inputs.login_url }}
         username: ${{ inputs.username }}
         password: ${{ inputs.password }}
     - name: Find
       id: find
-      uses: ./.github/actions/find
+      uses: github/accessibility-scanner/.github/actions/find@v1
       with:
         urls: ${{ inputs.urls }}
         auth_context: ${{ inputs.auth_context || steps.auth.outputs.auth_context }}
     - name: File
       id: file
-      uses: ./.github/actions/file
+      uses: github/accessibility-scanner/.github/actions/file@v1
       with:
         findings: ${{ steps.find.outputs.findings }}
         repository: ${{ inputs.repository }}
@@ -76,13 +76,13 @@ runs:
     - if: ${{ inputs.skip_copilot_assignment != 'true' }}
       name: Fix
       id: fix
-      uses: ./.github/actions/fix
+      uses: github/accessibility-scanner/.github/actions/fix@v1
       with:
         issue_urls: ${{ steps.file.outputs.opened_issue_urls }}
         repository: ${{ inputs.repository }}
         token: ${{ inputs.token }}
     - name: Save cached_findings
-      uses: ./.github/actions/gh-cache/cache
+      uses: github/accessibility-scanner/.github/actions/gh-cache/cache@v1
       with:
         key: ${{ steps.cache_key.outputs.cache_key }}
         value: ${{ steps.file.outputs.findings }}
