@@ -54,7 +54,7 @@ runs:
         # If cached data is a list of Finding objects, each with 'issueUrl' keys (i.e. v1),
         # convert to a list of (partial) Result objects, each with 'findings' and 'issue' keys (i.e. v2).
         # Otherwise, re-output as-is.
-        echo "value=$(echo '${{ steps.restore.outputs.value }}' | jq 'if (type == "array" and length > 0 and .[0] | has("issueUrl")) then map({findings: [del(.issueUrl)], issue: {url: .issueUrl}}) else . end' )" >> $GITHUB_OUTPUT
+        echo "value=$(printf '%s' '${{ steps.restore.outputs.value }}' | jq 'if (type == "array" and length > 0 and (.[0] | has("issueUrl"))) then map({findings: [del(.issueUrl)], issue: {url: .issueUrl}}) else . end' )" >> $GITHUB_OUTPUT
     - if: ${{ inputs.login_url && inputs.username && inputs.password && !inputs.auth_context }}
       name: Authenticate
       id: auth
