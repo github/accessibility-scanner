@@ -18,7 +18,7 @@
     "playwright": "^1.56.0"
   },
   "devDependencies": {
-    "@types/node": "^24.7.1",
+    "@types/node": "^24.7.2",
     "typescript": "^5.9.3"
   }
 }
