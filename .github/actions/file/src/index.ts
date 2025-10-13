@@ -50,6 +50,7 @@ export default async function () {
       },
     },
   });
+  core.info(`Cached filings: ${JSON.stringify(cachedFilings)}`);
   const filings = updateFilingsWithNewFindings(cachedFilings, findings);
   core.info(`Updated filings: ${JSON.stringify(filings)}`);
 
