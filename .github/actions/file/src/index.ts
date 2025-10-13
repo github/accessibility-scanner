@@ -21,7 +21,7 @@ export default async function () {
   const repoWithOwner = core.getInput("repository", { required: true });
   const token = core.getInput("token", { required: true });
   const cachedFilings: (ResolvedFiling | RepeatedFiling)[] = JSON.parse(
-    core.getInput("cached_results", { required: false }) || "[]"
+    core.getInput("cached_filings", { required: false }) || "[]"
   );
   core.debug(`Input: 'findings: ${JSON.stringify(findings)}'`);
   core.debug(`Input: 'repository: ${repoWithOwner}'`);
