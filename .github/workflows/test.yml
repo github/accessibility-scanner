@@ -109,7 +109,13 @@ jobs:
             | while read -r URL; do
                 if [[ "$URL" == *"/pull/"* ]]; then
                   echo "Closing pull request: $URL"
+                  PR_NUMBER="${URL##*/}"
+                  branch="$(gh pr view "$PR_NUMBER" --repo github/accessibility-scanner-testing --json headRefName -q .headRefName)" || true
                   gh pr close "$URL" || echo "Failed to close pull request: $URL"
+                  if [[ -n "$branch" ]]; then
+                    echo "Deleting branch: $branch"
+                    git push https://github.com/github/accessibility-scanner-testing --delete "$branch" || echo "Failed to delete branch: $branch"
+                  fi
                 elif [[ "$URL" == *"/issues/"* ]]; then
                   echo "Closing issue: $URL"
                   gh issue close "$URL" || echo "Failed to close issue: $URL"
