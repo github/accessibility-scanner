@@ -116,7 +116,7 @@ jobs:
                   branch="$(gh pr view "$URL" --json headRefName -q .headRefName || true)"
                   if [[ -n "$branch" ]]; then
                     echo "Deleting branch: $branch"
-                    git push "https://github.com/${{ env.TESTING_REPOSITORY }}" --delete "$branch" || echo "Failed to delete branch: $branch"
+                    gh api -X DELETE "repos/${{ env.TESTING_REPOSITORY }}/git/refs/heads/$branch" || echo "Failed to delete branch: $branch"
                   fi
                 elif [[ "$URL" == *"/issues/"* ]]; then
                   echo "Closing issue: $URL"
