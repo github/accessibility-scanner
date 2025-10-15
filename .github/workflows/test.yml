@@ -113,7 +113,7 @@ jobs:
                 if [[ "$URL" == *"/pull/"* ]]; then
                   echo "Closing pull request: $URL"
                   gh pr close "$URL" || echo "Failed to close pull request: $URL"
-                  branch="$(gh pr view "$URL" --json headRefName -q .headRefName)"
+                  branch="$(gh pr view "$URL" --json headRefName -q .headRefName || true)"
                   if [[ -n "$branch" ]]; then
                     echo "Deleting branch: $branch"
                     git push "https://github.com/${{ env.TESTING_REPOSITORY }}" --delete "$branch" || echo "Failed to delete branch: $branch"
