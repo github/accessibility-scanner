@@ -11,11 +11,22 @@ export default async function () {
     core.getInput("auth_context", { required: false }) || "{}"
   );
   const authContext = new AuthContext(authContextInput);
+  const waitForSelector = core.getInput("wait_for_selector", {
+    required: false,
+  });
+  const waitForTimeout = Number(
+    core.getInput("wait_for_timeout", { required: false }) || "30000"
+  );
 
   let findings = [];
   for (const url of urls) {
     core.info(`Scanning ${url}`);
-    const findingsForUrl = await findForUrl(url, authContext);
+    const findingsForUrl = await findForUrl(
+      url,
+      authContext,
+      waitForSelector,
+      waitForTimeout
+    );
     if (findingsForUrl.length === 0) {
       core.info(`No accessibility gaps were found on ${url}`);
       continue;

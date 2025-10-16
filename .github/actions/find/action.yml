@@ -14,6 +14,14 @@ outputs:
   findings:
     description: "List of potential accessibility gaps, as stringified JSON"
 
+  wait_for_selector:
+    description: "A CSS selector for an element to wait for before scanning the page"
+    required: false
+  wait_for_timeout:
+    description: "The maximum time in milliseconds to wait for the selector"
+    required: false
+    default: "30000"
+
 runs:
   using: "node24"
   main: "bootstrap.js"
