@@ -2,6 +2,8 @@ import type { AuthContextInput } from "./types.js";
 import core from "@actions/core";
 import { AuthContext } from "./AuthContext.js";
 import { findForUrl } from "./findForUrl.js";
+import { generateReport } from "./generateReport.js";
+import fs from "fs";
 
 export default async function () {
   core.info("Starting 'find' action");
@@ -37,7 +39,12 @@ export default async function () {
     core.info(`Found ${findingsForUrl.length} findings for ${url}`);
   }
 
+  const report = generateReport(findings);
+  const reportPath = "accessibility-report.md";
+  fs.writeFileSync(reportPath, report);
+
   core.setOutput("findings", JSON.stringify(findings));
+  core.setOutput("report_path", reportPath);
   core.debug(`Output: 'findings: ${JSON.stringify(findings)}'`);
   core.info(`Found ${findings.length} findings in total`);
   core.info("Finished 'find' action");

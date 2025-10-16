@@ -13,6 +13,8 @@ inputs:
 outputs:
   findings:
     description: "List of potential accessibility gaps, as stringified JSON"
+  report_path:
+    description: "The path to the generated Markdown accessibility report"
 
   wait_for_selector:
     description: "A CSS selector for an element to wait for before scanning the page"
