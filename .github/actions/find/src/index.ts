@@ -17,6 +17,7 @@ export default async function () {
   const waitForTimeout = Number(
     core.getInput("wait_for_timeout", { required: false }) || "30000"
   );
+  const device = core.getInput("device", { required: false });
 
   let findings = [];
   for (const url of urls) {
@@ -25,7 +26,8 @@ export default async function () {
       url,
       authContext,
       waitForSelector,
-      waitForTimeout
+      waitForTimeout,
+      device
     );
     if (findingsForUrl.length === 0) {
       core.info(`No accessibility gaps were found on ${url}`);

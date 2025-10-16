@@ -21,6 +21,9 @@ outputs:
     description: "The maximum time in milliseconds to wait for the selector"
     required: false
     default: "30000"
+  device:
+    description: "The device to emulate from the list of Playwright-supported devices"
+    required: false
 
 runs:
   using: "node24"

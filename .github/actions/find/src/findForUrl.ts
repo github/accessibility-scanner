@@ -7,13 +7,17 @@ export async function findForUrl(
   url: string,
   authContext?: AuthContext,
   waitForSelector?: string,
-  waitForTimeout?: number
+  waitForTimeout?: number,
+  device?: string
 ): Promise<Finding[]> {
   const browser = await playwright.chromium.launch({
     headless: true,
     executablePath: process.env.CI ? "/usr/bin/google-chrome" : undefined,
   });
-  const contextOptions = authContext?.toPlaywrightBrowserContextOptions() ?? {};
+  const contextOptions = {
+    ...(authContext?.toPlaywrightBrowserContextOptions() ?? {}),
+    ...(device ? playwright.devices[device] : {}),
+  };
   const context = await browser.newContext(contextOptions);
   const page = await context.newPage();
   await page.goto(url);
