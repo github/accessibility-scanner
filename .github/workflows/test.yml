@@ -17,6 +17,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false # Allow previous workflows’ clean-up steps to complete
 
+env:
+  TESTING_REPOSITORY: github/accessibility-scanner-testing
+
 jobs:
   test:
     name: Test
@@ -74,7 +77,7 @@ jobs:
           login_url: http://127.0.0.1:4000/
           username: ${{ secrets.TEST_USERNAME }}
           password: ${{ secrets.TEST_PASSWORD }}
-          repository: github/accessibility-scanner-testing
+          repository: ${{ env.TESTING_REPOSITORY }}
           token: ${{ secrets.GH_TOKEN }}
           cache_key: ${{ steps.cache_key.outputs.cache_key }}
 
@@ -110,6 +113,11 @@ jobs:
                 if [[ "$URL" == *"/pull/"* ]]; then
                   echo "Closing pull request: $URL"
                   gh pr close "$URL" || echo "Failed to close pull request: $URL"
+                  branch="$(gh pr view "$URL" --json headRefName -q .headRefName || true)"
+                  if [[ -n "$branch" ]]; then
+                    echo "Deleting branch: $branch"
+                    gh api -X DELETE "repos/${{ env.TESTING_REPOSITORY }}/git/refs/heads/$branch" || echo "Failed to delete branch: $branch"
+                  fi
                 elif [[ "$URL" == *"/issues/"* ]]; then
                   echo "Closing issue: $URL"
                   gh issue close "$URL" || echo "Failed to close issue: $URL"
