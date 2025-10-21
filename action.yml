@@ -41,7 +41,7 @@ runs:
   steps:
     - name: Restore cached results
       id: restore
-      uses: github/accessibility-scanner/.github/actions/gh-cache/cache@v2
+      uses: github/accessibility-scanner/.github/actions/gh-cache/cache@smockle/testing-22
       with:
         key: ${{ inputs.cache_key }}
         token: ${{ inputs.token }}
@@ -58,20 +58,20 @@ runs:
     - if: ${{ inputs.login_url && inputs.username && inputs.password && !inputs.auth_context }}
       name: Authenticate
       id: auth
-      uses: github/accessibility-scanner/.github/actions/auth@v2
+      uses: github/accessibility-scanner/.github/actions/auth@smockle/testing-22
       with:
         login_url: ${{ inputs.login_url }}
         username: ${{ inputs.username }}
         password: ${{ inputs.password }}
     - name: Find
       id: find
-      uses: github/accessibility-scanner/.github/actions/find@v2
+      uses: github/accessibility-scanner/.github/actions/find@smockle/testing-22
       with:
         urls: ${{ inputs.urls }}
         auth_context: ${{ inputs.auth_context || steps.auth.outputs.auth_context }}
     - name: File
       id: file
-      uses: github/accessibility-scanner/.github/actions/file@v2
+      uses: github/accessibility-scanner/.github/actions/file@smockle/testing-22
       with:
         findings: ${{ steps.find.outputs.findings }}
         repository: ${{ inputs.repository }}
@@ -88,7 +88,7 @@ runs:
     - if: ${{ inputs.skip_copilot_assignment != 'true' }}
       name: Fix
       id: fix
-      uses: github/accessibility-scanner/.github/actions/fix@v2
+      uses: github/accessibility-scanner/.github/actions/fix@smockle/testing-22
       with:
         issues: ${{ steps.get_issues_from_filings.outputs.issues }}
         repository: ${{ inputs.repository }}
@@ -118,7 +118,7 @@ runs:
         FILINGS: ${{ steps.file.outputs.filings }}
         FIXINGS: ${{ steps.fix.outputs.fixings }}
     - name: Save cached results
-      uses: github/accessibility-scanner/.github/actions/gh-cache/cache@v2
+      uses: github/accessibility-scanner/.github/actions/gh-cache/cache@smockle/testing-22
       with:
         key: ${{ inputs.cache_key }}
         value: ${{ steps.results.outputs.results }}

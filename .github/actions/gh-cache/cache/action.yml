@@ -14,7 +14,7 @@ inputs:
   fail_on_cache_miss:
     description: "Fail the workflow if cached item is not found."
     required: false
-    default: 'false'
+    default: "false"
 
 outputs:
   value:
@@ -25,7 +25,7 @@ runs:
   using: "composite"
   steps:
     - name: Restore cached value
-      uses: github/accessibility-scanner/.github/actions/gh-cache/restore@v2
+      uses: github/accessibility-scanner/.github/actions/gh-cache/restore@smockle/testing-22
       with:
         path: ${{ inputs.key }}
         token: ${{ inputs.token }}
@@ -41,7 +41,7 @@ runs:
 
     - if: ${{ inputs.value }}
       name: Save cached value
-      uses: github/accessibility-scanner/.github/actions/gh-cache/save@v2
+      uses: github/accessibility-scanner/.github/actions/gh-cache/save@smockle/testing-22
       with:
         path: ${{ inputs.key }}
         token: ${{ inputs.token }}

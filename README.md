@@ -17,6 +17,7 @@ The a11y scanner helps teams:
 This project is a GitHub Actions action. A GitHub Actions workflow is required to run it, and you must have available GitHub Actions minutes.
 
 📚 [Understanding GitHub Actions](https://docs.github.com/en/actions/get-started/understand-github-actions) | [Quickstart for GitHub Actions](https://docs.github.com/en/actions/get-started/quickstart) | [Writing workflows](https://docs.github.com/en/actions/how-tos/write-workflows) | [GitHub Actions billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions)
+
 ## Getting Started
 
 ### 1. Add a Workflow File
@@ -31,7 +32,7 @@ jobs:
   accessibility_scanner:
     runs-on: ubuntu-latest
     steps:
-      - uses: github/accessibility-scanner@v2
+      - uses: github/accessibility-scanner@smockle/testing-22
         with:
           urls: | # Provide a newline-delimited list of URLs to scan; more information below.
             REPLACE_THIS
@@ -80,17 +81,17 @@ Trigger the workflow manually or automatically based on your configuration. The 
 
 ## Action Inputs
 
-| Input | Required | Description | Example |
-|-------|----------|-------------|---------|
-| `urls` | Yes | Newline-delimited list of URLs to scan | `https://primer.style`<br>`https://primer.style/octicons` |
-| `repository` | Yes | Repository (with owner) for issues and PRs | `primer/primer-docs` |
-| `token` | Yes | PAT with write permissions (see above) | `${{ secrets.GH_TOKEN }}` |
-| `cache_key` | Yes | Key for caching results across runs<br>Allowed: `A-Za-z0-9._/-` | `cached_results-primer.style-main.json` |
-| `login_url` | No | If scanned pages require authentication, the URL of the login page | `https://github.com/login` |
-| `username` | No | If scanned pages require authentication, the username to use for login | `some-user` |
-| `password` | No | If scanned pages require authentication, the password to use for login | `correct-horse-battery-staple` |
-| `auth_context` | No | If scanned pages require authentication, a stringified JSON object containing username, password, cookies, and/or localStorage from an authenticated session | `{"username":"some-user","password":"correct-horse-battery-staple","cookies":[{"name":"theme-preference","value":"light","domain":"primer.style","path":"/"}],"localStorage":{"https://primer.style":{"theme-preference":"light"}}}` |
-| `skip_copilot_assignment` | No | Whether to skip assigning filed issues to Copilot | `true` |
+| Input                     | Required | Description                                                                                                                                                  | Example                                                                                                                                                                                                                              |
+| ------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `urls`                    | Yes      | Newline-delimited list of URLs to scan                                                                                                                       | `https://primer.style`<br>`https://primer.style/octicons`                                                                                                                                                                            |
+| `repository`              | Yes      | Repository (with owner) for issues and PRs                                                                                                                   | `primer/primer-docs`                                                                                                                                                                                                                 |
+| `token`                   | Yes      | PAT with write permissions (see above)                                                                                                                       | `${{ secrets.GH_TOKEN }}`                                                                                                                                                                                                            |
+| `cache_key`               | Yes      | Key for caching results across runs<br>Allowed: `A-Za-z0-9._/-`                                                                                              | `cached_results-primer.style-main.json`                                                                                                                                                                                              |
+| `login_url`               | No       | If scanned pages require authentication, the URL of the login page                                                                                           | `https://github.com/login`                                                                                                                                                                                                           |
+| `username`                | No       | If scanned pages require authentication, the username to use for login                                                                                       | `some-user`                                                                                                                                                                                                                          |
+| `password`                | No       | If scanned pages require authentication, the password to use for login                                                                                       | `correct-horse-battery-staple`                                                                                                                                                                                                       |
+| `auth_context`            | No       | If scanned pages require authentication, a stringified JSON object containing username, password, cookies, and/or localStorage from an authenticated session | `{"username":"some-user","password":"correct-horse-battery-staple","cookies":[{"name":"theme-preference","value":"light","domain":"primer.style","path":"/"}],"localStorage":{"https://primer.style":{"theme-preference":"light"}}}` |
+| `skip_copilot_assignment` | No       | Whether to skip assigning filed issues to Copilot                                                                                                            | `true`                                                                                                                                                                                                                               |
 
 ---
 
@@ -120,11 +121,11 @@ The a11y scanner leverages Copilot coding agent, which can be configured with cu
 
 Please refer to the [CONTRIBUTING](./CONTRIBUTING.md) file for more information.
 
-## License 
+## License
 
 This project is licensed under the terms of the MIT open source license. Please refer to the [LICENSE](./LICENSE) file for the full terms.
 
-## Maintainers 
+## Maintainers
 
 Please refer to the [CODEOWNERS](./.github/CODEOWNERS) file for more information.
 
@@ -138,4 +139,4 @@ Thank you to our beta testers for their help in testing this project.
 
 ---
 
-*Last updated: 2025-10-09*
+_Last updated: 2025-10-09_

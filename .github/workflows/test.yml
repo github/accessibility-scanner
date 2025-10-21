@@ -82,7 +82,7 @@ jobs:
           cache_key: ${{ steps.cache_key.outputs.cache_key }}
 
       - name: Retrieve cached results
-        uses: github/accessibility-scanner/.github/actions/gh-cache/restore@v2
+        uses: github/accessibility-scanner/.github/actions/gh-cache/restore@smockle/testing-22
         with:
           path: ${{ steps.cache_key.outputs.cache_key }}
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -130,7 +130,7 @@ jobs:
 
       - name: Clean up cached results
         if: ${{ always() }}
-        uses: github/accessibility-scanner/.github/actions/gh-cache/delete@v2
+        uses: github/accessibility-scanner/.github/actions/gh-cache/delete@smockle/testing-22
         with:
           path: ${{ steps.cache_key.outputs.cache_key }}
           token: ${{ secrets.GITHUB_TOKEN }}
