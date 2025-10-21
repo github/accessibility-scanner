@@ -16,12 +16,12 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
     findings = rawFindings.violations.map(violation => ({
       scannerType: 'axe',
       url,
-      html: violation.nodes[0].html.replace(/'/g, "'\\''"),
-      problemShort: violation.help.toLowerCase().replace(/'/g, "'\\''"),
-      problemUrl: violation.helpUrl.replace(/'/g, "'\\''"),
+      html: violation.nodes[0].html.replace(/'/g, "&apos;"),
+      problemShort: violation.help.toLowerCase().replace(/'/g, "&apos;"),
+      problemUrl: violation.helpUrl.replace(/'/g, "&apos;"),
       ruleId: violation.id,
-      solutionShort: violation.description.toLowerCase().replace(/'/g, "'\\''"),
-      solutionLong: violation.nodes[0].failureSummary?.replace(/'/g, "'\\''")
+      solutionShort: violation.description.toLowerCase().replace(/'/g, "&apos;"),
+      solutionLong: violation.nodes[0].failureSummary?.replace(/'/g, "&apos;")
     }));
   } catch (e) {
     // do something with the error
