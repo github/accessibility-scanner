@@ -160,4 +160,4 @@ The a11y scanner leverages GitHub Copilot coding agent, which can be configured 
 
 ## Acknowledgement
 
-✨ Thank you to our beta testers for their help making this project!
+✨ Thank you to our beta testers for their help with making this project!
