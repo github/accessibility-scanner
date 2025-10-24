@@ -13,6 +13,19 @@ inputs:
 outputs:
   findings:
     description: "List of potential accessibility gaps, as stringified JSON"
+  report_path:
+    description: "The path to the generated Markdown accessibility report"
+
+  wait_for_selector:
+    description: "A CSS selector for an element to wait for before scanning the page"
+    required: false
+  wait_for_timeout:
+    description: "The maximum time in milliseconds to wait for the selector"
+    required: false
+    default: "30000"
+  device:
+    description: "The device to emulate from the list of Playwright-supported devices"
+    required: false
 
 runs:
   using: "node24"

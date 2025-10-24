@@ -1,8 +1,10 @@
 export type Finding = {
+  scannerType: string;
+  ruleId: string;
   url: string;
   html: string;
   problemShort: string;
-  problemUrl: string;
+  problemUrl:string;
   solutionShort: string;
   solutionLong?: string;
 };

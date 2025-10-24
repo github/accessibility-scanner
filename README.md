@@ -19,62 +19,33 @@ This project is a GitHub Actions action. A GitHub Actions workflow is required t
 📚 [Understanding GitHub Actions](https://docs.github.com/en/actions/get-started/understand-github-actions) | [Quickstart for GitHub Actions](https://docs.github.com/en/actions/get-started/quickstart) | [Writing workflows](https://docs.github.com/en/actions/how-tos/write-workflows) | [GitHub Actions billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions)
 ## Getting Started
 
-### 1. Add a Workflow File
-
-Create a workflow file in `.github/workflows/` (e.g., `a11y-scan.yml`) in your repository:
-
-```YAML
-name: Accessibility Scanner
-on: workflow_dispatch # This configures the workflow to run manually, instead of (e.g.) automatically in every PR. Check out https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#on for more options.
-
-jobs:
-  accessibility_scanner:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: github/accessibility-scanner@v2
-        with:
-          urls: | # Provide a newline-delimited list of URLs to scan; more information below.
-            REPLACE_THIS
-          repository: REPLACE_THIS/REPLACE_THIS # Provide a repository name-with-owner (in the format "primer/primer-docs"). This is where issues will be filed and where Copilot will open PRs; more information below.
+1. Add a Workflow FileCreate a workflow file in .github/workflows/ (e.g., a11y-scan.yml) in your repository:name: Accessibility Scanneron: workflow_dispatch # This configures the workflow to run manually, instead of (e.g.) automatically in every PR. Check out https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#on for more options.jobs:  accessibility_scanner:    runs-on: ubuntu-latest    steps:      - uses: github/accessibility-scanner@v2        with:          urls: | # Provide a newline-delimited list of URLs to scan; more information below.            REPLACE_THIS          repository: REPLACE_THIS/REPLACE_THIS # Provide a repository name-with-owner (in the format "primer/primer-docs"). This is where issues will be filed and where Copilot will open PRs; more information below.
           token: ${{ secrets.GH_TOKEN }} # This token must have write access to the repo above (contents, issues, and PRs); more information below. Note: GitHub Actions’ `GITHUB_TOKEN` (https://docs.github.com/en/actions/tutorials/authenticate-with-github_token) cannot be used here.
           cache_key: REPLACE_THIS # Provide a filename that will be used when caching results. We recommend including the name or domain of the site being scanning.
-```
-
-> 👉 Update all `REPLACE_THIS` placeholders with your actual values. See [Action Inputs](#action-inputs) for details.
+👉 Update all REPLACE_THIS placeholders with your actual values. See Action Inputs for details.
 
 Required Permissions:
 
-- Write access to add or update workflows
-- Admin access to add repository secrets
+Write access to add or update workflows
+Admin access to add repository secrets
+📚 Understanding GitHub Actions | Managing GitHub Actions settings | Writing workflows
 
-📚 [Understanding GitHub Actions](https://docs.github.com/en/actions/get-started/understand-github-actions) | [Managing GitHub Actions settings](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository) | [Writing workflows](https://docs.github.com/en/actions/how-tos/write-workflows)
-
----
-
-### 2. Create a Token and Add a Secret
-
+2. Create a Token and Add a Secret
 The a11y scanner requires a Personal Access Token (PAT) as repository secret:
 
-#### The `GH_TOKEN` is a fine-grained PAT with
+The GH_TOKEN is a fine-grained PAT with
+actions: write
+contents: write
+issues: write
+pull-requests: write
+metadata: read
+Scope: Your target repository (where issues and PRs will be created) and the repository containing your workflow
+👉 GitHub Actions' default GITHUB_TOKEN cannot be used here.
 
-- `actions: write`
-- `contents: write`
-- `issues: write`
-- `pull-requests: write`
-- `metadata: read`
-- Scope: Your target repository (where issues and PRs will be created) and the repository containing your workflow
+📚 Creating a fine-grained PAT | Creating repository secrets
 
-> 👉 GitHub Actions' default `GITHUB_TOKEN` cannot be used here.
-
-📚 [Creating a fine-grained PAT](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token) | [Creating repository secrets](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-a-repository)
-
----
-
-### 3. Run Your First Scan
-
+3. Run Your First Scan
 Trigger the workflow manually or automatically based on your configuration. The scanner will run and create issues for any accessibility findings. When issues are assigned to Copilot, always review proposed fixes before merging.
-
-📚 [Running a workflow manually](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow#running-a-workflow)
 
 ---
 

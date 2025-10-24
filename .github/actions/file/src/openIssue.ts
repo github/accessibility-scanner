@@ -25,14 +25,7 @@ export async function openIssue(octokit: Octokit, repoWithOwner: string, finding
 - [ ] A test SHOULD be added to ensure this specific axe violation does not regress.
 - [ ] This PR MUST NOT introduce any new accessibility issues or regressions.
 `;
-  const body = `## What
-An accessibility scan flagged the element \`${finding.html}\` on ${finding.url} because ${finding.problemShort}. Learn more about why this was flagged by visiting ${finding.problemUrl}.
-
-To fix this, ${finding.solutionShort}.
-${solutionLong ? `\nSpecifically:\n\n${solutionLong}` : ''}
-
-${acceptanceCriteria}
-`;
+  const body = `An accessibility scan has identified an issue on [this page](${finding.url}).\n\n## Issue Details\n\n*   **Description**: ${finding.problemShort}\n*   **WCAG Rule**: [${finding.ruleId}](${finding.problemUrl})\n*   **Scanner**: ${finding.scannerType}\n\n## Problematic Element\n\n\`\`\`html\n${finding.html}\n\`\`\`\n\n## Suggested Fix\n\n${finding.solutionShort}.\n\n${solutionLong ? `### Recommended Steps:\\n\\n${solutionLong}` : ''}\n\n${acceptanceCriteria}\n`;
 
   return octokit.request(`POST /repos/${owner}/${repo}/issues`, {
     owner,

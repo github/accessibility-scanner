@@ -1,0 +1,49 @@
+name: Validate Fix
+
+on:
+  workflow_dispatch:
+    inputs:
+      preview_url:
+        description: 'The URL of the preview environment to scan'
+        required: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Find accessibility issues
+        id: find
+        uses: ./.github/actions/find
+        with:
+          urls: ${{ github.event.inputs.preview_url }}
+
+      - name: Comment on PR
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const findings = ${{ steps.find.outputs.findings }};
+            const issue_number = context.issue.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            if (findings.length > 0) {
+              const comment = `Accessibility scan found ${findings.length} issues on the preview environment.`
+              github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body: comment
+              });
+            } else {
+              const comment = `Accessibility scan found no issues on the preview environment.`
+              github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body: comment
+              });
+            }

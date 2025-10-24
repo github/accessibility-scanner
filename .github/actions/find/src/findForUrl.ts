@@ -3,12 +3,28 @@ import AxeBuilder from '@axe-core/playwright'
 import playwright from 'playwright';
 import { AuthContext } from './AuthContext.js';
 
-export async function findForUrl(url: string, authContext?: AuthContext): Promise<Finding[]> {
-  const browser = await playwright.chromium.launch({ headless: true, executablePath: process.env.CI ? '/usr/bin/google-chrome' : undefined });
-  const contextOptions = authContext?.toPlaywrightBrowserContextOptions() ?? {};
+export async function findForUrl(
+  url: string,
+  authContext?: AuthContext,
+  waitForSelector?: string,
+  waitForTimeout?: number,
+  device?: string
+): Promise<Finding[]> {
+  const browser = await playwright.chromium.launch({
+    headless: true,
+    executablePath: process.env.CI ? "/usr/bin/google-chrome" : undefined,
+  });
+  const contextOptions = {
+    ...(authContext?.toPlaywrightBrowserContextOptions() ?? {}),
+    ...(device ? playwright.devices[device] : {}),
+  };
   const context = await browser.newContext(contextOptions);
   const page = await context.newPage();
   await page.goto(url);
+
+  if (waitForSelector) {
+    await page.waitForSelector(waitForSelector, { timeout: waitForTimeout });
+  }
 
   let findings: Finding[] = [];
   try {

@@ -44,7 +44,8 @@ export default async function () {
   });
   const fixings: Fixing[] = issues.map((issue) => ({ issue })) as Fixing[];
 
-  for (const fixing of fixings) {
+  if (fixings.length > 0) {
+    const fixing = fixings[0];
     try {
       const issue = new Issue(fixing.issue);
       await assignIssue(octokit, issue);
@@ -70,7 +71,7 @@ export default async function () {
     }
   }
 
-  core.setOutput("fixings", JSON.stringify(fixings));
+  core.setOutput("fixings", JSON.stringify(fixings.slice(0, 1)));
   core.debug(`Output: 'fixings: ${JSON.stringify(fixings)}'`);
   core.info("Finished 'fix' action");
 }
