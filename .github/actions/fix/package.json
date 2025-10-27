@@ -18,7 +18,7 @@
     "@octokit/plugin-throttling": "^11.0.2"
   },
   "devDependencies": {
-    "@types/node": "^24.9.0",
+    "@types/node": "^24.9.1",
     "typescript": "^5.9.3"
   }
 }
