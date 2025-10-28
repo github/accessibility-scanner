@@ -1,4 +1,4 @@
-## Contributing
+# Contributing
 
 [fork]: https://github.com/github/accessibility-scanner/fork
 [pr]: https://github.com/github/accessibility-scanner/compare
@@ -9,13 +9,29 @@ Contributions to this project are [released](https://help.github.com/articles/gi
 
 Please note that this project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
 
-## Submitting a pull request
+## How you can contribute
 
-Thank you for your interest in this GitHub action, however, right now we are not taking contributions.
+We are not accepting pull requests at this time. However, we welcome and encourage you to:
 
+- **Test the a11y scanner** and share your experiences
+- **Create issues** to report bugs, unexpected behavior, or documentation improvements
+- **Share feedback** about your use cases and workflows
+
+### Creating issues
+
+When creating an issue, please provide:
+
+- A clear and descriptive title
+- Detailed steps to reproduce (for bugs)
+- Expected vs. actual behavior
+- Your environment details (OS, browser, GitHub Actions runner, etc.)
+- Any relevant logs or screenshots
+
+### Feature requests
+
+While we welcome feature requests, please note that we cannot guarantee that any feature request will be implemented or prioritized. We review all suggestions and consider them as part of our ongoing development process.
 
 ## Resources
 
 - [How to Contribute to Open Source](https://opensource.guide/how-to-contribute/)
-- [Using Pull Requests](https://help.github.com/articles/about-pull-requests/)
 - [GitHub Support](https://support.github.com)
