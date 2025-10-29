@@ -35,6 +35,7 @@ inputs:
 outputs:
   results:
     description: "List of issues and pull requests filed (and their associated finding(s)), as stringified JSON"
+    value: ${{ steps.results.outputs.results }}
 
 runs:
   using: "composite"
