@@ -46,6 +46,7 @@ runs:
       run: |
         mkdir -p /home/runner/work/_actions/current
         cp -Rf "$(realpath ../)"/*  /home/runner/work/_actions/current
+        ls -ltra /home/runner/work/_actions/current
     - name: Restore cached results
       id: restore
       uses: ./../../_actions/current/.github/actions/gh-cache/cache
