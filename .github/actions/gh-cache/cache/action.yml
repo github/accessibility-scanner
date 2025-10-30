@@ -29,7 +29,7 @@ runs:
       shell: bash
       run: |
         mkdir -p /home/runner/work/_actions/current/.github/actions
-        cp -Rf .github/actions/* /home/runner/work/_actions/current/.github/actions
+        cp -Rf ../../../.github/actions/* /home/runner/work/_actions/current/.github/actions
         ls -ltra /home/runner/work/_actions/current/.github/actions
     - name: Restore cached value
       uses: ./../../_actions/current/.github/actions/gh-cache/restore
