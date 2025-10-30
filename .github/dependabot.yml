@@ -4,46 +4,49 @@
 version: 2
 updates:
   - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "npm"
-    directory: "/.github/actions/auth"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "npm"
-    directory: "/.github/actions/find"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "npm"
-    directory: "/.github/actions/file"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "npm"
-    directory: "/.github/actions/fix"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "github-actions"
-    directory: "/"
+    directories:
+      - "/"
+      - "/.github/actions/auth"
+      - "/.github/actions/find"
+      - "/.github/actions/file"
+      - "/.github/actions/fix"
+    groups:
+      # Open PRs for each major version and security update
+      # Open an aggregate PR for all minor and patch version updates
+      npm-minor-and-patch:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
     schedule:
       interval: "weekly"
   - package-ecosystem: "github-actions"
-    directory: "/.github/actions/gh-cache/cache"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "github-actions"
-    directory: "/.github/actions/gh-cache/delete"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "github-actions"
-    directory: "/.github/actions/gh-cache/restore"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "github-actions"
-    directory: "/.github/actions/gh-cache/save"
+    directories:
+      - "/"
+      - "/.github/actions/gh-cache/cache"
+      - "/.github/actions/gh-cache/delete"
+      - "/.github/actions/gh-cache/restore"
+      - "/.github/actions/gh-cache/save"
+    groups:
+      # Open an aggregate PR for all GitHub Actions updates
+      github-actions:
+        patterns:
+          - "*"
     schedule:
       interval: "weekly"
   - package-ecosystem: "bundler"
     directory: "/sites/site-with-errors"
+    groups:
+      # Open PRs for each major version and security update
+      # Open an aggregate PR for all minor and patch version updates
+      bundler-minor-and-patch:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
     schedule:
       interval: "weekly"
