@@ -9,6 +9,7 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
   const context = await browser.newContext(contextOptions);
   const page = await context.newPage();
   await page.goto(url);
+  console.log(`Scanning ${page.url()}`);
 
   let findings: Finding[] = [];
   try {
