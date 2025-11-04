@@ -14,11 +14,11 @@
   "type": "module",
   "dependencies": {
     "@actions/core": "^1.11.1",
-    "@octokit/core": "^7.0.5",
-    "@octokit/plugin-throttling": "^11.0.2"
+    "@octokit/core": "^7.0.6",
+    "@octokit/plugin-throttling": "^11.0.3"
   },
   "devDependencies": {
-    "@types/node": "^24.9.2",
+    "@types/node": "^24.10.0",
     "typescript": "^5.9.3"
   }
 }
