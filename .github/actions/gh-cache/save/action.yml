@@ -40,7 +40,7 @@ runs:
         fi
 
     - name: Checkout repository to temporary directory
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         token: ${{ inputs.token }}
         fetch-depth: 0
