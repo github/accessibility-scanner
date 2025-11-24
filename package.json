@@ -21,6 +21,6 @@
     "@octokit/plugin-throttling": "^11.0.3",
     "@octokit/types": "^16.0.0",
     "@types/node": "^24.10.1",
-    "vitest": "^4.0.10"
+    "vitest": "^4.0.13"
   }
 }
