@@ -31,7 +31,7 @@ runs:
         RUNNER_WORK_DIR="$(realpath "${GITHUB_WORKSPACE}/../..")"
         ACTION_DIR="${RUNNER_WORK_DIR}/_actions/github/accessibility-scanner/current"
         mkdir -p "${ACTION_DIR}/.github/actions"
-        if [ "$(realpath .github/actions)" != "$(realpath "${ACTION_DIR}/.github/actions")" ]; then
+        if [ "$(realpath "../../../../.github/actions")" != "$(realpath "${ACTION_DIR}/.github/actions")" ]; then
           cp -a "../../../../.github/actions/." "${ACTION_DIR}/.github/actions/"
         fi
     - name: Restore cached value
