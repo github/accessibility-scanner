@@ -104,13 +104,23 @@ runs:
         issues: ${{ steps.get_issues_from_filings.outputs.issues }}
         repository: ${{ inputs.repository }}
         token: ${{ inputs.token }}
+    - name: Write data needed to compile results to files
+      shell: bash
+      run: |
+        echo '${{ steps.file.outputs.filings || "[]" }}' > "$FILINGS_PATH"
+        echo '${{ steps.fix.outputs.fixings || "[]" }}' > "$FIXINGS_PATH"
+      working-directory: ${{ github.workspace }}
+      env:
+        FILINGS_PATH: ${{ runner.temp }}/filings.json
+        FIXINGS_PATH: ${{ runner.temp }}/fixings.json
     - name: Set results output
       id: results
       uses: actions/github-script@v8
       with:
         script: |
-          const filings = JSON.parse(process.env.FILINGS || '[]');
-          const fixings = JSON.parse(process.env.FIXINGS || '[]');
+          const fs = require('fs');
+          const filings = JSON.parse(fs.readFileSync(process.env.FILINGS_PATH, 'utf8') || '[]');
+          const fixings = JSON.parse(fs.readFileSync(process.env.FIXINGS_PATH, 'utf8') || '[]');
           const fixingsByIssueUrl = fixings.reduce((acc, fixing) => {
             if (fixing.issue && fixing.issue.url) {
               acc[fixing.issue.url] = fixing;
@@ -126,8 +136,8 @@ runs:
           core.setOutput('results', JSON.stringify(results));
           core.debug(`Results: ${JSON.stringify(results)}`);
       env:
-        FILINGS: ${{ steps.file.outputs.filings }}
-        FIXINGS: ${{ steps.fix.outputs.fixings }}
+        FILINGS_PATH: ${{ runner.temp }}/filings.json
+        FIXINGS_PATH: ${{ runner.temp }}/fixings.json
     - name: Save cached results
       uses: ./../../_actions/github/accessibility-scanner/current/.github/actions/gh-cache/cache
       with:
