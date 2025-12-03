@@ -107,8 +107,8 @@ runs:
     - name: Write data needed to compile results to files
       shell: bash
       run: |
-        echo '${{ steps.file.outputs.filings || "[]" }}' > "$FILINGS_PATH"
-        echo '${{ steps.fix.outputs.fixings || "[]" }}' > "$FIXINGS_PATH"
+        echo '${{ steps.file.outputs.filings }}' > "$FILINGS_PATH"
+        echo '${{ steps.fix.outputs.fixings }}' > "$FIXINGS_PATH"
       working-directory: ${{ github.workspace }}
       env:
         FILINGS_PATH: ${{ runner.temp }}/filings.json
