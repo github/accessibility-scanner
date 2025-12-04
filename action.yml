@@ -109,8 +109,8 @@ runs:
       uses: actions/github-script@v8
       with:
         script: |
-          const filings = JSON.parse(process.env.FILINGS || '[]');
-          const fixings = JSON.parse(process.env.FIXINGS || '[]');
+          const filings = JSON.parse('${{ steps.file.outputs.filings }}' || '[]');
+          const fixings = JSON.parse('${{ steps.fix.outputs.fixings }}' || '[]');
           const fixingsByIssueUrl = fixings.reduce((acc, fixing) => {
             if (fixing.issue && fixing.issue.url) {
               acc[fixing.issue.url] = fixing;
@@ -125,9 +125,6 @@ runs:
           }
           core.setOutput('results', JSON.stringify(results));
           core.debug(`Results: ${JSON.stringify(results)}`);
-      env:
-        FILINGS: ${{ steps.file.outputs.filings }}
-        FIXINGS: ${{ steps.fix.outputs.fixings }}
     - name: Save cached results
       uses: ./../../_actions/github/accessibility-scanner/current/.github/actions/gh-cache/cache
       with:
