@@ -14,7 +14,7 @@
   "type": "module",
   "dependencies": {
     "@actions/core": "^1.11.1",
-    "playwright": "^1.56.1"
+    "playwright": "^1.57.0"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
