@@ -13,7 +13,7 @@
   "license": "MIT",
   "type": "module",
   "dependencies": {
-    "@actions/core": "^1.11.1",
+    "@actions/core": "^2.0.1",
     "@axe-core/playwright": "^4.11.0",
     "playwright": "^1.57.0"
   },
