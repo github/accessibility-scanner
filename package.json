@@ -16,7 +16,7 @@
   },
   "homepage": "https://github.com/github/accessibility-scanner#readme",
   "devDependencies": {
-    "@actions/core": "^1.11.1",
+    "@actions/core": "^2.0.1",
     "@octokit/core": "^7.0.6",
     "@octokit/plugin-throttling": "^11.0.3",
     "@octokit/types": "^16.0.0",
