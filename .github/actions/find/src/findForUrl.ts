@@ -8,7 +8,7 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
   const contextOptions = authContext?.toPlaywrightBrowserContextOptions() ?? {};
   const context = await browser.newContext(contextOptions);
   const page = await context.newPage();
-  await page.goto(url);
+  await page.goto(url, { waitUntil: 'domcontentloaded' });
   console.log(`Scanning ${page.url()}`);
 
   let findings: Finding[] = [];
