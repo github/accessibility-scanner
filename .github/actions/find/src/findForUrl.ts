@@ -19,6 +19,7 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
   let findings: Finding[] = [];
   try {
     const rawFindings = await new AxeBuilder({ page }).analyze();
+    console.log('*** RAW FINDINGS', JSON.stringify(rawFindings, null, 2));
     findings = rawFindings.violations.map(violation => ({
       scannerType: 'axe',
       url,
