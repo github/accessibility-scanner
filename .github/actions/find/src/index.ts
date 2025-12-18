@@ -15,7 +15,8 @@ export default async function () {
   let findings = [];
   for (const url of urls) {
     core.info(`Preparing to scan ${url}`);
-    const findingsForUrl = await findForUrl(url, authContext);
+    const { findings: findingsForUrl, content } = await findForUrl(url, authContext);
+    core.setOutput("page_content", content);
     if (findingsForUrl.length === 0) {
       core.info(`No accessibility gaps were found on ${url}`);
       continue;

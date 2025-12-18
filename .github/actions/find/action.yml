@@ -13,6 +13,8 @@ inputs:
 outputs:
   findings:
     description: "List of potential accessibility gaps, as stringified JSON"
+  page_content:
+    description: "Content of the scanned page"
 
 runs:
   using: "node24"
