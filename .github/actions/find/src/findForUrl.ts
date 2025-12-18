@@ -8,7 +8,12 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
   const contextOptions = authContext?.toPlaywrightBrowserContextOptions() ?? {};
   const context = await browser.newContext(contextOptions);
   const page = await context.newPage();
-  await page.goto(url, { waitUntil: 'networkidle' });
+  await page.goto(url, { 
+    waitUntil: 'networkidle',
+    // - looks like default timeout is 3000ms
+    // - increasing to 20,000ms (20 seconds)
+    timeout: 20000,
+  });
   console.log(`Scanning ${page.url()}`);
 
   let findings: Finding[] = [];
