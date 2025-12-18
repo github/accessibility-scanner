@@ -14,6 +14,11 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
     // - increasing for testing
     timeout: 60000,
   });
+
+  console.log('*** page content');
+  const content = await page.content();
+  console.log(content);
+  
   console.log(`Scanning ${page.url()}`);
 
   let findings: Finding[] = [];
