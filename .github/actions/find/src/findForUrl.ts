@@ -9,7 +9,7 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
   const context = await browser.newContext(contextOptions);
   const page = await context.newPage();
   await page.goto(url, { 
-    waitUntil: 'domcontentloaded',
+    waitUntil: 'load',
     // - looks like default timeout is 3000ms
     // - increasing for testing
     timeout: 60000,
