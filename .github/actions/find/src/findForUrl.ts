@@ -11,8 +11,8 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
   await page.goto(url, { 
     waitUntil: 'networkidle',
     // - looks like default timeout is 3000ms
-    // - increasing to 20,000ms (20 seconds)
-    timeout: 20000,
+    // - increasing for testing
+    timeout: 60000,
   });
   console.log(`Scanning ${page.url()}`);
 
