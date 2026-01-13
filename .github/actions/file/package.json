@@ -13,12 +13,12 @@
   "license": "MIT",
   "type": "module",
   "dependencies": {
-    "@actions/core": "^2.0.1",
+    "@actions/core": "^2.0.2",
     "@octokit/core": "^7.0.6",
     "@octokit/plugin-throttling": "^11.0.3"
   },
   "devDependencies": {
-    "@types/node": "^25.0.3",
+    "@types/node": "^25.0.6",
     "typescript": "^5.9.3"
   }
 }
