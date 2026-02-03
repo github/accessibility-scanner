@@ -8,7 +8,14 @@ jobs:
       - uses: github/accessibility-scanner@v2
         with:
           urls: |
-            REPLACE_THIS
+            https://github.com
+            https://primer.style
+            https://primer.style/product/getting-started/foundations/layout/ # requires horizontal scrolling
+            https://primer.style/brand/primitives/color/ # Hex color cut off
+            https://primer.style/react/storybook/?path=/story/components-banner-features--actions-layout-inline # Buttons are overlapping
+            https://support.github.com/request/landing # 2d scroll
+            https://innovationgraph.github.com/ # Content disappears on mobile
+            https://github.com/partners/service-channel-partners # 2d scroll at 200%
           repository: lindseywild/accessibility-scanner
           token: ${{ secrets.GH_TOKEN }}
           cache_key: cached_results-lindseywild-scanner-main.json
