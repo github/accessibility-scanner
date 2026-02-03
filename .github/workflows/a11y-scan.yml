@@ -7,7 +7,7 @@ jobs:
     steps:
       - uses: github/accessibility-scanner@v2
         with:
-          urls: | # Provide a newline-delimited list of URLs to scan; more information below.
+          urls: |
             REPLACE_THIS
           repository: lindseywild/accessibility-scanner
           token: ${{ secrets.GH_TOKEN }}
