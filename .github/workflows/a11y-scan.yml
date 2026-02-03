@@ -1,0 +1,15 @@
+name: Accessibility Scanner
+on: workflow_dispatch
+
+jobs:
+  accessibility_scanner:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: github/accessibility-scanner@v2
+        with:
+          urls: | # Provide a newline-delimited list of URLs to scan; more information below.
+            REPLACE_THIS
+          repository: lindseywild/accessibility-scanner
+          token: ${{ secrets.GH_TOKEN }}
+          cache_key: cached_results-lindseywild-scanner-main.json
+          skip_copilot_assignment: true
