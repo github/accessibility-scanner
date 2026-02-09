@@ -20,7 +20,7 @@
     "@octokit/core": "^7.0.6",
     "@octokit/plugin-throttling": "^11.0.3",
     "@octokit/types": "^16.0.0",
-    "@types/node": "^25.0.3",
-    "vitest": "^4.0.16"
+    "@types/node": "^25.2.0",
+    "vitest": "^4.0.18"
   }
 }
