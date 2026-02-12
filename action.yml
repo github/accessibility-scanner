@@ -33,6 +33,8 @@ inputs:
     default: "false"
   include_screenshots:
     description: "Whether to capture screenshots and include links to them in the issue"
+  open_grouped_issues:
+    description: "In the 'file' step, also open grouped issues which link to all issues with the same problem"
     required: false
     default: "false"
 
@@ -94,6 +96,7 @@ runs:
         token: ${{ inputs.token }}
         cached_filings: ${{ steps.normalize_cache.outputs.value }}
         screenshot_repository: ${{ github.repository }}
+        open_grouped_issues: ${{ inputs.open_grouped_issues }}
     - if: ${{ steps.file.outputs.filings }}
       name: Get issues from filings
       id: get_issues_from_filings

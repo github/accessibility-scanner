@@ -34,3 +34,8 @@ export type RepeatedFiling = {
 }
 
 export type Filing = ResolvedFiling | NewFiling | RepeatedFiling
+
+export type FindingGroupIssue = {
+  url: string
+  id: number
+};
