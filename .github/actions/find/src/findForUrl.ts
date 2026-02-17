@@ -15,16 +15,11 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
   console.log('looking for files in the root directory');
 
   try {
-    fs.readdir('../src', (err, files) => {
-      if (err) {
-        console.log('error reading dir');
-        console.log(err);
-      } else {
-        files.forEach(file => {
-          // will also include directory names
-          console.log(file);
-        });
-      }
+    const res = fs.readdirSync(process.cwd());
+    console.log('done reading dir');
+    res.forEach(file => {
+      // will also include directory names
+      console.log('file: ', file);
     });
   } catch (e) {
     console.log('error: ');
