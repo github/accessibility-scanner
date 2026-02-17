@@ -12,12 +12,26 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
   // await page.goto(url);
   // console.log(`Scanning ${page.url()}`);
 
-  fs.readdir('../../../../', (err, files) => {
-    files.forEach(file => {
-      // will also include directory names
-      console.log(file);
+  console.log('looking for files in the root directory');
+
+  try {
+    fs.readdir('../../../../', (err, files) => {
+      if (err) {
+        console.log('error reading dir');
+        console.log(err);
+      } else {
+        files.forEach(file => {
+          // will also include directory names
+          console.log(file);
+        });
+      }
     });
-  });
+  } catch (e) {
+    console.log('error: ');
+    console.log(e);
+  }
+
+  console.log('done looking for files');
 
 
   let findings: Finding[] = [];
