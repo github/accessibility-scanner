@@ -15,7 +15,7 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
   console.log('looking for files in the root directory');
 
   try {
-    fs.readdir('../../../../', (err, files) => {
+    fs.readdir('../', (err, files) => {
       if (err) {
         console.log('error reading dir');
         console.log(err);
@@ -69,15 +69,18 @@ interface IPluginContext {
 //   alone will not make it clear which scenario the finding came from
 class PluginContext implements IPluginContext {
   static create({ page }: { page: playwright.Page }): IPluginContext {
-    const pc = new PluginContext();
-    pc.#page = page;
-    return pc;
+    return new PluginContext({ page });
+  }
+
+  constructor({ page }: { page: playwright.Page }) {
+    this.#page = page;
   }
 
   #page: playwright.Page;
 
   async performAxeScan() {
-    await new AxeBuilder({ page: this.#page }).analyze();
+    if (!this.page) return;
+    await new AxeBuilder({ page: this.page }).analyze();
   }
 
   get page() {
