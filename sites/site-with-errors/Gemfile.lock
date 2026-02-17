@@ -101,7 +101,7 @@ GEM
     public_suffix (6.0.2)
     puma (7.1.0)
       nio4r (~> 2.0)
-    rack (3.2.4)
+    rack (3.2.5)
     rake (13.3.0)
     rb-fsevent (0.11.2)
     rb-inotify (0.11.1)
