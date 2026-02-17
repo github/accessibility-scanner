@@ -2,7 +2,7 @@ import type { Finding } from './types.d.js';
 import AxeBuilder from '@axe-core/playwright'
 import playwright from 'playwright';
 import { AuthContext } from './AuthContext.js';
-import fs from 'fs';
+import * as fs from 'fs';
 
 export async function findForUrl(url: string, authContext?: AuthContext): Promise<Finding[]> {
   // const browser = await playwright.chromium.launch({ headless: true, executablePath: process.env.CI ? '/usr/bin/google-chrome' : undefined });
