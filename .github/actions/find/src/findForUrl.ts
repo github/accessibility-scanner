@@ -15,7 +15,7 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
   console.log('looking for files in the root directory');
 
   try {
-    fs.readdir('../', (err, files) => {
+    fs.readdir('../src', (err, files) => {
       if (err) {
         console.log('error reading dir');
         console.log(err);
