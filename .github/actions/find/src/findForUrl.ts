@@ -3,6 +3,7 @@ import AxeBuilder from '@axe-core/playwright'
 import playwright from 'playwright';
 import { AuthContext } from './AuthContext.js';
 import * as fs from 'fs';
+import * as path from 'path';
 
 export async function findForUrl(url: string, authContext?: AuthContext): Promise<Finding[]> {
   // const browser = await playwright.chromium.launch({ headless: true, executablePath: process.env.CI ? '/usr/bin/google-chrome' : undefined });
@@ -12,21 +13,8 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
   // await page.goto(url);
   // console.log(`Scanning ${page.url()}`);
 
-  console.log('looking for files in the root directory');
-
-  try {
-    const res = fs.readdirSync(process.cwd());
-    console.log('done reading dir');
-    res.forEach(file => {
-      // will also include directory names
-      console.log('file: ', file);
-    });
-  } catch (e) {
-    console.log('error: ');
-    console.log(e);
-  }
-
-  console.log('done looking for files');
+  const plugins = await PluginsProvider.getPlugins();
+  console.log('number of plugins: ', plugins.length);
 
 
   let findings: Finding[] = [];
@@ -48,6 +36,34 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
   // await context.close();
   // await browser.close();
   return findings;
+}
+
+class PluginsProvider {
+  static #plugins: any[] = [];
+  static #pluginsLoaded = false;
+
+  static async getPlugins() {
+    if (!PluginsProvider.#pluginsLoaded) {
+      console.log('loading plugins');
+      PluginsProvider.#pluginsLoaded = true;
+      try {
+        const pluginsDir = path.join(process.cwd(), '.github', 'scanner-plugins');
+        const res = fs.readdirSync(pluginsDir);
+        console.log('done reading dir');
+        for (const pluginFolder of res) {
+          // will also include directory names
+          console.log('pluginFolder: ', pluginFolder);
+          const indexFile = path.join(pluginsDir, pluginFolder, 'index.js');
+          PluginsProvider.#plugins.push(await import(indexFile));
+        }
+      } catch (e) {
+        console.log('error: ');
+        console.log(e);
+      }
+    }
+
+    return PluginsProvider.#plugins;
+  }
 }
 
 interface IPluginContext {
