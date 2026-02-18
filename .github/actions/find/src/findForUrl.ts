@@ -4,6 +4,11 @@ import playwright from 'playwright';
 import { AuthContext } from './AuthContext.js';
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+// Helper to get __dirname equivalent in ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export async function findForUrl(url: string, authContext?: AuthContext): Promise<Finding[]> {
   // const browser = await playwright.chromium.launch({ headless: true, executablePath: process.env.CI ? '/usr/bin/google-chrome' : undefined });
@@ -52,7 +57,9 @@ class PluginsProvider {
       PluginsProvider.#pluginsLoaded = true;
       try {
         const pluginsDir = path.join(process.cwd(), '.github', 'scanner-plugins');
-        const res = fs.readdirSync('../../../scanner-plugins/');
+        const absoluteFolderPath = path.join(__dirname, '../../../scanner-plugins/');
+
+        const res = fs.readdirSync(absoluteFolderPath);
         console.log('done reading dir');
         for (const pluginFolder of res) {
           // will also include directory names
