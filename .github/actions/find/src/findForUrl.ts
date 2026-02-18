@@ -16,7 +16,7 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
   const plugins = await PluginsProvider.getPlugins();
   for (const plugin of plugins) {
     plugin.default();
-    plugin.test2();
+    // plugin.test2();
   }
   console.log('number of plugins: ', plugins.length);
 
@@ -52,15 +52,15 @@ class PluginsProvider {
       PluginsProvider.#pluginsLoaded = true;
       try {
         const pluginsDir = path.join(process.cwd(), '.github', 'scanner-plugins');
-        const res = fs.readdirSync(pluginsDir);
+        const res = fs.readdirSync('../../../scanner-plugins/');
         console.log('done reading dir');
         for (const pluginFolder of res) {
           // will also include directory names
           console.log('pluginFolder: ', pluginFolder);
-          const indexFile = path.join('/home/runner/work/accessibility-sandbox/accessibility-sandbox/.github/scanner-plugins/reflow-test/index.js');
+          // const indexFile = path.join('/home/runner/work/accessibility-sandbox/accessibility-sandbox/.github/scanner-plugins/reflow-test/index.js');
           // PluginsProvider.#plugins.push(await require('/home/runner/work/accessibility-sandbox/accessibility-sandbox/.github/scanner-plugins/' + pluginFolder + '/index.js'));
           // @ts-ignore
-          PluginsProvider.#plugins.push(await import('../test/index.js'));
+          PluginsProvider.#plugins.push(await import('../../../scanner-plugins/' + pluginFolder + '/index.js'));
         }
       } catch (e) {
         console.log('error: ');
