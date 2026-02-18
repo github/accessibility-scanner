@@ -53,21 +53,21 @@ const plugins: any[] = [];
 let pluginsLoaded = false;
 
 async function getPlugins() {
-    if (!pluginsLoaded) {
-      pluginsLoaded = true;
-      try {
-        const absoluteFolderPath = path.join(__dirname, '../../../scanner-plugins');
+  if (!pluginsLoaded) {
+    pluginsLoaded = true;
+    try {
+      const absoluteFolderPath = path.join(__dirname, '../../../scanner-plugins');
 
-        const res = fs.readdirSync(absoluteFolderPath);
-        for (const pluginFolder of res) {
-          // @ts-ignore
-          plugins.push(await import('../../../scanner-plugins/' + pluginFolder + '/index.js'));
-        }
-      } catch (e) {
-        console.log('error: ');
-        console.log(e);
+      const res = fs.readdirSync(absoluteFolderPath);
+      for (const pluginFolder of res) {
+        // @ts-ignore
+        plugins.push(await import('../../../scanner-plugins/' + pluginFolder + '/index.js'));
       }
+    } catch (e) {
+      console.log('error: ');
+      console.log(e);
     }
+  }
 
-    return plugins;
+  return plugins;
 }
