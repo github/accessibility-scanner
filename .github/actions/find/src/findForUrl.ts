@@ -23,7 +23,7 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
     findings.push(findingData);
   };
 
-  const plugins = await PluginsProvider.getPlugins();
+  const plugins = await getPlugins();
   for (const plugin of plugins) {
     console.log('running plugin: ', plugin.name);
     await plugin.default({ page, addFinding, url });
@@ -49,20 +49,19 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
   return findings;
 }
 
-class PluginsProvider {
-  static #plugins: any[] = [];
-  static #pluginsLoaded = false;
+const plugins: any[] = [];
+let pluginsLoaded = false;
 
-  static async getPlugins() {
-    if (!PluginsProvider.#pluginsLoaded) {
-      PluginsProvider.#pluginsLoaded = true;
+async function getPlugins() {
+    if (!pluginsLoaded) {
+      pluginsLoaded = true;
       try {
         const absoluteFolderPath = path.join(__dirname, '../../../scanner-plugins');
 
         const res = fs.readdirSync(absoluteFolderPath);
         for (const pluginFolder of res) {
           // @ts-ignore
-          PluginsProvider.#plugins.push(await import('../../../scanner-plugins/' + pluginFolder + '/index.js'));
+          plugins.push(await import('../../../scanner-plugins/' + pluginFolder + '/index.js'));
         }
       } catch (e) {
         console.log('error: ');
@@ -70,6 +69,5 @@ class PluginsProvider {
       }
     }
 
-    return PluginsProvider.#plugins;
-  }
+    return plugins;
 }
