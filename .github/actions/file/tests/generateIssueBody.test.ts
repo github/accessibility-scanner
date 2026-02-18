@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { generateIssueBody } from "../.github/actions/file/src/generateIssueBody.ts";
+import { generateIssueBody } from "../src/generateIssueBody.ts";
 
 const baseFinding = {
   scannerType: "axe",
