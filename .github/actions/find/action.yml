@@ -9,6 +9,10 @@ inputs:
   auth_context:
     description: "Stringified JSON object containing 'username', 'password', 'cookies', and/or 'localStorage' from an authenticated session"
     required: false
+  include_screenshots:
+    description: "Whether to capture screenshots of scanned pages"
+    required: false
+    default: "true"
 
 outputs:
   findings:

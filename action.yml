@@ -31,6 +31,10 @@ inputs:
     description: "Whether to skip assigning filed issues to Copilot"
     required: false
     default: "false"
+  include_screenshots:
+    description: "Whether to include screenshots of issues in the issue bodies"
+    required: false
+    default: "true"
 
 outputs:
   results:
@@ -80,6 +84,7 @@ runs:
       with:
         urls: ${{ inputs.urls }}
         auth_context: ${{ inputs.auth_context || steps.auth.outputs.auth_context }}
+        include_screenshots: ${{ inputs.include_screenshots }}
     - name: File
       id: file
       uses: ./../../_actions/github/accessibility-scanner/current/.github/actions/file
@@ -125,6 +130,12 @@ runs:
           }
           core.setOutput('results', JSON.stringify(results));
           core.debug(`Results: ${JSON.stringify(results)}`);
+    - if: ${{ inputs.include_screenshots == 'true' }}
+      name: Save screenshots
+      uses: ./../../_actions/github/accessibility-scanner/current/.github/actions/gh-cache/save
+      with:
+        path: .screenshots
+        token: ${{ inputs.token }}
     - name: Save cached results
       uses: ./../../_actions/github/accessibility-scanner/current/.github/actions/gh-cache/cache
       with:
