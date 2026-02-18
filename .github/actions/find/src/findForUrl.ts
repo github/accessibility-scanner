@@ -14,6 +14,10 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
   // console.log(`Scanning ${page.url()}`);
 
   const plugins = await PluginsProvider.getPlugins();
+  for (const plugin of plugins) {
+    plugin.default();
+    plugin.test2();
+  }
   console.log('number of plugins: ', plugins.length);
 
 
