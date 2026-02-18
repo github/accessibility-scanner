@@ -10,11 +10,6 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-let findings: Finding[] = [];
-function addFinding(findingData: Finding) {
-  findings.push(findingData);
-}
-
 export async function findForUrl(url: string, authContext?: AuthContext): Promise<Finding[]> {
   const browser = await playwright.chromium.launch({ headless: true, executablePath: process.env.CI ? '/usr/bin/google-chrome' : undefined });
   const contextOptions = authContext?.toPlaywrightBrowserContextOptions() ?? {};
@@ -22,6 +17,11 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
   const page = await context.newPage();
   await page.goto(url);
   console.log(`Scanning ${page.url()}`);
+
+  let findings: Finding[] = [];
+  const addFinding = (findingData: Finding) => {
+    findings.push(findingData);
+  };
 
   const plugins = await PluginsProvider.getPlugins();
   for (const plugin of plugins) {
