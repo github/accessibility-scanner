@@ -1,7 +1,0 @@
-{
-  "name": "plugin-reflow-test",
-  "version": "1.0.0",
-  "description": "A plugin to test reflowing of content",
-  "type": "module",
-  "main": "index.js"
-}
