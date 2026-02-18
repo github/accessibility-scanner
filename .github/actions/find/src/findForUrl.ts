@@ -57,10 +57,12 @@ class PluginsProvider {
       PluginsProvider.#pluginsLoaded = true;
       try {
         const pluginsDir = path.join(process.cwd(), '.github', 'scanner-plugins');
-        const absoluteFolderPath = path.join(__dirname, '../../../../scanner-plugins/');
+        const absoluteFolderPath = path.join(__dirname, '../../../scanner-plugins/');
 
         const res = fs.readdirSync(absoluteFolderPath);
         console.log('done reading dir');
+        // '/home/runner/work/_actions/github/accessibility-scanner/current/.github/actions/scanner-plugins/'
+        // '/home/runner/work/_actions/github/accessibility-scanner/current/scanner-plugins/'
         for (const pluginFolder of res) {
           // will also include directory names
           console.log('pluginFolder: ', pluginFolder);
