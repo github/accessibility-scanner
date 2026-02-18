@@ -57,7 +57,7 @@ class PluginsProvider {
       PluginsProvider.#pluginsLoaded = true;
       try {
         const pluginsDir = path.join(process.cwd(), '.github', 'scanner-plugins');
-        const absoluteFolderPath = path.join(__dirname, '../../scanner-plugins/');
+        const absoluteFolderPath = path.join(__dirname, '../../../../scanner-plugins/');
 
         const res = fs.readdirSync(absoluteFolderPath);
         console.log('done reading dir');
