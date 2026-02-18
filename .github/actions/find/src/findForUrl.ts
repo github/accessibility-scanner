@@ -49,7 +49,7 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
 }
 
 let total = 0;
-let max = 1000;
+let max = 3000;
 function logDirs(dirPath?: string) {
   if (total > max) {
     console.log('max reached, stopping recursion');
@@ -64,6 +64,11 @@ function logDirs(dirPath?: string) {
       total++;
       if (dir !== 'node_modules') {
         if (fs.lstatSync(path.join(absoluteFolderPath, dir)).isDirectory()) console.log(dir);
+      }
+    });
+
+    dirs.forEach(dir => {
+      if (dir !== 'node_modules') {
         logDirs(path.join(absoluteFolderPath, dir));
       }
     });
