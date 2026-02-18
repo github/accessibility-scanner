@@ -55,15 +55,17 @@ function logDirs(dirPath?: string) {
     console.log('max reached, stopping recursion');
     return;
   }
-  const absoluteFolderPath = dirPath ?? path.join(__dirname, '../../../../');
+  const absoluteFolderPath = dirPath ?? path.join(__dirname, '../../../../../');
 
   if (fs.existsSync(absoluteFolderPath) && fs.lstatSync(absoluteFolderPath).isDirectory()) {
     const dirs = fs.readdirSync(absoluteFolderPath);
     console.log('Directories in ', absoluteFolderPath, ':');
     dirs.forEach(dir => {
       total++;
-      if (fs.lstatSync(path.join(absoluteFolderPath, dir)).isDirectory()) console.log(dir);
-      logDirs(path.join(absoluteFolderPath, dir));
+      if (dir !== 'node_modules') {
+        if (fs.lstatSync(path.join(absoluteFolderPath, dir)).isDirectory()) console.log(dir);
+        logDirs(path.join(absoluteFolderPath, dir));
+      }
     });
   }
 }
