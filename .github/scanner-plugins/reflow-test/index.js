@@ -1,4 +1,4 @@
-export default async function test({ page, addFinding } = {}) {
+export default async function test({ page, addFinding, url } = {}) {
   console.log('reflow test');
     // Check for horizontal scrolling at 320x256 viewport
   try {

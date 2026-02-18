@@ -26,7 +26,7 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
   const plugins = await PluginsProvider.getPlugins();
   for (const plugin of plugins) {
     console.log('running plugin: ', plugin.name);
-    await plugin.default({ page, addFinding });
+    await plugin.default({ page, addFinding, url });
   }
 
   try {
