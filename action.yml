@@ -49,6 +49,10 @@ runs:
         mkdir -p "${ACTION_DIR}/.github/actions"
         if [ "$(realpath ".github/actions")" != "$(realpath "${ACTION_DIR}/.github/actions")" ]; then
           cp -a ".github/actions/." "${ACTION_DIR}/.github/actions/"
+        fi
+
+        mkdir -p "${ACTION_DIR}/.github/scanner-plugins"
+        if [ "$(realpath ".github/scanner-plugins")" != "$(realpath "${ACTION_DIR}/.github/scanner-plugins")" ]; then
           cp -a ".github/scanner-plugins/." "${ACTION_DIR}/.github/scanner-plugins/."
         fi
     - name: Restore cached results
