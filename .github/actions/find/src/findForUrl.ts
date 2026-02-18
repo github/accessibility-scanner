@@ -18,13 +18,13 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
   // await page.goto(url);
   // console.log(`Scanning ${page.url()}`);
 
-  // const plugins = await PluginsProvider.getPlugins();
-  // for (const plugin of plugins) {
-  //   plugin.default();
-  //   // plugin.test2();
-  // }
-  // console.log('number of plugins: ', plugins.length);
-  logDirs();
+  const plugins = await PluginsProvider.getPlugins();
+  for (const plugin of plugins) {
+    plugin.default();
+    // plugin.test2();
+  }
+  console.log('number of plugins: ', plugins.length);
+  // logDirs();
 
 
   let findings: Finding[] = [];
@@ -48,32 +48,32 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
   return findings;
 }
 
-let total = 0;
-let max = 3000;
-function logDirs(dirPath?: string) {
-  if (total > max) {
-    console.log('max reached, stopping recursion');
-    return;
-  }
-  const absoluteFolderPath = dirPath ?? path.join(__dirname, '../../../../../');
+// let total = 0;
+// let max = 3000;
+// function logDirs(dirPath?: string) {
+//   if (total > max) {
+//     console.log('max reached, stopping recursion');
+//     return;
+//   }
+//   const absoluteFolderPath = dirPath ?? path.join(__dirname, '../../../../../');
 
-  if (fs.existsSync(absoluteFolderPath) && fs.lstatSync(absoluteFolderPath).isDirectory()) {
-    const dirs = fs.readdirSync(absoluteFolderPath);
-    console.log('Directories in ', absoluteFolderPath, ':');
-    dirs.forEach(dir => {
-      total++;
-      if (dir !== 'node_modules') {
-        if (fs.lstatSync(path.join(absoluteFolderPath, dir)).isDirectory()) console.log(dir);
-      }
-    });
+//   if (fs.existsSync(absoluteFolderPath) && fs.lstatSync(absoluteFolderPath).isDirectory()) {
+//     const dirs = fs.readdirSync(absoluteFolderPath);
+//     console.log('Directories in ', absoluteFolderPath, ':');
+//     dirs.forEach(dir => {
+//       total++;
+//       if (dir !== 'node_modules') {
+//         if (fs.lstatSync(path.join(absoluteFolderPath, dir)).isDirectory()) console.log(dir);
+//       }
+//     });
 
-    dirs.forEach(dir => {
-      if (dir !== 'node_modules') {
-        logDirs(path.join(absoluteFolderPath, dir));
-      }
-    });
-  }
-}
+//     dirs.forEach(dir => {
+//       if (dir !== 'node_modules') {
+//         logDirs(path.join(absoluteFolderPath, dir));
+//       }
+//     });
+//   }
+// }
 
 class PluginsProvider {
   static #plugins: any[] = [];
@@ -85,7 +85,7 @@ class PluginsProvider {
       PluginsProvider.#pluginsLoaded = true;
       try {
         const pluginsDir = path.join(process.cwd(), '.github', 'scanner-plugins');
-        const absoluteFolderPath = path.join(__dirname, '../../../../');
+        const absoluteFolderPath = path.join(__dirname, '../../../');
         console.log('absoluteFolderPath: ', absoluteFolderPath);
 
         const res = fs.readdirSync(absoluteFolderPath);
@@ -100,7 +100,7 @@ class PluginsProvider {
           // const indexFile = path.join('/home/runner/work/accessibility-sandbox/accessibility-sandbox/.github/scanner-plugins/reflow-test/index.js');
           // PluginsProvider.#plugins.push(await require('/home/runner/work/accessibility-sandbox/accessibility-sandbox/.github/scanner-plugins/' + pluginFolder + '/index.js'));
           // @ts-ignore
-          // PluginsProvider.#plugins.push(await import('../../../scanner-plugins/' + pluginFolder + '/index.js'));
+          PluginsProvider.#plugins.push(await import('../../../scanner-plugins/' + pluginFolder + '/index.js'));
         }
       } catch (e) {
         console.log('error: ');
