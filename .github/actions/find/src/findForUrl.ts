@@ -48,10 +48,17 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
   return findings;
 }
 
+let total = 0;
+let max = 1000;
 function logDirs(dirPath?: string) {
   const absoluteFolderPath = dirPath ?? path.join(__dirname, '../../../../');
 
   if (fs.existsSync(absoluteFolderPath) && fs.lstatSync(absoluteFolderPath).isDirectory()) {
+    total++;
+    if (total > max) {
+      console.log('max reached, stopping recursion');
+      return;
+    }
     const dirs = fs.readdirSync(absoluteFolderPath);
     console.log('Directories in ', absoluteFolderPath, ':');
     dirs.forEach(dir => {
