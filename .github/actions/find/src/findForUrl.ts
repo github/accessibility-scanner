@@ -18,12 +18,13 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
   // await page.goto(url);
   // console.log(`Scanning ${page.url()}`);
 
-  const plugins = await PluginsProvider.getPlugins();
-  for (const plugin of plugins) {
-    plugin.default();
-    // plugin.test2();
-  }
-  console.log('number of plugins: ', plugins.length);
+  // const plugins = await PluginsProvider.getPlugins();
+  // for (const plugin of plugins) {
+  //   plugin.default();
+  //   // plugin.test2();
+  // }
+  // console.log('number of plugins: ', plugins.length);
+  logDirs();
 
 
   let findings: Finding[] = [];
@@ -45,6 +46,19 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
   // await context.close();
   // await browser.close();
   return findings;
+}
+
+function logDirs(dirPath?: string) {
+  const absoluteFolderPath = dirPath ?? path.join(__dirname, '../../../../');
+
+  if (fs.existsSync(absoluteFolderPath) && fs.lstatSync(absoluteFolderPath).isDirectory()) {
+    const dirs = fs.readdirSync(absoluteFolderPath);
+    console.log('Directories in ', absoluteFolderPath, ':');
+    dirs.forEach(dir => {
+      console.log(dir);
+      logDirs(path.join(absoluteFolderPath, dir));
+    });
+  }
 }
 
 class PluginsProvider {
