@@ -55,9 +55,8 @@ class PluginsProvider {
           console.log('pluginFolder: ', pluginFolder);
           const indexFile = path.join('/home/runner/work/accessibility-sandbox/accessibility-sandbox/.github/scanner-plugins/reflow-test/index.js');
           // PluginsProvider.#plugins.push(await require('/home/runner/work/accessibility-sandbox/accessibility-sandbox/.github/scanner-plugins/' + pluginFolder + '/index.js'));
-          PluginsProvider.#plugins.push(await require(indexFile));
-
-
+          // @ts-ignore
+          PluginsProvider.#plugins.push(await import('../test/index.js'));
         }
       } catch (e) {
         console.log('error: ');
