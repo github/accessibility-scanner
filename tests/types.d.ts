@@ -7,6 +7,7 @@ export type Finding = {
   problemUrl: string;
   solutionShort: string;
   solutionLong?: string;
+  screenshotId?: string;
 };
 
 export type Issue = {

@@ -17,15 +17,25 @@ describe("site-with-errors", () => {
 
   it("cache has expected results", () => {
     const actual = results.map(({ issue: { url: issueUrl }, pullRequest: { url: pullRequestUrl }, findings }) => {
-      const { problemUrl, solutionLong, ...finding } = findings[0];
+      const { problemUrl, solutionLong, screenshotId, ...finding } =
+        findings[0];
       // Check volatile fields for existence only
       expect(issueUrl).toBeDefined();
       expect(pullRequestUrl).toBeDefined();
       expect(problemUrl).toBeDefined();
       expect(solutionLong).toBeDefined();
+      expect(screenshotId).toBeDefined();
       // Check `problemUrl`, ignoring axe version
-      expect(problemUrl.startsWith("https://dequeuniversity.com/rules/axe/")).toBe(true);
-      expect(problemUrl.endsWith(`/${finding.ruleId}?application=playwright`)).toBe(true);
+      expect(
+        problemUrl.startsWith("https://dequeuniversity.com/rules/axe/"),
+      ).toBe(true);
+      expect(
+        problemUrl.endsWith(`/${finding.ruleId}?application=playwright`),
+      ).toBe(true);
+      // Check `screenshotId` is a valid UUID
+      expect(screenshotId).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+      );
       return finding;
     });
     const expected = [
@@ -33,45 +43,65 @@ describe("site-with-errors", () => {
         scannerType: "axe",
         url: "http://127.0.0.1:4000/",
         html: '<span class="post-meta">Jul 30, 2025</span>',
-        problemShort: "elements must meet minimum color contrast ratio thresholds",
+        problemShort:
+          "elements must meet minimum color contrast ratio thresholds",
         ruleId: "color-contrast",
-        solutionShort: "ensure the contrast between foreground and background colors meets wcag 2 aa minimum contrast ratio thresholds"
-      }, {
+        solutionShort:
+          "ensure the contrast between foreground and background colors meets wcag 2 aa minimum contrast ratio thresholds",
+        screenshotId: "12345678-1234-1234-1234-123456789012",
+      },
+      {
         scannerType: "axe",
         url: "http://127.0.0.1:4000/",
         html: '<html lang="en">',
         problemShort: "page should contain a level-one heading",
         ruleId: "page-has-heading-one",
-        solutionShort: "ensure that the page, or at least one of its frames contains a level-one heading"
-      }, {
+        solutionShort:
+          "ensure that the page, or at least one of its frames contains a level-one heading",
+        screenshotId: "12345678-1234-1234-1234-123456789012",
+      },
+      {
         scannerType: "axe",
         url: "http://127.0.0.1:4000/jekyll/update/2025/07/30/welcome-to-jekyll.html",
         html: `<time class="dt-published" datetime="2025-07-30T17:32:33+00:00" itemprop="datePublished">Jul 30, 2025
       </time>`,
-        problemShort: "elements must meet minimum color contrast ratio thresholds",
+        problemShort:
+          "elements must meet minimum color contrast ratio thresholds",
         ruleId: "color-contrast",
-        solutionShort: "ensure the contrast between foreground and background colors meets wcag 2 aa minimum contrast ratio thresholds",
-      }, {
+        solutionShort:
+          "ensure the contrast between foreground and background colors meets wcag 2 aa minimum contrast ratio thresholds",
+        screenshotId: "12345678-1234-1234-1234-123456789012",
+      },
+      {
         scannerType: "axe",
         url: "http://127.0.0.1:4000/about/",
         html: '<a href="https://jekyllrb.com/">jekyllrb.com</a>',
-        problemShort: "elements must meet minimum color contrast ratio thresholds",
+        problemShort:
+          "elements must meet minimum color contrast ratio thresholds",
         ruleId: "color-contrast",
-        solutionShort: "ensure the contrast between foreground and background colors meets wcag 2 aa minimum contrast ratio thresholds",
-      }, {
+        solutionShort:
+          "ensure the contrast between foreground and background colors meets wcag 2 aa minimum contrast ratio thresholds",
+        screenshotId: "12345678-1234-1234-1234-123456789012",
+      },
+      {
         scannerType: "axe",
         url: "http://127.0.0.1:4000/404.html",
         html: '<li class="p-name">Accessibility Scanner Demo</li>',
-        problemShort: "elements must meet minimum color contrast ratio thresholds",
+        problemShort:
+          "elements must meet minimum color contrast ratio thresholds",
         ruleId: "color-contrast",
-        solutionShort: "ensure the contrast between foreground and background colors meets wcag 2 aa minimum contrast ratio thresholds"
-      }, {
+        solutionShort:
+          "ensure the contrast between foreground and background colors meets wcag 2 aa minimum contrast ratio thresholds",
+        screenshotId: "12345678-1234-1234-1234-123456789012",
+      },
+      {
         scannerType: "axe",
         url: "http://127.0.0.1:4000/404.html",
         html: '<h1 class="post-title"></h1>',
         problemShort: "headings should not be empty",
         ruleId: "empty-heading",
         solutionShort: "ensure headings have discernible text",
+        screenshotId: "12345678-1234-1234-1234-123456789012",
       },
     ];
     // Check that:
