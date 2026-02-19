@@ -14,17 +14,19 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
   let findings: Finding[] = [];
   try {
     const rawFindings = await new AxeBuilder({ page }).analyze();
-    findings = rawFindings.violations.map(violation => ({
-      scannerType: 'axe',
+    findings = rawFindings.violations.map((violation) => ({
+      scannerType: "axe",
       url,
       html: violation.nodes[0].html.replace(/'/g, "&apos;"),
       problemShort: violation.help.toLowerCase().replace(/'/g, "&apos;"),
       problemUrl: violation.helpUrl.replace(/'/g, "&apos;"),
       ruleId: violation.id,
-      solutionShort: violation.description.toLowerCase().replace(/'/g, "&apos;"),
-      solutionLong: violation.nodes[0].failureSummary?.replace(/'/g, "&apos;")
+      solutionShort: violation.description
+        .toLowerCase()
+        .replace(/'/g, "&apos;"),
+      solutionLong: violation.nodes[0].failureSummary?.replace(/'/g, "&apos;"),
     }));
-  } catch (e) {
+  } catch (_e) {
     // do something with the error
   }
   await context.close();

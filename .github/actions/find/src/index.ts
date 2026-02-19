@@ -12,7 +12,7 @@ export default async function () {
   );
   const authContext = new AuthContext(authContextInput);
 
-  let findings = [];
+  const findings = [];
   for (const url of urls) {
     core.info(`Preparing to scan ${url}`);
     const findingsForUrl = await findForUrl(url, authContext);
