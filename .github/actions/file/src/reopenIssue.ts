@@ -8,10 +8,11 @@ export async function reopenIssue(
   { owner, repository, issueNumber }: Issue,
   finding?: Finding,
   repoWithOwner?: string,
+  screenshotRepo?: string,
 ) {
   const body =
     finding && repoWithOwner
-      ? generateIssueBody(finding, repoWithOwner)
+      ? generateIssueBody(finding, screenshotRepo ?? repoWithOwner)
       : undefined;
   return octokit.request(
     `PATCH /repos/${owner}/${repository}/issues/${issueNumber}`,

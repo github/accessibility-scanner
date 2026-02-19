@@ -1,6 +1,6 @@
 import type { Finding } from "./types.d.js";
 
-export function generateIssueBody(finding: Finding, repoWithOwner: string): string {
+export function generateIssueBody(finding: Finding, screenshotRepo: string): string {
   const solutionLong = finding.solutionLong
       ?.split("\n")
       .map((line: string) =>
@@ -14,7 +14,7 @@ export function generateIssueBody(finding: Finding, repoWithOwner: string): stri
 
   let screenshotSection;
   if (finding.screenshotId) {
-    const screenshotUrl = `https://github.com/${repoWithOwner}/blob/gh-cache/.screenshots/${finding.screenshotId}.png`;
+    const screenshotUrl = `https://github.com/${screenshotRepo}/blob/gh-cache/.screenshots/${finding.screenshotId}.png`;
     screenshotSection = `
 [View screenshot](${screenshotUrl})
 `;

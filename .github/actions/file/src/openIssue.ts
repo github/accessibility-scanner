@@ -17,7 +17,7 @@ function truncateWithEllipsis(text: string, maxLength: number): string {
   return text.length > maxLength ? text.slice(0, maxLength - 1) + '…' : text;
 }
 
-export async function openIssue(octokit: Octokit, repoWithOwner: string, finding: Finding) {
+export async function openIssue(octokit: Octokit, repoWithOwner: string, finding: Finding, screenshotRepo?: string) {
   const owner = repoWithOwner.split('/')[0];
   const repo = repoWithOwner.split('/')[1];
 
@@ -27,7 +27,7 @@ export async function openIssue(octokit: Octokit, repoWithOwner: string, finding
     GITHUB_ISSUE_TITLE_MAX_LENGTH,
   );
 
-  const body = generateIssueBody(finding, repoWithOwner);
+  const body = generateIssueBody(finding, screenshotRepo ?? repoWithOwner);
 
   return octokit.request(`POST /repos/${owner}/${repo}/issues`, {
     owner,
