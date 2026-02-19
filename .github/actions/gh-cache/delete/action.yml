@@ -65,6 +65,7 @@ runs:
       run: |
         if [ -e "${{ inputs.path }}" ]; then
           rm -Rf "${{ inputs.path }}"
+          rm -Rf ".gh-cache-${{ github.run_id }}/${{ inputs.path }}"
           echo "Deleted '${{ inputs.path }}' from 'gh-cache' branch"
         else
           echo "'${{ inputs.path }}' does not exist in 'gh-cache' branch"

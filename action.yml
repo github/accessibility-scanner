@@ -32,7 +32,7 @@ inputs:
     required: false
     default: "false"
   include_screenshots:
-    description: "Whether to include screenshots of issues in the issue bodies"
+    description: "Whether to capture screenshots and include links to them in the issue"
     required: false
     default: "true"
 

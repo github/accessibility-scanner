@@ -10,7 +10,7 @@ inputs:
     description: "Stringified JSON object containing 'username', 'password', 'cookies', and/or 'localStorage' from an authenticated session"
     required: false
   include_screenshots:
-    description: "Whether to capture screenshots of scanned pages"
+    description: "Whether to capture screenshots of scanned pages and include links to them in the issue"
     required: false
     default: "true"
 

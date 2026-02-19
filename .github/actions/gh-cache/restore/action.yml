@@ -72,9 +72,6 @@ runs:
         src=".gh-cache-${{ github.run_id }}/${{ inputs.path }}"
         dest="${{ inputs.path }}"
         if [ -e "$src" ]; then
-          if [ -d "$src" ]; then
-            rm -rf "$dest"
-          fi
           mkdir -p "$(dirname "$dest")"
           cp -Rf "$src" "$dest"
           echo "Restored '${{ inputs.path }}' from cache"
