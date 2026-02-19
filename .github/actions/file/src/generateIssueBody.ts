@@ -28,4 +28,3 @@ export function generateIssueBody(finding: Finding): string {
 
   return body;
 }
-
