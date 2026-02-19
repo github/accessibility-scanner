@@ -3,7 +3,7 @@
   "version": "0.0.0-development",
   "description": "Finds potential accessibility gaps, files GitHub issues to track them, and attempts to fix them with Copilot",
   "scripts": {
-    "test": "vitest run tests/*.test.ts"
+    "test": "vitest run tests/*.test.ts .github/actions/**/tests/*.test.ts"
   },
   "repository": {
     "type": "git",
