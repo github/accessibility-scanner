@@ -4,6 +4,7 @@ import playwright from 'playwright';
 import { AuthContext } from './AuthContext.js';
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 
 // Use GITHUB_WORKSPACE to ensure screenshots are saved in the workflow workspace root
 // where the artifact upload step can find them
