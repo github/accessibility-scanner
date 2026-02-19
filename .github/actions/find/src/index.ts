@@ -8,7 +8,7 @@ export default async function () {
   const urls = core.getMultilineInput("urls", { required: true });
   core.debug(`Input: 'urls: ${JSON.stringify(urls)}'`);
   const authContextInput: AuthContextInput = JSON.parse(
-    core.getInput("auth_context", { required: false }) || "{}"
+    core.getInput("auth_context", { required: false }) || "{}",
   );
   const authContext = new AuthContext(authContextInput);
 
