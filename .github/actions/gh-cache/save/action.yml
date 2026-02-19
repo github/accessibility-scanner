@@ -65,7 +65,12 @@ runs:
       run: |
         if [ -e "${{ inputs.path }}" ]; then
           mkdir -p ".gh-cache-${{ github.run_id }}/$(dirname "${{ inputs.path }}")"
-          cp -Rf "${{ inputs.path }}" ".gh-cache-${{ github.run_id }}/${{ inputs.path }}"
+          if [ -d "${{ inputs.path }}" ]; then
+            mkdir -p ".gh-cache-${{ github.run_id }}/${{ inputs.path }}"
+            cp -Rf "${{ inputs.path }}/." ".gh-cache-${{ github.run_id }}/${{ inputs.path }}/"
+          else
+            cp -Rf "${{ inputs.path }}" ".gh-cache-${{ github.run_id }}/${{ inputs.path }}"
+          fi
           echo "Copied '${{ inputs.path }}' to 'gh-cache' branch"
         else
           echo "'${{ inputs.path }}' does not exist"
