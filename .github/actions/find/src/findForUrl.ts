@@ -25,12 +25,11 @@ export async function findForUrl(
   const context = await browser.newContext(contextOptions);
   const page = await context.newPage();
   await page.goto(url);
+  await page.waitForLoadState("domcontentloaded");
   console.log(`Scanning ${page.url()}`);
 
   let findings: Finding[] = [];
   try {
-    const rawFindings = await new AxeBuilder({ page }).analyze();
-
     let screenshotId: string | undefined;
 
     if (includeScreenshots) {
@@ -58,6 +57,7 @@ export async function findForUrl(
       }
     }
 
+    const rawFindings = await new AxeBuilder({ page }).analyze();
     findings = rawFindings.violations.map((violation) => ({
       scannerType: "axe",
       url,
@@ -72,7 +72,7 @@ export async function findForUrl(
       screenshotId,
     }));
   } catch (e) {
-    // do something with the error
+    console.error("Error during accessibility scan:", e);
   }
   await context.close();
   await browser.close();
