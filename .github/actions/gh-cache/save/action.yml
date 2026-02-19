@@ -64,17 +64,24 @@ runs:
       shell: bash
       run: |
         if [ -e "${{ inputs.path }}" ]; then
-          mkdir -p ".gh-cache-${{ github.run_id }}/$(dirname "${{ inputs.path }}")"
           if [ -d "${{ inputs.path }}" ]; then
+            # For directories, copy contents to avoid nesting
             mkdir -p ".gh-cache-${{ github.run_id }}/${{ inputs.path }}"
-            cp -Rf "${{ inputs.path }}/." ".gh-cache-${{ github.run_id }}/${{ inputs.path }}/"
+            # Check if directory has files before copying
+            if [ "$(ls -A "${{ inputs.path }}" 2>/dev/null)" ]; then
+              cp -Rf "${{ inputs.path }}"/* ".gh-cache-${{ github.run_id }}/${{ inputs.path }}"/
+              echo "Copied directory contents of '${{ inputs.path }}' to 'gh-cache' branch"
+            else
+              echo "Directory '${{ inputs.path }}' is empty, nothing to copy"
+            fi
           else
+            # For files, copy file to path
+            mkdir -p ".gh-cache-${{ github.run_id }}/$(dirname "${{ inputs.path }}")"
             cp -Rf "${{ inputs.path }}" ".gh-cache-${{ github.run_id }}/${{ inputs.path }}"
+            echo "Copied file '${{ inputs.path }}' to 'gh-cache' branch"
           fi
-          echo "Copied '${{ inputs.path }}' to 'gh-cache' branch"
         else
           echo "'${{ inputs.path }}' does not exist"
-          echo "Skipping copy"
         fi
 
     - name: Commit and push
