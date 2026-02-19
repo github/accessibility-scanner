@@ -14,9 +14,9 @@ export function generateIssueBody(finding: Finding, repoWithOwner: string): stri
 
   let screenshotSection;
   if (finding.screenshotId) {
-    const screenshotUrl = `https://raw.githubusercontent.com/${repoWithOwner}/gh-cache/.screenshots/${finding.screenshotId}.png`;
+    const screenshotUrl = `https://github.com/${repoWithOwner}/blob/gh-cache/.screenshots/${finding.screenshotId}.png`;
     screenshotSection = `
-![Screenshot of the issue on ${finding.url}](${screenshotUrl})
+[View screenshot](${screenshotUrl})
 `;
   }
 
