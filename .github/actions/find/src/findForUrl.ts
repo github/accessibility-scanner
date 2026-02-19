@@ -30,6 +30,7 @@ export async function findForUrl(
 
   let findings: Finding[] = [];
   try {
+    const rawFindings = await new AxeBuilder({ page }).analyze();
     let screenshotId: string | undefined;
 
     if (includeScreenshots) {
@@ -57,7 +58,6 @@ export async function findForUrl(
       }
     }
 
-    const rawFindings = await new AxeBuilder({ page }).analyze();
     findings = rawFindings.violations.map((violation) => ({
       scannerType: "axe",
       url,
