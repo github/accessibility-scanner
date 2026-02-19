@@ -15,10 +15,9 @@ export function generateIssueBody(finding: Finding, repoWithOwner: string): stri
   let screenshotSection;
   if (finding.screenshotId) {
     const screenshotUrl = `https://raw.githubusercontent.com/${repoWithOwner}/gh-cache/.screenshots/${finding.screenshotId}.png`;
-    screenshotSection = `\n\n
-
-    ![Screenshot of the issue on ${finding.url}](${screenshotUrl})
-    `;
+    screenshotSection = `
+![Screenshot of the issue on ${finding.url}](${screenshotUrl})
+`;
   }
 
   const acceptanceCriteria = `## Acceptance Criteria
