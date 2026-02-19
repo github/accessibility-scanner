@@ -64,8 +64,13 @@ export default async function () {
         response = await openIssue(octokit, repoWithOwner, filing.findings[0]);
         (filing as any).issue = { state: "open" } as Issue;
       } else if (isRepeatedFiling(filing)) {
-        // Reopen the filing’s issue (if necessary)
-        response = await reopenIssue(octokit, new Issue(filing.issue));
+        // Reopen the filing's issue (if necessary) and update the body with the latest finding
+        response = await reopenIssue(
+          octokit,
+          new Issue(filing.issue),
+          filing.findings[0],
+          repoWithOwner,
+        );
         filing.issue.state = "reopened";
       }
       if (response?.data && filing.issue) {
