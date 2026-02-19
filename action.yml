@@ -85,12 +85,6 @@ runs:
         urls: ${{ inputs.urls }}
         auth_context: ${{ inputs.auth_context || steps.auth.outputs.auth_context }}
         include_screenshots: ${{ inputs.include_screenshots }}
-    - name: Save Screenshots to gh-cache
-      if: always()
-      uses: ./../../_actions/github/accessibility-scanner/current/.github/actions/gh-cache/save
-      with:
-        path: .screenshots
-        token: ${{ inputs.token }}
     - name: File
       id: file
       uses: ./../../_actions/github/accessibility-scanner/current/.github/actions/file
