@@ -32,10 +32,7 @@ describe("site-with-errors", () => {
       expect(
         problemUrl.endsWith(`/${finding.ruleId}?application=playwright`),
       ).toBe(true);
-      // Check `screenshotId` is a valid UUID
-      expect(screenshotId).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
-      );
+      expect(screenshotId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
       return finding;
     });
     const expected = [
@@ -48,7 +45,6 @@ describe("site-with-errors", () => {
         ruleId: "color-contrast",
         solutionShort:
           "ensure the contrast between foreground and background colors meets wcag 2 aa minimum contrast ratio thresholds",
-        screenshotId: "12345678-1234-1234-1234-123456789012",
       },
       {
         scannerType: "axe",
@@ -58,7 +54,6 @@ describe("site-with-errors", () => {
         ruleId: "page-has-heading-one",
         solutionShort:
           "ensure that the page, or at least one of its frames contains a level-one heading",
-        screenshotId: "12345678-1234-1234-1234-123456789012",
       },
       {
         scannerType: "axe",
@@ -70,7 +65,6 @@ describe("site-with-errors", () => {
         ruleId: "color-contrast",
         solutionShort:
           "ensure the contrast between foreground and background colors meets wcag 2 aa minimum contrast ratio thresholds",
-        screenshotId: "12345678-1234-1234-1234-123456789012",
       },
       {
         scannerType: "axe",
@@ -81,7 +75,6 @@ describe("site-with-errors", () => {
         ruleId: "color-contrast",
         solutionShort:
           "ensure the contrast between foreground and background colors meets wcag 2 aa minimum contrast ratio thresholds",
-        screenshotId: "12345678-1234-1234-1234-123456789012",
       },
       {
         scannerType: "axe",
@@ -92,7 +85,6 @@ describe("site-with-errors", () => {
         ruleId: "color-contrast",
         solutionShort:
           "ensure the contrast between foreground and background colors meets wcag 2 aa minimum contrast ratio thresholds",
-        screenshotId: "12345678-1234-1234-1234-123456789012",
       },
       {
         scannerType: "axe",
@@ -101,7 +93,6 @@ describe("site-with-errors", () => {
         problemShort: "headings should not be empty",
         ruleId: "empty-heading",
         solutionShort: "ensure headings have discernible text",
-        screenshotId: "12345678-1234-1234-1234-123456789012",
       },
     ];
     // Check that:
