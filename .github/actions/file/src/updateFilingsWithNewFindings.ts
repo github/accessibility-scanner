@@ -1,4 +1,10 @@
-import type { Finding, ResolvedFiling, NewFiling, RepeatedFiling, Filing } from "./types.d.js";
+import type {
+  Finding,
+  ResolvedFiling,
+  NewFiling,
+  RepeatedFiling,
+  Filing,
+} from "./types.d.js";
 
 function getFilingKey(filing: ResolvedFiling | RepeatedFiling): string {
   return filing.issue.url;

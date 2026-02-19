@@ -16,24 +16,35 @@ describe("site-with-errors", () => {
   });
 
   it("cache has expected results", () => {
-    const actual = results.map(({ issue: { url: issueUrl }, pullRequest: { url: pullRequestUrl }, findings }) => {
-      const { problemUrl, solutionLong, ...finding } = findings[0];
-      // Check volatile fields for existence only
-      expect(issueUrl).toBeDefined();
-      expect(pullRequestUrl).toBeDefined();
-      expect(problemUrl).toBeDefined();
-      expect(solutionLong).toBeDefined();
-      // Check `problemUrl`, ignoring axe version
-      expect(problemUrl.startsWith("https://dequeuniversity.com/rules/axe/")).toBe(true);
-      expect(problemUrl.endsWith(`/${finding.ruleId}?application=playwright`)).toBe(true);
-      return finding;
-    });
+    const actual = results.map(
+      ({
+        issue: { url: issueUrl },
+        pullRequest: { url: pullRequestUrl },
+        findings,
+      }) => {
+        const { problemUrl, solutionLong, ...finding } = findings[0];
+        // Check volatile fields for existence only
+        expect(issueUrl).toBeDefined();
+        expect(pullRequestUrl).toBeDefined();
+        expect(problemUrl).toBeDefined();
+        expect(solutionLong).toBeDefined();
+        // Check `problemUrl`, ignoring axe version
+        expect(
+          problemUrl.startsWith("https://dequeuniversity.com/rules/axe/"),
+        ).toBe(true);
+        expect(
+          problemUrl.endsWith(`/${finding.ruleId}?application=playwright`),
+        ).toBe(true);
+        return finding;
+      },
+    );
     const expected = [
       {
         scannerType: "axe",
         url: "http://127.0.0.1:4000/",
         html: '<span class="post-meta">Jul 30, 2025</span>',
-        problemShort: "elements must meet minimum color contrast ratio thresholds",
+        problemShort:
+          "elements must meet minimum color contrast ratio thresholds",
         ruleId: "color-contrast",
         solutionShort:
           "ensure the contrast between foreground and background colors meets wcag 2 aa minimum contrast ratio thresholds",
@@ -44,14 +55,16 @@ describe("site-with-errors", () => {
         html: '<html lang="en">',
         problemShort: "page should contain a level-one heading",
         ruleId: "page-has-heading-one",
-        solutionShort: "ensure that the page, or at least one of its frames contains a level-one heading",
+        solutionShort:
+          "ensure that the page, or at least one of its frames contains a level-one heading",
       },
       {
         scannerType: "axe",
         url: "http://127.0.0.1:4000/jekyll/update/2025/07/30/welcome-to-jekyll.html",
         html: `<time class="dt-published" datetime="2025-07-30T17:32:33+00:00" itemprop="datePublished">Jul 30, 2025
       </time>`,
-        problemShort: "elements must meet minimum color contrast ratio thresholds",
+        problemShort:
+          "elements must meet minimum color contrast ratio thresholds",
         ruleId: "color-contrast",
         solutionShort:
           "ensure the contrast between foreground and background colors meets wcag 2 aa minimum contrast ratio thresholds",
@@ -60,7 +73,8 @@ describe("site-with-errors", () => {
         scannerType: "axe",
         url: "http://127.0.0.1:4000/about/",
         html: '<a href="https://jekyllrb.com/">jekyllrb.com</a>',
-        problemShort: "elements must meet minimum color contrast ratio thresholds",
+        problemShort:
+          "elements must meet minimum color contrast ratio thresholds",
         ruleId: "color-contrast",
         solutionShort:
           "ensure the contrast between foreground and background colors meets wcag 2 aa minimum contrast ratio thresholds",
@@ -69,7 +83,8 @@ describe("site-with-errors", () => {
         scannerType: "axe",
         url: "http://127.0.0.1:4000/404.html",
         html: '<li class="p-name">Accessibility Scanner Demo</li>',
-        problemShort: "elements must meet minimum color contrast ratio thresholds",
+        problemShort:
+          "elements must meet minimum color contrast ratio thresholds",
         ruleId: "color-contrast",
         solutionShort:
           "ensure the contrast between foreground and background colors meets wcag 2 aa minimum contrast ratio thresholds",
@@ -106,14 +121,18 @@ describe("site-with-errors", () => {
         auth: process.env.GITHUB_TOKEN,
         throttle: {
           onRateLimit: (retryAfter, options, octokit, retryCount) => {
-            octokit.log.warn(`Request quota exhausted for request ${options.method} ${options.url}`);
+            octokit.log.warn(
+              `Request quota exhausted for request ${options.method} ${options.url}`,
+            );
             if (retryCount < 3) {
               octokit.log.info(`Retrying after ${retryAfter} seconds!`);
               return true;
             }
           },
           onSecondaryRateLimit: (retryAfter, options, octokit, retryCount) => {
-            octokit.log.warn(`Secondary rate limit hit for request ${options.method} ${options.url}`);
+            octokit.log.warn(
+              `Secondary rate limit hit for request ${options.method} ${options.url}`,
+            );
             if (retryCount < 3) {
               octokit.log.info(`Retrying after ${retryAfter} seconds!`);
               return true;
@@ -129,11 +148,14 @@ describe("site-with-errors", () => {
             /https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/]+)\/issues\/(?<issueNumber>\d+)/.exec(
               issueUrl!,
             )!.groups!;
-          const { data: issue } = await octokit.request("GET /repos/{owner}/{repo}/issues/{issue_number}", {
-            owner,
-            repo,
-            issue_number: parseInt(issueNumber, 10),
-          });
+          const { data: issue } = await octokit.request(
+            "GET /repos/{owner}/{repo}/issues/{issue_number}",
+            {
+              owner,
+              repo,
+              issue_number: parseInt(issueNumber, 10),
+            },
+          );
           expect(issue).toBeDefined();
           return issue;
         }),
@@ -146,11 +168,14 @@ describe("site-with-errors", () => {
             /https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/]+)\/pull\/(?<pullNumber>\d+)/.exec(
               pullRequestUrl!,
             )!.groups!;
-          const { data: pullRequest } = await octokit.request("GET /repos/{owner}/{repo}/pulls/{pull_number}", {
-            owner,
-            repo,
-            pull_number: parseInt(pullNumber, 10),
-          });
+          const { data: pullRequest } = await octokit.request(
+            "GET /repos/{owner}/{repo}/pulls/{pull_number}",
+            {
+              owner,
+              repo,
+              pull_number: parseInt(pullNumber, 10),
+            },
+          );
           expect(pullRequest).toBeDefined();
           return pullRequest;
         }),
@@ -181,7 +206,9 @@ describe("site-with-errors", () => {
         expect(pullRequest.user.login).toBe("Copilot");
         expect(pullRequest.state).toBe("open");
         expect(pullRequest.assignees).toBeDefined();
-        expect(pullRequest.assignees!.some((a) => a.login === "Copilot")).toBe(true);
+        expect(pullRequest.assignees!.some((a) => a.login === "Copilot")).toBe(
+          true,
+        );
       }
     });
   });

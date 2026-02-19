@@ -7,7 +7,9 @@ export default async function () {
   core.info("Starting 'find' action");
   const urls = core.getMultilineInput("urls", { required: true });
   core.debug(`Input: 'urls: ${JSON.stringify(urls)}'`);
-  const authContextInput: AuthContextInput = JSON.parse(core.getInput("auth_context", { required: false }) || "{}");
+  const authContextInput: AuthContextInput = JSON.parse(
+    core.getInput("auth_context", { required: false }) || "{}",
+  );
   const authContext = new AuthContext(authContextInput);
 
   const findings = [];

@@ -3,7 +3,10 @@ import AxeBuilder from "@axe-core/playwright";
 import playwright from "playwright";
 import { AuthContext } from "./AuthContext.js";
 
-export async function findForUrl(url: string, authContext?: AuthContext): Promise<Finding[]> {
+export async function findForUrl(
+  url: string,
+  authContext?: AuthContext,
+): Promise<Finding[]> {
   const browser = await playwright.chromium.launch({
     headless: true,
     executablePath: process.env.CI ? "/usr/bin/google-chrome" : undefined,
@@ -24,7 +27,9 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
       problemShort: violation.help.toLowerCase().replace(/'/g, "&apos;"),
       problemUrl: violation.helpUrl.replace(/'/g, "&apos;"),
       ruleId: violation.id,
-      solutionShort: violation.description.toLowerCase().replace(/'/g, "&apos;"),
+      solutionShort: violation.description
+        .toLowerCase()
+        .replace(/'/g, "&apos;"),
       solutionLong: violation.nodes[0].failureSummary?.replace(/'/g, "&apos;"),
     }));
   } catch (_e) {

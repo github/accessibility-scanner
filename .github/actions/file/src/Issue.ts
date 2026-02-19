@@ -52,7 +52,9 @@ export class Issue implements IssueInput {
     issueNumber: number;
   } {
     const { owner, repository, issueNumber } =
-      /\/(?<owner>[^/]+)\/(?<repository>[^/]+)\/issues\/(?<issueNumber>\d+)(?:[/?#]|$)/.exec(this.#url)?.groups || {};
+      /\/(?<owner>[^/]+)\/(?<repository>[^/]+)\/issues\/(?<issueNumber>\d+)(?:[/?#]|$)/.exec(
+        this.#url,
+      )?.groups || {};
     if (!owner || !repository || !issueNumber) {
       throw new Error(`Could not parse issue URL: ${this.#url}`);
     }

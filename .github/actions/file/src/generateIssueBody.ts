@@ -1,10 +1,12 @@
 import type { Finding } from "./types.d.js";
 
-export function generateIssueBody(finding: Finding, _repoWithOwner: string): string {
+export function generateIssueBody(finding: Finding): string {
   const solutionLong = finding.solutionLong
     ?.split("\n")
     .map((line: string) =>
-      !line.trim().startsWith("Fix any") && !line.trim().startsWith("Fix all") && line.trim() !== ""
+      !line.trim().startsWith("Fix any") &&
+      !line.trim().startsWith("Fix all") &&
+      line.trim() !== ""
         ? `- ${line}`
         : line,
     )

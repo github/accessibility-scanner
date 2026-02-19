@@ -17,11 +17,18 @@ function truncateWithEllipsis(text: string, maxLength: number): string {
   return text.length > maxLength ? text.slice(0, maxLength - 1) + "…" : text;
 }
 
-export async function openIssue(octokit: Octokit, repoWithOwner: string, finding: Finding) {
+export async function openIssue(
+  octokit: Octokit,
+  repoWithOwner: string,
+  finding: Finding,
+) {
   const owner = repoWithOwner.split("/")[0];
   const repo = repoWithOwner.split("/")[1];
 
-  const labels = [`${finding.scannerType} rule: ${finding.ruleId}`, `${finding.scannerType}-scanning-issue`];
+  const labels = [
+    `${finding.scannerType} rule: ${finding.ruleId}`,
+    `${finding.scannerType}-scanning-issue`,
+  ];
   const title = truncateWithEllipsis(
     `Accessibility issue: ${finding.problemShort[0].toUpperCase() + finding.problemShort.slice(1)} on ${new URL(finding.url).pathname}`,
     GITHUB_ISSUE_TITLE_MAX_LENGTH,

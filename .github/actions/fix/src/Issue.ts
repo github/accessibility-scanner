@@ -7,9 +7,15 @@ export class Issue implements IssueInput {
    * @returns An object with `owner`, `repository`, and `issueNumber` keys.
    * @throws The provided URL is unparseable due to its unexpected format.
    */
-  static parseIssueUrl(issueUrl: string): { owner: string; repository: string; issueNumber: number } {
+  static parseIssueUrl(issueUrl: string): {
+    owner: string;
+    repository: string;
+    issueNumber: number;
+  } {
     const { owner, repository, issueNumber } =
-      /\/(?<owner>[^/]+)\/(?<repository>[^/]+)\/issues\/(?<issueNumber>\d+)(?:[/?#]|$)/.exec(issueUrl)?.groups || {};
+      /\/(?<owner>[^/]+)\/(?<repository>[^/]+)\/issues\/(?<issueNumber>\d+)(?:[/?#]|$)/.exec(
+        issueUrl,
+      )?.groups || {};
     if (!owner || !repository || !issueNumber) {
       throw new Error(`Could not parse issue URL: ${issueUrl}`);
     }
