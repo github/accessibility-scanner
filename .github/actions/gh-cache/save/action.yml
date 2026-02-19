@@ -94,17 +94,12 @@ runs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git commit -m "$(printf 'Save artifact: %s' "${{ inputs.path }}")" \
             && echo "Committed '${{ inputs.path }}' to 'gh-cache' branch" \
-            || { echo "No changes to commit"; exit 0; }
-          # Push with retry to handle concurrent updates to gh-cache
-          for attempt in 1 2 3; do
-            if git push origin gh-cache 2>/dev/null; then
-              echo "Pushed to 'gh-cache' branch"
-              break
-            fi
-            echo "Push failed (attempt $attempt), rebasing and retrying..."
+            || echo "No changes to commit"
+          if git ls-remote --exit-code --heads origin gh-cache >/dev/null; then
             git fetch origin gh-cache
             git rebase origin/gh-cache
-          done
+          fi
+          git push origin gh-cache
         else
           echo "'${{ inputs.path }}' does not exist"
           echo "Skipping commit and push"
