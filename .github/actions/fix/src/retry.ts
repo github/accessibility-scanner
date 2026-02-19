@@ -18,7 +18,7 @@ export async function retry<T>(
   fn: () => Promise<T | null | undefined> | T | null | undefined,
   maxAttempts = 6,
   baseDelay = 2000,
-  attempt = 1
+  attempt = 1,
 ): Promise<T | undefined> {
   const value = await fn();
   if (value != null) return value;

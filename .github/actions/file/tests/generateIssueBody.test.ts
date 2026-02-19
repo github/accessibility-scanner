@@ -7,8 +7,10 @@ const baseFinding = {
   url: "https://example.com/page",
   html: "<span>Low contrast</span>",
   problemShort: "elements must meet minimum color contrast ratio thresholds",
-  problemUrl: "https://dequeuniversity.com/rules/axe/4.10/color-contrast?application=playwright",
-  solutionShort: "ensure the contrast between foreground and background colors meets WCAG thresholds",
+  problemUrl:
+    "https://dequeuniversity.com/rules/axe/4.10/color-contrast?application=playwright",
+  solutionShort:
+    "ensure the contrast between foreground and background colors meets WCAG thresholds",
 };
 
 describe("generateIssueBody", () => {
@@ -17,7 +19,9 @@ describe("generateIssueBody", () => {
 
     expect(body).toContain("## What");
     expect(body).toContain("## Acceptance Criteria");
-    expect(body).toContain("The specific axe violation reported in this issue is no longer reproducible.");
+    expect(body).toContain(
+      "The specific axe violation reported in this issue is no longer reproducible.",
+    );
     expect(body).not.toContain("Specifically:");
   });
 

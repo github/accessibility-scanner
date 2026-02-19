@@ -12,7 +12,7 @@ const OctokitWithThrottling = Octokit.plugin(throttling);
 export default async function () {
   core.info("Started 'fix' action");
   const issues: IssueInput[] = JSON.parse(
-    core.getInput("issues", { required: true }) || "[]"
+    core.getInput("issues", { required: true }) || "[]",
   );
   const repoWithOwner = core.getInput("repository", { required: true });
   const token = core.getInput("token", { required: true });
@@ -24,7 +24,7 @@ export default async function () {
     throttle: {
       onRateLimit: (retryAfter, options, octokit, retryCount) => {
         octokit.log.warn(
-          `Request quota exhausted for request ${options.method} ${options.url}`
+          `Request quota exhausted for request ${options.method} ${options.url}`,
         );
         if (retryCount < 3) {
           octokit.log.info(`Retrying after ${retryAfter} seconds!`);
@@ -33,7 +33,7 @@ export default async function () {
       },
       onSecondaryRateLimit: (retryAfter, options, octokit, retryCount) => {
         octokit.log.warn(
-          `Secondary rate limit hit for request ${options.method} ${options.url}`
+          `Secondary rate limit hit for request ${options.method} ${options.url}`,
         );
         if (retryCount < 3) {
           octokit.log.info(`Retrying after ${retryAfter} seconds!`);
@@ -49,22 +49,22 @@ export default async function () {
       const issue = new Issue(fixing.issue);
       await assignIssue(octokit, issue);
       core.info(
-        `Assigned ${issue.owner}/${issue.repository}#${issue.issueNumber} to Copilot!`
+        `Assigned ${issue.owner}/${issue.repository}#${issue.issueNumber} to Copilot!`,
       );
       const pullRequest = await retry(() => getLinkedPR(octokit, issue));
       if (pullRequest) {
         fixing.pullRequest = pullRequest;
         core.info(
-          `Found linked PR for ${issue.owner}/${issue.repository}#${issue.issueNumber}: ${pullRequest.url}`
+          `Found linked PR for ${issue.owner}/${issue.repository}#${issue.issueNumber}: ${pullRequest.url}`,
         );
       } else {
         core.info(
-          `No linked PR was found for ${issue.owner}/${issue.repository}#${issue.issueNumber}`
+          `No linked PR was found for ${issue.owner}/${issue.repository}#${issue.issueNumber}`,
         );
       }
     } catch (error) {
       core.setFailed(
-        `Failed to assign ${fixing.issue.url} to Copilot: ${error}`
+        `Failed to assign ${fixing.issue.url} to Copilot: ${error}`,
       );
       process.exit(1);
     }
