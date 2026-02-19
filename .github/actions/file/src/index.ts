@@ -62,6 +62,7 @@ export default async function () {
       } else if (isNewFiling(filing)) {
         // Open a new issue for the filing
         response = await openIssue(octokit, repoWithOwner, filing.findings[0]);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (filing as any).issue = { state: "open" } as Issue;
       } else if (isRepeatedFiling(filing)) {
         // Reopen the filing’s issue (if necessary)

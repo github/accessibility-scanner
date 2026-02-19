@@ -27,7 +27,7 @@ export async function openIssue(octokit: Octokit, repoWithOwner: string, finding
     GITHUB_ISSUE_TITLE_MAX_LENGTH,
   );
 
-  const body = generateIssueBody(finding, repoWithOwner);
+  const body = generateIssueBody(finding);
 
   return octokit.request(`POST /repos/${owner}/${repo}/issues`, {
     owner,
