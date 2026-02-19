@@ -8,11 +8,12 @@ export class Issue implements IssueInput {
    * @throws The provided URL is unparseable due to its unexpected format.
    */
   static parseIssueUrl(issueUrl: string): { owner: string; repository: string; issueNumber: number } {
-    const { owner, repository, issueNumber } = /\/(?<owner>[^/]+)\/(?<repository>[^/]+)\/issues\/(?<issueNumber>\d+)(?:[/?#]|$)/.exec(issueUrl)?.groups || {};
+    const { owner, repository, issueNumber } =
+      /\/(?<owner>[^/]+)\/(?<repository>[^/]+)\/issues\/(?<issueNumber>\d+)(?:[/?#]|$)/.exec(issueUrl)?.groups || {};
     if (!owner || !repository || !issueNumber) {
       throw new Error(`Could not parse issue URL: ${issueUrl}`);
     }
-    return { owner, repository, issueNumber: Number(issueNumber) }
+    return { owner, repository, issueNumber: Number(issueNumber) };
   }
 
   url: string;
@@ -30,7 +31,7 @@ export class Issue implements IssueInput {
     return Issue.parseIssueUrl(this.url).issueNumber;
   }
 
-  constructor({url, nodeId}: IssueInput) {
+  constructor({ url, nodeId }: IssueInput) {
     this.url = url;
     this.nodeId = nodeId;
   }

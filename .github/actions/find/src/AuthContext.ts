@@ -15,8 +15,7 @@ export class AuthContext implements AuthContextInput {
   }
 
   toPlaywrightBrowserContextOptions(): playwright.BrowserContextOptions {
-    const playwrightBrowserContextOptions: playwright.BrowserContextOptions =
-      {};
+    const playwrightBrowserContextOptions: playwright.BrowserContextOptions = {};
     if (this.username && this.password) {
       playwrightBrowserContextOptions.httpCredentials = {
         username: this.username,

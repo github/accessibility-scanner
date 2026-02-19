@@ -15,13 +15,11 @@ const OctokitWithThrottling = Octokit.plugin(throttling);
 
 export default async function () {
   core.info("Started 'file' action");
-  const findings: Finding[] = JSON.parse(
-    core.getInput("findings", { required: true })
-  );
+  const findings: Finding[] = JSON.parse(core.getInput("findings", { required: true }));
   const repoWithOwner = core.getInput("repository", { required: true });
   const token = core.getInput("token", { required: true });
   const cachedFilings: (ResolvedFiling | RepeatedFiling)[] = JSON.parse(
-    core.getInput("cached_filings", { required: false }) || "[]"
+    core.getInput("cached_filings", { required: false }) || "[]",
   );
   core.debug(`Input: 'findings: ${JSON.stringify(findings)}'`);
   core.debug(`Input: 'repository: ${repoWithOwner}'`);
@@ -31,18 +29,14 @@ export default async function () {
     auth: token,
     throttle: {
       onRateLimit: (retryAfter, options, octokit, retryCount) => {
-        octokit.log.warn(
-          `Request quota exhausted for request ${options.method} ${options.url}`
-        );
+        octokit.log.warn(`Request quota exhausted for request ${options.method} ${options.url}`);
         if (retryCount < 3) {
           octokit.log.info(`Retrying after ${retryAfter} seconds!`);
           return true;
         }
       },
       onSecondaryRateLimit: (retryAfter, options, octokit, retryCount) => {
-        octokit.log.warn(
-          `Secondary rate limit hit for request ${options.method} ${options.url}`
-        );
+        octokit.log.warn(`Secondary rate limit hit for request ${options.method} ${options.url}`);
         if (retryCount < 3) {
           octokit.log.info(`Retrying after ${retryAfter} seconds!`);
           return true;
@@ -62,7 +56,7 @@ export default async function () {
       } else if (isNewFiling(filing)) {
         // Open a new issue for the filing
         response = await openIssue(octokit, repoWithOwner, filing.findings[0]);
-        (filing as any).issue = { state: "open" } as Issue;
+        (filing as unknown as { issue: Partial<Issue> }).issue = { state: "open" };
       } else if (isRepeatedFiling(filing)) {
         // Reopen the filing’s issue (if necessary)
         response = await reopenIssue(octokit, new Issue(filing.issue));
@@ -75,7 +69,7 @@ export default async function () {
         filing.issue.url = response.data.html_url;
         filing.issue.title = response.data.title;
         core.info(
-          `Set issue ${response.data.title} (${repoWithOwner}#${response.data.number}) state to ${filing.issue.state}`
+          `Set issue ${response.data.title} (${repoWithOwner}#${response.data.number}) state to ${filing.issue.state}`,
         );
       }
     } catch (error) {

@@ -7,12 +7,10 @@ export default async function () {
   core.info("Starting 'find' action");
   const urls = core.getMultilineInput("urls", { required: true });
   core.debug(`Input: 'urls: ${JSON.stringify(urls)}'`);
-  const authContextInput: AuthContextInput = JSON.parse(
-    core.getInput("auth_context", { required: false }) || "{}"
-  );
+  const authContextInput: AuthContextInput = JSON.parse(core.getInput("auth_context", { required: false }) || "{}");
   const authContext = new AuthContext(authContextInput);
 
-  let findings = [];
+  const findings = [];
   for (const url of urls) {
     core.info(`Preparing to scan ${url}`);
     const findingsForUrl = await findForUrl(url, authContext);

@@ -2,10 +2,7 @@ import type { Octokit } from "@octokit/core";
 import { Issue } from "./Issue.js";
 
 // https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/coding-agent/assign-copilot-to-an-issue#assigning-an-existing-issue
-export async function assignIssue(
-  octokit: Octokit,
-  { owner, repository, issueNumber, nodeId }: Issue
-) {
+export async function assignIssue(octokit: Octokit, { owner, repository, issueNumber, nodeId }: Issue) {
   // Check whether issues can be assigned to Copilot
   const suggestedActorsResponse = await octokit.graphql<{
     repository: {
@@ -26,20 +23,15 @@ export async function assignIssue(
         }
       }
     }`,
-    { owner, repository }
+    { owner, repository },
   );
-  if (
-    suggestedActorsResponse?.repository?.suggestedActors?.nodes[0]?.login !==
-    "copilot-swe-agent"
-  ) {
+  if (suggestedActorsResponse?.repository?.suggestedActors?.nodes[0]?.login !== "copilot-swe-agent") {
     return;
   }
   // Get GraphQL identifier for issue (unless already provided)
   let issueId = nodeId;
   if (!issueId) {
-    console.debug(
-      `Fetching identifier for issue ${owner}/${repository}#${issueNumber}`
-    );
+    console.debug(`Fetching identifier for issue ${owner}/${repository}#${issueNumber}`);
     const issueResponse = await octokit.graphql<{
       repository: {
         issue: { id: string };
@@ -50,20 +42,16 @@ export async function assignIssue(
           issue(number: $issueNumber) { id }
         }
       }`,
-      { owner, repository, issueNumber }
+      { owner, repository, issueNumber },
     );
     issueId = issueResponse?.repository?.issue?.id;
-    console.debug(
-      `Fetched identifier for issue ${owner}/${repository}#${issueNumber}: ${issueId}`
-    );
+    console.debug(`Fetched identifier for issue ${owner}/${repository}#${issueNumber}: ${issueId}`);
   } else {
-    console.debug(
-      `Using provided identifier for issue ${owner}/${repository}#${issueNumber}: ${issueId}`
-    );
+    console.debug(`Using provided identifier for issue ${owner}/${repository}#${issueNumber}: ${issueId}`);
   }
   if (!issueId) {
     console.warn(
-      `Couldn’t get identifier for issue ${owner}/${repository}#${issueNumber}. Skipping assignment to Copilot.`
+      `Couldn’t get identifier for issue ${owner}/${repository}#${issueNumber}. Skipping assignment to Copilot.`,
     );
     return;
   }
@@ -96,8 +84,7 @@ export async function assignIssue(
     }`,
     {
       issueId,
-      assigneeId:
-        suggestedActorsResponse?.repository?.suggestedActors?.nodes[0]?.id,
-    }
+      assigneeId: suggestedActorsResponse?.repository?.suggestedActors?.nodes[0]?.id,
+    },
   );
 }

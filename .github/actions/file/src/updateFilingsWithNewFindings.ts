@@ -1,10 +1,4 @@
-import type {
-  Finding,
-  ResolvedFiling,
-  NewFiling,
-  RepeatedFiling,
-  Filing,
-} from "./types.d.js";
+import type { Finding, ResolvedFiling, NewFiling, RepeatedFiling, Filing } from "./types.d.js";
 
 function getFilingKey(filing: ResolvedFiling | RepeatedFiling): string {
   return filing.issue.url;
@@ -16,7 +10,7 @@ function getFindingKey(finding: Finding): string {
 
 export function updateFilingsWithNewFindings(
   filings: (ResolvedFiling | RepeatedFiling)[],
-  findings: Finding[]
+  findings: Finding[],
 ): Filing[] {
   const filingKeys: {
     [key: string]: ResolvedFiling | RepeatedFiling;

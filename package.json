@@ -3,7 +3,10 @@
   "version": "0.0.0-development",
   "description": "Finds potential accessibility gaps, files GitHub issues to track them, and attempts to fix them with Copilot",
   "scripts": {
-    "test": "vitest run tests/*.test.ts .github/actions/**/tests/*.test.ts"
+    "test": "vitest run tests/*.test.ts .github/actions/**/tests/*.test.ts",
+    "lint": "eslint '.github/actions/**/src/**/*.ts' 'tests/**/*.ts' '.github/actions/**/tests/**/*.ts'",
+    "format": "prettier --write '.github/actions/**/src/**/*.ts' 'tests/**/*.ts' '.github/actions/**/tests/**/*.ts'",
+    "format:check": "prettier --check '.github/actions/**/src/**/*.ts' 'tests/**/*.ts' '.github/actions/**/tests/**/*.ts'"
   },
   "repository": {
     "type": "git",
@@ -15,6 +18,7 @@
     "url": "https://github.com/github/accessibility-scanner/issues"
   },
   "homepage": "https://github.com/github/accessibility-scanner#readme",
+  "type": "module",
   "devDependencies": {
     "@actions/core": "^3.0.0",
     "@octokit/core": "^7.0.6",
