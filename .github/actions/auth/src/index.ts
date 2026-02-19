@@ -1,7 +1,5 @@
 import type { AuthContextOutput } from "./types.d.js";
-import crypto from "node:crypto";
 import process from "node:process";
-import * as url from "node:url";
 import core from "@actions/core";
 import playwright from "playwright";
 
@@ -17,13 +15,6 @@ export default async function () {
     const username = core.getInput("username", { required: true });
     const password = core.getInput("password", { required: true });
     core.setSecret(password);
-
-    // Determine storage path for authenticated session state
-    // Playwright will create missing directories, if needed
-    const actionDirectory = `${url.fileURLToPath(new URL(import.meta.url))}/..`;
-    const sessionStatePath = `${
-      process.env.RUNNER_TEMP ?? actionDirectory
-    }/.auth/${crypto.randomUUID()}/sessionState.json`;
 
     // Launch a headless browser
     browser = await playwright.chromium.launch({
@@ -76,13 +67,19 @@ export default async function () {
       username,
       password,
       cookies,
-      localStorage: origins.reduce((acc, { origin, localStorage }) => {
-        acc[origin] = localStorage.reduce((acc, { name, value }) => {
-          acc[name] = value;
+      localStorage: origins.reduce(
+        (acc, { origin, localStorage }) => {
+          acc[origin] = localStorage.reduce(
+            (acc, { name, value }) => {
+              acc[name] = value;
+              return acc;
+            },
+            {} as Record<string, string>,
+          );
           return acc;
-        }, {} as Record<string, string>);
-        return acc;
-      }, {} as Record<string, Record<string, string>>),
+        },
+        {} as Record<string, Record<string, string>>,
+      ),
     };
     core.setOutput("auth_context", JSON.stringify(authContextOutput));
     core.debug("Output: 'auth_context'");
