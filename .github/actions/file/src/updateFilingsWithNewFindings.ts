@@ -16,7 +16,7 @@ function getFindingKey(finding: Finding): string {
 
 export function updateFilingsWithNewFindings(
   filings: (ResolvedFiling | RepeatedFiling)[],
-  findings: Finding[]
+  findings: Finding[],
 ): Filing[] {
   const filingKeys: {
     [key: string]: ResolvedFiling | RepeatedFiling;
