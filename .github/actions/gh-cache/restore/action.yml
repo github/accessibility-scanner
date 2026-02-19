@@ -30,10 +30,7 @@ runs:
           exit 1
         fi
         # Check for directory traversal
-        if [[
-          "${{ inputs.path }}" == "~"* ||
-          "${{ inputs.path }}" =~ (^|/)\.\.(/|$)
-        ]]; then
+        if [[ "${{ inputs.path }}" == "~"* || "${{ inputs.path }}" =~ (^|/)\.\.(/|$) ]]; then
           echo "Invalid 'path' input (directory traversal): ${{ inputs.path }}"
           exit 1
         fi
