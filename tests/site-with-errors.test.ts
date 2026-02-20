@@ -16,18 +16,20 @@ describe('site-with-errors', () => {
   })
 
   it('cache has expected results', () => {
-    const actual = results.map(({issue: {url: issueUrl}, pullRequest: {url: pullRequestUrl}, findings}) => {
+    const actual = results.map(;({issue: {url: issueUrl}, pullRequest: {url: pullRequestUrl}, findings}) => {
       const {problemUrl, solutionLong, screenshotId, ...finding} = findings[0]
       // Check volatile fields for existence only
       expect(issueUrl).toBeDefined()
       expect(pullRequestUrl).toBeDefined()
       expect(problemUrl).toBeDefined()
       expect(solutionLong).toBeDefined()
-      expect(screenshotId).toBeDefined()
       // Check `problemUrl`, ignoring axe version
       expect(problemUrl.startsWith('https://dequeuniversity.com/rules/axe/')).toBe(true)
       expect(problemUrl.endsWith(`/${finding.ruleId}?application=playwright`)).toBe(true)
-      expect(screenshotId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
+      // screenshotId is only present when include_screenshots is enabled
+      if (screenshotId !== undefined) {
+        expect(screenshotId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
+      }
       return finding
     })
     const expected = [
