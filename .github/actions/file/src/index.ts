@@ -14,22 +14,18 @@ import {updateFilingsWithNewFindings} from './updateFilingsWithNewFindings.js'
 const OctokitWithThrottling = Octokit.plugin(throttling)
 
 export default async function () {
-  core.info("Started 'file' action");
-  const findings: Finding[] = JSON.parse(
-    core.getInput("findings", { required: true })
-  );
-  const repoWithOwner = core.getInput("repository", { required: true });
-  const token = core.getInput("token", { required: true });
-  const screenshotRepo =
-    core.getInput("screenshot_repository", { required: false }) ||
-    repoWithOwner;
+  core.info("Started 'file' action")
+  const findings: Finding[] = JSON.parse(core.getInput('findings', {required: true}))
+  const repoWithOwner = core.getInput('repository', {required: true})
+  const token = core.getInput('token', {required: true})
+  const screenshotRepo = core.getInput('screenshot_repository', {required: false}) || repoWithOwner
   const cachedFilings: (ResolvedFiling | RepeatedFiling)[] = JSON.parse(
-    core.getInput("cached_filings", { required: false }) || "[]"
-  );
-  core.debug(`Input: 'findings: ${JSON.stringify(findings)}'`);
-  core.debug(`Input: 'repository: ${repoWithOwner}'`);
-  core.debug(`Input: 'screenshot_repository: ${screenshotRepo}'`);
-  core.debug(`Input: 'cached_filings: ${JSON.stringify(cachedFilings)}'`);
+    core.getInput('cached_filings', {required: false}) || '[]',
+  )
+  core.debug(`Input: 'findings: ${JSON.stringify(findings)}'`)
+  core.debug(`Input: 'repository: ${repoWithOwner}'`)
+  core.debug(`Input: 'screenshot_repository: ${screenshotRepo}'`)
+  core.debug(`Input: 'cached_filings: ${JSON.stringify(cachedFilings)}'`)
 
   const octokit = new OctokitWithThrottling({
     auth: token,
@@ -61,8 +57,9 @@ export default async function () {
         filing.issue.state = 'closed'
       } else if (isNewFiling(filing)) {
         // Open a new issue for the filing
-        response = await openIssue(octokit, repoWithOwner, filing.findings[0], screenshotRepo);
-        (filing as any).issue = { state: "open" } as Issue;
+        response = await openIssue(octokit, repoWithOwner, filing.findings[0], screenshotRepo)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ;(filing as any).issue = {state: 'open'} as Issue
       } else if (isRepeatedFiling(filing)) {
         // Reopen the filing's issue (if necessary) and update the body with the latest finding
         response = await reopenIssue(
@@ -71,8 +68,8 @@ export default async function () {
           filing.findings[0],
           repoWithOwner,
           screenshotRepo,
-        );
-        filing.issue.state = "reopened";
+        )
+        filing.issue.state = 'reopened'
       }
       if (response?.data && filing.issue) {
         // Update the filing with the latest issue data

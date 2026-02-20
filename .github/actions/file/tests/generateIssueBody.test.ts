@@ -44,24 +44,21 @@ describe('generateIssueBody', () => {
     expect(body).toContain('Fix all of the following:')
     expect(body).toContain('- Add a non-color visual indicator.')
 
-    expect(body).not.toContain("- Fix any of the following:");
-    expect(body).not.toContain("- Fix all of the following:");
-  });
+    expect(body).not.toContain('- Fix any of the following:')
+    expect(body).not.toContain('- Fix all of the following:')
+  })
 
-  it("uses the screenshotRepo for the screenshot URL, not the filing repo", () => {
-    const body = generateIssueBody(
-      { ...baseFinding, screenshotId: "abc123" },
-      "github/my-workflow-repo",
-    );
+  it('uses the screenshotRepo for the screenshot URL, not the filing repo', () => {
+    const body = generateIssueBody({...baseFinding, screenshotId: 'abc123'}, 'github/my-workflow-repo')
 
-    expect(body).toContain("github/my-workflow-repo/blob/gh-cache/.screenshots/abc123.png");
-    expect(body).not.toContain("github/accessibility-scanner");
-  });
+    expect(body).toContain('github/my-workflow-repo/blob/gh-cache/.screenshots/abc123.png')
+    expect(body).not.toContain('github/accessibility-scanner')
+  })
 
-  it("omits screenshot section when screenshotId is not present", () => {
-    const body = generateIssueBody(baseFinding, "github/accessibility-scanner");
+  it('omits screenshot section when screenshotId is not present', () => {
+    const body = generateIssueBody(baseFinding, 'github/accessibility-scanner')
 
-    expect(body).not.toContain("View screenshot");
-    expect(body).not.toContain(".screenshots");
-  });
-});
+    expect(body).not.toContain('View screenshot')
+    expect(body).not.toContain('.screenshots')
+  })
+})
