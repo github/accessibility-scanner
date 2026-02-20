@@ -7,7 +7,7 @@ import {generateScreenshots} from './generateScreenshots.js'
 export async function findForUrl(
   url: string,
   authContext?: AuthContext,
-  includeScreenshots: boolean = true,
+  includeScreenshots: boolean = false,
 ): Promise<Finding[]> {
   const browser = await playwright.chromium.launch({
     headless: true,

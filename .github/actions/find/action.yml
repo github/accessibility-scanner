@@ -12,7 +12,7 @@ inputs:
   include_screenshots:
     description: "Whether to capture screenshots of scanned pages and include links to them in the issue"
     required: false
-    default: "true"
+    default: "false"
 
 outputs:
   findings:
