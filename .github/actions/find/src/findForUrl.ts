@@ -26,7 +26,6 @@ export async function findForUrl(
   const context = await browser.newContext(contextOptions);
   const page = await context.newPage();
   await page.goto(url);
-  await page.waitForLoadState("domcontentloaded");
   console.log(`Scanning ${page.url()}`);
 
   let findings: Finding[] = [];
