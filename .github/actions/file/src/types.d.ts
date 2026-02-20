@@ -1,35 +1,35 @@
 export type Finding = {
-  scannerType: string;
-  ruleId: string;
-  url: string;
-  html: string;
-  problemShort: string;
-  problemUrl: string;
-  solutionShort: string;
-  solutionLong?: string;
-};
+  scannerType: string
+  ruleId: string
+  url: string
+  html: string
+  problemShort: string
+  problemUrl: string
+  solutionShort: string
+  solutionLong?: string
+}
 
 export type Issue = {
-  id: number;
-  nodeId: string;
-  url: string;
-  title: string;
-  state?: "open" | "reopened" | "closed";
-};
+  id: number
+  nodeId: string
+  url: string
+  title: string
+  state?: 'open' | 'reopened' | 'closed'
+}
 
 export type ResolvedFiling = {
-  findings: never[];
-  issue: Issue;
-};
+  findings: never[]
+  issue: Issue
+}
 
 export type NewFiling = {
-  findings: Finding[];
-  issue?: never;
-};
+  findings: Finding[]
+  issue?: never
+}
 
 export type RepeatedFiling = {
-  findings: Finding[];
-  issue: Issue;
-};
+  findings: Finding[]
+  issue: Issue
+}
 
-export type Filing = ResolvedFiling | NewFiling | RepeatedFiling;
+export type Filing = ResolvedFiling | NewFiling | RepeatedFiling
