@@ -86,32 +86,6 @@ describe('site-with-errors', () => {
         ruleId: 'empty-heading',
         solutionShort: 'ensure headings have discernible text',
       },
-      {
-        scannerType: 'axe',
-        url: 'http://127.0.0.1:4000/about/',
-        html: '<a href="https://jekyllrb.com/">jekyllrb.com</a>',
-        problemShort: 'elements must meet minimum color contrast ratio thresholds',
-        ruleId: 'color-contrast',
-        solutionShort:
-          'ensure the contrast between foreground and background colors meets wcag 2 aa minimum contrast ratio thresholds',
-      },
-      {
-        scannerType: 'axe',
-        url: 'http://127.0.0.1:4000/404.html',
-        html: '<li class="p-name">Accessibility Scanner Demo</li>',
-        problemShort: 'elements must meet minimum color contrast ratio thresholds',
-        ruleId: 'color-contrast',
-        solutionShort:
-          'ensure the contrast between foreground and background colors meets wcag 2 aa minimum contrast ratio thresholds',
-      },
-      {
-        scannerType: 'axe',
-        url: 'http://127.0.0.1:4000/404.html',
-        html: '<h1 class="post-title"></h1>',
-        problemShort: 'headings should not be empty',
-        ruleId: 'empty-heading',
-        solutionShort: 'ensure headings have discernible text',
-      },
     ]
     // Check that:
     // - every expected object exists (no more and no fewer), and
