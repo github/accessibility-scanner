@@ -93,7 +93,7 @@ runs:
         repository: ${{ inputs.repository }}
         token: ${{ inputs.token }}
         cached_filings: ${{ steps.normalize_cache.outputs.value }}
-        screenshot_repo: ${{ github.repository }}
+        screenshot_repository: ${{ github.repository }}
     - if: ${{ steps.file.outputs.filings }}
       name: Get issues from filings
       id: get_issues_from_filings

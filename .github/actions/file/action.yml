@@ -14,7 +14,7 @@ inputs:
   cached_filings:
     description: "Cached filings from previous runs, as stringified JSON. Without this, duplicate issues may be filed."
     required: false
-  screenshot_repo:
+  screenshot_repository:
     description: "Repository (with owner) where screenshots are stored on the gh-cache branch. Defaults to the 'repository' input if not set. Required if issues are open in a different repo to construct proper screenshot URLs."
     required: false
 

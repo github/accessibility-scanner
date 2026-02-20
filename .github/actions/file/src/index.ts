@@ -20,13 +20,15 @@ export default async function () {
   );
   const repoWithOwner = core.getInput("repository", { required: true });
   const token = core.getInput("token", { required: true });
-  const screenshotRepo = core.getInput("screenshot_repo", { required: false }) || repoWithOwner;
+  const screenshotRepo =
+    core.getInput("screenshot_repository", { required: false }) ||
+    repoWithOwner;
   const cachedFilings: (ResolvedFiling | RepeatedFiling)[] = JSON.parse(
     core.getInput("cached_filings", { required: false }) || "[]"
   );
   core.debug(`Input: 'findings: ${JSON.stringify(findings)}'`);
   core.debug(`Input: 'repository: ${repoWithOwner}'`);
-  core.debug(`Input: 'screenshot_repo: ${screenshotRepo}'`);
+  core.debug(`Input: 'screenshot_repository: ${screenshotRepo}'`);
   core.debug(`Input: 'cached_filings: ${JSON.stringify(cachedFilings)}'`);
 
   const octokit = new OctokitWithThrottling({

@@ -39,6 +39,8 @@ export async function findForUrl(
       if (!fs.existsSync(SCREENSHOT_DIR)) {
         fs.mkdirSync(SCREENSHOT_DIR, { recursive: true });
         console.log(`Created screenshot directory: ${SCREENSHOT_DIR}`);
+      } else {
+        console.log(`Using existing screenshot directory ${SCREENSHOT_DIR}`);
       }
 
       try {
