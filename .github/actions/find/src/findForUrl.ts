@@ -1,4 +1,4 @@
-import type { Finding } from './types.d.js';
+import type {Finding} from './types.d.js'
 import AxeBuilder from '@axe-core/playwright'
 import playwright from 'playwright';
 import { AuthContext } from './AuthContext.js';
@@ -19,7 +19,7 @@ export async function findForUrl(
   await page.goto(url);
   console.log(`Scanning ${page.url()}`);
 
-  let findings: Finding[] = [];
+  let findings: Finding[] = []
   try {
     const rawFindings = await new AxeBuilder({ page }).analyze();
 
@@ -31,9 +31,9 @@ export async function findForUrl(
     findings = rawFindings.violations.map((violation) => ({
       scannerType: "axe",
       url,
-      html: violation.nodes[0].html.replace(/'/g, "&apos;"),
-      problemShort: violation.help.toLowerCase().replace(/'/g, "&apos;"),
-      problemUrl: violation.helpUrl.replace(/'/g, "&apos;"),
+      html: violation.nodes[0].html.replace(/'/g, '&apos;'),
+      problemShort: violation.help.toLowerCase().replace(/'/g, '&apos;'),
+      problemUrl: violation.helpUrl.replace(/'/g, '&apos;'),
       ruleId: violation.id,
       solutionShort: violation.description
         .toLowerCase()
@@ -44,7 +44,7 @@ export async function findForUrl(
   } catch (e) {
     console.error("Error during accessibility scan:", e);
   }
-  await context.close();
-  await browser.close();
-  return findings;
+  await context.close()
+  await browser.close()
+  return findings
 }

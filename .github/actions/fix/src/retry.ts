@@ -3,7 +3,7 @@
  * @param ms Time to sleep, in milliseconds.
  */
 function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(() => resolve(), ms));
+  return new Promise(resolve => setTimeout(() => resolve(), ms))
 }
 
 /**
@@ -18,15 +18,15 @@ export async function retry<T>(
   fn: () => Promise<T | null | undefined> | T | null | undefined,
   maxAttempts = 6,
   baseDelay = 2000,
-  attempt = 1
+  attempt = 1,
 ): Promise<T | undefined> {
-  const value = await fn();
-  if (value != null) return value;
-  if (attempt >= maxAttempts) return undefined;
+  const value = await fn()
+  if (value != null) return value
+  if (attempt >= maxAttempts) return undefined
   /** Exponential backoff, capped at 30s */
-  const delay = Math.min(30000, baseDelay * 2 ** (attempt - 1));
+  const delay = Math.min(30000, baseDelay * 2 ** (attempt - 1))
   /** ±10% jitter */
-  const jitter = 1 + (Math.random() - 0.5) * 0.2;
-  await sleep(Math.round(delay * jitter));
-  return retry(fn, maxAttempts, baseDelay, attempt + 1);
+  const jitter = 1 + (Math.random() - 0.5) * 0.2
+  await sleep(Math.round(delay * jitter))
+  return retry(fn, maxAttempts, baseDelay, attempt + 1)
 }

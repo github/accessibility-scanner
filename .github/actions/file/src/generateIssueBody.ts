@@ -1,4 +1,4 @@
-import type { Finding } from "./types.d.js";
+import type {Finding} from './types.d.js'
 
 export function generateIssueBody(finding: Finding, screenshotRepo: string): string {
   const solutionLong = finding.solutionLong
@@ -35,8 +35,7 @@ export function generateIssueBody(finding: Finding, screenshotRepo: string): str
   ${solutionLong ? `\nSpecifically:\n\n${solutionLong}` : ""}
 
   ${acceptanceCriteria}
-  `;
+  `
 
-  return body;
+  return body
 }
-
