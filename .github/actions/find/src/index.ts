@@ -10,10 +10,12 @@ export default async function () {
   const authContextInput: AuthContextInput = JSON.parse(core.getInput('auth_context', {required: false}) || '{}')
   const authContext = new AuthContext(authContextInput)
 
+  const includeScreenshots = core.getInput('include_screenshots', {required: false}) !== 'false'
+
   const findings = []
   for (const url of urls) {
     core.info(`Preparing to scan ${url}`)
-    const findingsForUrl = await findForUrl(url, authContext)
+    const findingsForUrl = await findForUrl(url, authContext, includeScreenshots)
     if (findingsForUrl.length === 0) {
       core.info(`No accessibility gaps were found on ${url}`)
       continue
