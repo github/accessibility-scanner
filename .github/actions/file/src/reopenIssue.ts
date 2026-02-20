@@ -10,10 +10,13 @@ export async function reopenIssue(
   repoWithOwner?: string,
   screenshotRepo?: string,
 ) {
-  const body =
-    finding && repoWithOwner
-      ? generateIssueBody(finding, screenshotRepo ?? repoWithOwner)
-      : undefined;
+  let body = {};
+  if (finding && repoWithOwner) {
+    body = {
+      body: generateIssueBody(finding, screenshotRepo ?? repoWithOwner),
+    };
+  }
+
   return octokit.request(
     `PATCH /repos/${owner}/${repository}/issues/${issueNumber}`,
     {
@@ -21,7 +24,7 @@ export async function reopenIssue(
       repository,
       issue_number: issueNumber,
       state: "open",
-      ...(body ? { body } : {}),
+      ...body,
     },
   );
 }
