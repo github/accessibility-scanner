@@ -18,6 +18,14 @@ export type Issue = {
   state?: 'open' | 'reopened' | 'closed'
 }
 
+export type IssueResponse = {
+  id: number
+  node_id: string
+  number: number
+  html_url: string
+  title: string
+}
+
 export type ResolvedFiling = {
   findings: never[]
   issue: Issue
@@ -38,4 +46,4 @@ export type Filing = ResolvedFiling | NewFiling | RepeatedFiling
 export type FindingGroupIssue = {
   url: string
   id: number
-};
+}

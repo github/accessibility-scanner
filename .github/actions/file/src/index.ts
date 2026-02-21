@@ -1,4 +1,4 @@
-import type {Finding, ResolvedFiling, RepeatedFiling, FindingGroupIssue, Filing} from './types.d.js'
+import type {Finding, ResolvedFiling, RepeatedFiling, FindingGroupIssue, Filing, IssueResponse} from './types.d.js'
 import process from 'node:process'
 import core from '@actions/core'
 import {Octokit} from '@octokit/core'
@@ -11,7 +11,7 @@ import {isResolvedFiling} from './isResolvedFiling.js'
 import {openIssue} from './openIssue.js'
 import {reopenIssue} from './reopenIssue.js'
 import {updateFilingsWithNewFindings} from './updateFilingsWithNewFindings.js'
-import { OctokitResponse } from '@octokit/types'
+import {OctokitResponse} from '@octokit/types'
 const OctokitWithThrottling = Octokit.plugin(throttling)
 
 export default async function () {
@@ -23,7 +23,7 @@ export default async function () {
   const cachedFilings: (ResolvedFiling | RepeatedFiling)[] = JSON.parse(
     core.getInput('cached_filings', {required: false}) || '[]',
   )
-  const shouldOpenGroupedIssues = core.getBooleanInput("open_grouped_issues")
+  const shouldOpenGroupedIssues = core.getBooleanInput('open_grouped_issues')
   core.debug(`Input: 'findings: ${JSON.stringify(findings)}'`)
   core.debug(`Input: 'repository: ${repoWithOwner}'`)
   core.debug(`Input: 'screenshot_repository: ${screenshotRepo}'`)
@@ -56,7 +56,7 @@ export default async function () {
   const trackingIssueUrls: Record<string, string> = {}
 
   for (const filing of filings) {
-    let response: OctokitResponse<any> | undefined;
+    let response: OctokitResponse<IssueResponse> | undefined
     try {
       if (isResolvedFiling(filing)) {
         // Close the filing’s issue (if necessary)
@@ -108,39 +108,28 @@ export default async function () {
   // Open tracking issues for groups with >1 new issue and link back from each
   // new issue
   if (shouldOpenGroupedIssues) {
-    for (const [problemShort, issues] of Object.entries(
-      newIssuesByProblemShort,
-    )) {
+    for (const [problemShort, issues] of Object.entries(newIssuesByProblemShort)) {
       if (issues.length > 1) {
-        const title: string = `${problemShort} issues`;
-        const body: string =
-          `# ${problemShort} issues\n\n` +
-          issues.map((issue) => `- [ ] ${issue.url}`).join("\n");
+        const title: string = `${problemShort} issues`
+        const body: string = `# ${problemShort} issues\n\n` + issues.map(issue => `- [ ] ${issue.url}`).join('\n')
         try {
-          const trackingResponse = await octokit.request(
-            `POST /repos/${repoWithOwner}/issues`,
-            {
-              owner: repoWithOwner.split("/")[0],
-              repo: repoWithOwner.split("/")[1],
-              title,
-              body,
-            },
-          );
-          const trackingUrl: string = trackingResponse.data.html_url;
-          trackingIssueUrls[problemShort] = trackingUrl;
-          core.info(
-            `Opened tracking issue for '${problemShort}' with ${issues.length} issues.`,
-          );
+          const trackingResponse = await octokit.request(`POST /repos/${repoWithOwner}/issues`, {
+            owner: repoWithOwner.split('/')[0],
+            repo: repoWithOwner.split('/')[1],
+            title,
+            body,
+          })
+          const trackingUrl: string = trackingResponse.data.html_url
+          trackingIssueUrls[problemShort] = trackingUrl
+          core.info(`Opened tracking issue for '${problemShort}' with ${issues.length} issues.`)
         } catch (error) {
-          core.warning(
-            `Failed to open tracking issue for '${problemShort}': ${error}`,
-          );
+          core.warning(`Failed to open tracking issue for '${problemShort}': ${error}`)
         }
       }
     }
   }
 
-  core.setOutput("filings", JSON.stringify(filings));
-  core.debug(`Output: 'filings: ${JSON.stringify(filings)}'`);
-  core.info("Finished 'file' action");
+  core.setOutput('filings', JSON.stringify(filings))
+  core.debug(`Output: 'filings: ${JSON.stringify(filings)}'`)
+  core.info("Finished 'file' action")
 }
