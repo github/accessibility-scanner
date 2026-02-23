@@ -79,6 +79,7 @@ async function loadBuiltInPlugins() {
 
 function logDirs(path: string) {
   const dir = fs.readdirSync(path);
+  console.log('path: ', path);
   for (const folder of dir) {
     if (folder !== 'node_modules') {
       console.log('folder: ', folder);
