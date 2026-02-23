@@ -63,40 +63,32 @@ async function loadPlugins() {
 }
 
 async function loadBuiltInPlugins() {
-  try {
-    console.log('Loading built-in plugins');
-    const absoluteFolderPath = path.join(__dirname, '../../../scanner-plugins');
+  console.log('Loading built-in plugins');
 
-    const res = fs.readdirSync(absoluteFolderPath);
-    for (const pluginFolder of res) {
-      // @ts-ignore
-      plugins.push(await import('../../../scanner-plugins/' + pluginFolder + '/index.js'));
-    }
-  } catch (e) {
-    console.log('error: ');
-    console.log(e);
-  }
-}
-
-function logDirs(path: string) {
-  const dir = fs.readdirSync(path);
-  console.log('path: ', path);
-  for (const folder of dir) {
-    if (folder !== 'node_modules') {
-      console.log('folder: ', folder);
-    }
-  }
+  const pluginsPath = '../../../scanner-plugins/';
+  loadPluginsFromPath({
+    readPath: path.join(__dirname, pluginsPath),
+    importPath: pluginsPath,
+  });
 }
 
 async function loadCustomPlugins() {
-  try {
-    console.log('Loading custom plugins');
+  console.log('Loading custom plugins');
 
-    const res = fs.readdirSync(process.cwd() + '/.github/scanner-plugins');
+  const pluginsPath = process.cwd() + '/.github/scanner-plugins';
+  loadPluginsFromPath({
+    readPath: pluginsPath,
+    importPath: pluginsPath
+  });
+}
+
+async function loadPluginsFromPath({ readPath, importPath }: { readPath: string, importPath: string }) {
+  try {
+    const res = fs.readdirSync(readPath);
     for (const pluginFolder of res) {
+      console.log('Found plugin: ', pluginFolder);
       // @ts-ignore
-      plugins.push(await import(process.cwd() + '/.github/scanner-plugins/' + pluginFolder + '/index.js'));
-      // plugins.push(await import('/home/runner/work/accessibility-sandbox/accessibility-sandbox/.github/scanner-plugins/' + pluginFolder + '/index.js'));
+      plugins.push(await import(importPath + pluginFolder + '/index.js'));
     }
   } catch (e) {
     console.log('error: ');
