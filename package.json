@@ -3,7 +3,10 @@
   "version": "0.0.0-development",
   "description": "Finds potential accessibility gaps, files GitHub issues to track them, and attempts to fix them with Copilot",
   "scripts": {
-    "test": "vitest run tests/*.test.ts"
+    "test": "vitest run tests/*.test.ts .github/actions/**/tests/*.test.ts",
+    "lint": "eslint '.github/actions/**/src/**/*.ts' 'tests/**/*.ts' '.github/actions/**/tests/**/*.ts'",
+    "format": "prettier --write '.github/actions/**/src/**/*.ts' 'tests/**/*.ts' '.github/actions/**/tests/**/*.ts'",
+    "format:check": "prettier --check '.github/actions/**/src/**/*.ts' 'tests/**/*.ts' '.github/actions/**/tests/**/*.ts'"
   },
   "repository": {
     "type": "git",
@@ -15,12 +18,19 @@
     "url": "https://github.com/github/accessibility-scanner/issues"
   },
   "homepage": "https://github.com/github/accessibility-scanner#readme",
+  "type": "module",
+  "prettier": "@github/prettier-config",
   "devDependencies": {
-    "@actions/core": "^2.0.1",
+    "@actions/core": "^3.0.0",
+    "@github/prettier-config": "^0.0.6",
     "@octokit/core": "^7.0.6",
     "@octokit/plugin-throttling": "^11.0.3",
     "@octokit/types": "^16.0.0",
     "@types/node": "^25.2.0",
+    "eslint": "^10.0.0",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.8.1",
+    "typescript-eslint": "^8.56.0",
     "vitest": "^4.0.18"
   }
 }
