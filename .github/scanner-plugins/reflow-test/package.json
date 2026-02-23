@@ -1,0 +1,6 @@
+{
+  "name": "reflow-plugin-test",
+  "version": "1.0.0",
+  "description": "A test plugin for reflow testing",
+  "type": "module"
+}

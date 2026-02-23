@@ -11,13 +11,20 @@ let pluginsLoaded = false;
 
 
 export async function loadPlugins() {
-  if (!pluginsLoaded) {
+  try {
+    if (!pluginsLoaded) {
+      await loadBuiltInPlugins();
+      await loadCustomPlugins();
+    }
+  } catch (e) {
+    plugins.length = 0;
+    console.log('There was an error while loading plugins.');
+    console.log('Clearing all plugins and aborting custom plugin scans.');
+    console.log('Please check the logs for hints as to what may have gone wrong.');
+  } finally {
     pluginsLoaded = true;
-    await loadBuiltInPlugins();
-    await loadCustomPlugins();
+    return plugins;
   }
-
-  return plugins;
 }
 
 async function loadBuiltInPlugins() {
@@ -49,7 +56,10 @@ async function loadPluginsFromPath({ readPath, importPath }: { readPath: string,
       plugins.push(await import(path.join(importPath, pluginFolder, '/index.js')));
     }
   } catch (e) {
+    // - log errors here for granular info
     console.log('error: ');
     console.log(e);
+    // - throw error to handle aborting the plugin scans
+    throw(e);
   }
 }
