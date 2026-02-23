@@ -91,14 +91,13 @@ function logDirs(path: string) {
 async function loadCustomPlugins() {
   try {
     console.log('Loading custom plugins');
-    logDirs(process.cwd() + '/.github/scanner-plugins/reflow-test');
 
-    // const res = fs.readdirSync(process.cwd() + '/.github/scanner-plugins');
-    // for (const pluginFolder of res) {
-    //   // @ts-ignore
-    //   // plugins.push(await import(process.cwd() + '/.github/scanner-plugins/' + pluginFolder + '/index.js'));
-    //   plugins.push(await import('/home/runner/work/accessibility-sandbox/accessibility-sandbox/.github/scanner-plugins/' + pluginFolder + '/index.js'));
-    // }
+    const res = fs.readdirSync(process.cwd() + '/.github/scanner-plugins');
+    for (const pluginFolder of res) {
+      // @ts-ignore
+      plugins.push(await import(process.cwd() + '/.github/scanner-plugins/' + pluginFolder + '/index.js'));
+      // plugins.push(await import('/home/runner/work/accessibility-sandbox/accessibility-sandbox/.github/scanner-plugins/' + pluginFolder + '/index.js'));
+    }
   } catch (e) {
     console.log('error: ');
     console.log(e);
