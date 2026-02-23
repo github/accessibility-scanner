@@ -66,7 +66,7 @@ async function loadBuiltInPlugins() {
   console.log('Loading built-in plugins');
 
   const pluginsPath = '../../../scanner-plugins/';
-  loadPluginsFromPath({
+  await loadPluginsFromPath({
     readPath: path.join(__dirname, pluginsPath),
     importPath: pluginsPath,
   });
@@ -76,7 +76,7 @@ async function loadCustomPlugins() {
   console.log('Loading custom plugins');
 
   const pluginsPath = process.cwd() + '/.github/scanner-plugins/';
-  loadPluginsFromPath({
+  await loadPluginsFromPath({
     readPath: pluginsPath,
     importPath: pluginsPath
   });
