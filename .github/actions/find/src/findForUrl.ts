@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright'
 import playwright from 'playwright'
 import {AuthContext} from './AuthContext.js'
 import {generateScreenshots} from './generateScreenshots.js'
-import { loadPlugins } from './pluginManager.js';
+import { loadPlugins } from './pluginManager.js'
 
 
 export async function findForUrl(
@@ -21,18 +21,18 @@ export async function findForUrl(
   await page.goto(url)
   console.log(`Scanning ${page.url()}`)
 
-  let findings: Finding[] = [];
+  let findings: Finding[] = []
   const addFinding = (findingData: Finding) => {
-    findings.push(findingData);
-  };
+    findings.push(findingData)
+  }
 
   try {
     const rawFindings = await new AxeBuilder({page}).analyze()
 
-    const plugins = await loadPlugins();
+    const plugins = await loadPlugins()
     for (const plugin of plugins) {
-      console.log('Running plugin: ', plugin.name);
-      await plugin.default({ page, addFinding, url });
+      console.log('Running plugin: ', plugin.name)
+      await plugin.default({ page, addFinding, url })
     }
 
     let screenshotId: string | undefined
