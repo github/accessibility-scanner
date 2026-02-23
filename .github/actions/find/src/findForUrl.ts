@@ -77,10 +77,19 @@ async function loadBuiltInPlugins() {
   }
 }
 
+function logDirs(path: string) {
+  const dir = fs.readdirSync(path);
+  for (const folder of dir) {
+    if (folder !== 'node_modules') {
+      console.log('folder: ', folder);
+    }
+  }
+}
+
 async function loadCustomPlugins() {
-  console.log('cwd: ', process.cwd());
-  console.log('cwd: ', process.cwd() + '/.github');
-  console.log('cwd: ', process.cwd() + '/.github/scanner-plugins');
+  logDirs(process.cwd());
+  logDirs(process.cwd() + '/.github');
+  logDirs(process.cwd() + '/.github/scanner-plugins');
 
 
   // try {
