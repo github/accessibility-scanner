@@ -23,7 +23,7 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
     findings.push(findingData);
   };
 
-  const plugins = await getPlugins();
+  const plugins = await loadPlugins();
   for (const plugin of plugins) {
     console.log('running plugin: ', plugin.name);
     await plugin.default({ page, addFinding, url });
@@ -52,22 +52,47 @@ export async function findForUrl(url: string, authContext?: AuthContext): Promis
 const plugins: any[] = [];
 let pluginsLoaded = false;
 
-async function getPlugins() {
+async function loadPlugins() {
   if (!pluginsLoaded) {
     pluginsLoaded = true;
-    try {
-      const absoluteFolderPath = path.join(__dirname, '../../../scanner-plugins');
-
-      const res = fs.readdirSync(absoluteFolderPath);
-      for (const pluginFolder of res) {
-        // @ts-ignore
-        plugins.push(await import('../../../scanner-plugins/' + pluginFolder + '/index.js'));
-      }
-    } catch (e) {
-      console.log('error: ');
-      console.log(e);
-    }
+    await loadBuiltInPlugins();
+    await loadCustomPlugins();
   }
 
   return plugins;
+}
+
+async function loadBuiltInPlugins() {
+  try {
+    const absoluteFolderPath = path.join(__dirname, '../../../scanner-plugins');
+
+    const res = fs.readdirSync(absoluteFolderPath);
+    for (const pluginFolder of res) {
+      // @ts-ignore
+      plugins.push(await import('../../../scanner-plugins/' + pluginFolder + '/index.js'));
+    }
+  } catch (e) {
+    console.log('error: ');
+    console.log(e);
+  }
+}
+
+async function loadCustomPlugins() {
+  console.log('cwd: ', process.cwd());
+  console.log('cwd: ', process.cwd() + '/.github');
+  console.log('cwd: ', process.cwd() + '/.github/scanner-plugins');
+
+
+  // try {
+  //   const absoluteFolderPath = path.join(__dirname, '../../../scanner-plugins');
+
+  //   const res = fs.readdirSync(absoluteFolderPath);
+  //   for (const pluginFolder of res) {
+  //     // @ts-ignore
+  //     plugins.push(await import('/home/runner/work/scanner-plugins/' + pluginFolder + '/index.js'));
+  //   }
+  // } catch (e) {
+  //   console.log('error: ');
+  //   console.log(e);
+  // }
 }
