@@ -7,6 +7,8 @@ import { dynamicImport } from './dynamicImport.js'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+// - plugins are js files right now, so they dont have a type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const plugins: any[] = []
 let pluginsLoaded = false
 
@@ -19,7 +21,7 @@ export async function loadPlugins() {
       await loadBuiltInPlugins()
       await loadCustomPlugins()
     }
-  } catch (e) {
+  } catch {
     plugins.length = 0
     console.log(abortError)
   } finally {
@@ -70,7 +72,6 @@ export async function loadPluginsFromPath({ readPath, importPath }: { readPath: 
     const res = fs.readdirSync(readPath)
     for (const pluginFolder of res) {
       console.log('Found plugin: ', pluginFolder)
-      // @ts-ignore
       plugins.push(await dynamicImport(path.join(importPath, pluginFolder, '/index.js')))
     }
   } catch (e) {
