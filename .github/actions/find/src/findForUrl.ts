@@ -88,21 +88,14 @@ function logDirs(path: string) {
 }
 
 async function loadCustomPlugins() {
-  logDirs(process.cwd());
-  logDirs(process.cwd() + '/.github');
-  logDirs(process.cwd() + '/.github/scanner-plugins');
-
-
-  // try {
-  //   const absoluteFolderPath = path.join(__dirname, '../../../scanner-plugins');
-
-  //   const res = fs.readdirSync(absoluteFolderPath);
-  //   for (const pluginFolder of res) {
-  //     // @ts-ignore
-  //     plugins.push(await import('/home/runner/work/scanner-plugins/' + pluginFolder + '/index.js'));
-  //   }
-  // } catch (e) {
-  //   console.log('error: ');
-  //   console.log(e);
-  // }
+  try {
+    const res = fs.readdirSync(process.cwd() + '/.github/scanner-plugins');
+    for (const pluginFolder of res) {
+      // @ts-ignore
+      plugins.push(await import(process.cwd() + '/.github/scanner-plugins/' + pluginFolder + '/index.js'));
+    }
+  } catch (e) {
+    console.log('error: ');
+    console.log(e);
+  }
 }

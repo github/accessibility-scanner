@@ -1,5 +1,5 @@
 export default async function test({ page, addFinding, url } = {}) {
-  console.log('reflow test');
+  console.log('reflow test built-in');
     // Check for horizontal scrolling at 320x256 viewport
   try {
     await page.setViewportSize({ width: 320, height: 256 });
@@ -29,4 +29,4 @@ export default async function test({ page, addFinding, url } = {}) {
 
 }
 
-export const name = 'reflow test';
+export const name = 'reflow-test';
