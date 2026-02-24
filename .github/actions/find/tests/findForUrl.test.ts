@@ -26,7 +26,8 @@ vi.mock('playwright', () => ({
 
 vi.mock('@axe-core/playwright', () => {
   const AxeBuilderMock = vi.fn()
-  AxeBuilderMock.prototype.analyze = vi.fn(() => Promise.resolve({violations: []} as unknown as axe.AxeResults))
+  const rawFinding = {violations: []} as unknown as axe.AxeResults
+  AxeBuilderMock.prototype.analyze = vi.fn(() => Promise.resolve(rawFinding))
   return {default: AxeBuilderMock}
 })
 
