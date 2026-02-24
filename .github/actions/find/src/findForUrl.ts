@@ -39,6 +39,8 @@ export async function findForUrl(
     //   in unit tests on whether 'loadPlugins' was called or not
     // - alternatively, we can wrap the 'plugin.default(...)' call in another function
     //   and make assertions on whether that function was called or not
+    // - the other option is to wrap each plugin in a class instance
+    //   and make assertions on something like 'plugin.run' being called or not
     if (scansContext.shouldRunPlugins) {
       const plugins = await loadPlugins()
       for (const plugin of plugins) {
@@ -56,7 +58,6 @@ export async function findForUrl(
       screenshotId = await generateScreenshots(page)
     }
 
-    console.log('rawFindings: ', rawFindings)
     findings =
       rawFindings?.violations.map(violation => ({
         scannerType: 'axe',
