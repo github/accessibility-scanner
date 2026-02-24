@@ -1,5 +1,5 @@
 import type {Finding} from './types.d.js'
-import AxeBuilder from '@axe-core/playwright'
+import {AxeBuilder} from '@axe-core/playwright'
 import playwright from 'playwright'
 import {AuthContext} from './AuthContext.js'
 import {generateScreenshots} from './generateScreenshots.js'
