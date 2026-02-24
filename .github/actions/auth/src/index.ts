@@ -1,6 +1,6 @@
 import type {AuthContextOutput} from './types.d.js'
 import process from 'node:process'
-import core from '@actions/core'
+import * as core from '@actions/core'
 import playwright from 'playwright'
 
 export default async function () {
