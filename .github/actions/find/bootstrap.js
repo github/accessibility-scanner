@@ -41,7 +41,7 @@ await (async () => {
         quiet: true,
       })
     } catch (error) {
-      console.error(`npm ci failed: ${error}`)
+      core.setFailed(`npm ci failed: ${error}`)
       process.exit(1)
     }
   } finally {
@@ -52,7 +52,7 @@ await (async () => {
         quiet: true,
       })
     } catch (error) {
-      console.error(`npm run build (TypeScript compilation) failed: ${error}`)
+      core.setFailed(`npm run build (TypeScript compilation) failed: ${error}`)
       process.exit(1)
     }
     // Run the main script.
