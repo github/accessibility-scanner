@@ -3,8 +3,7 @@ import AxeBuilder from '@axe-core/playwright'
 import playwright from 'playwright'
 import {AuthContext} from './AuthContext.js'
 import {generateScreenshots} from './generateScreenshots.js'
-import { loadPlugins } from './pluginManager.js'
-
+import {loadPlugins} from './pluginManager.js'
 
 export async function findForUrl(
   url: string,
@@ -32,7 +31,7 @@ export async function findForUrl(
     const plugins = await loadPlugins()
     for (const plugin of plugins) {
       console.log('Running plugin: ', plugin.name)
-      await plugin.default({ page, addFinding, url })
+      await plugin.default({page, addFinding, url})
     }
 
     let screenshotId: string | undefined

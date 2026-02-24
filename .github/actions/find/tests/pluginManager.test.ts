@@ -4,18 +4,17 @@ import * as fs from 'fs'
 import * as dynamicImportModule from '../src/dynamicImport.js'
 import * as pluginManager from '../src/pluginManager.js'
 
-
 // - enable spying on fs
 // https://vitest.dev/guide/browser/#limitations
-vi.mock('fs', { spy: true })
-vi.mock('../src/pluginManager.js', { spy: true })
+vi.mock('fs', {spy: true})
+vi.mock('../src/pluginManager.js', {spy: true})
 
 describe('loadPlugins', () => {
-  vi.spyOn(dynamicImportModule, 'dynamicImport').mockImplementation((path) => (
-    Promise.resolve(path)
-  ))
+  vi.spyOn(dynamicImportModule, 'dynamicImport').mockImplementation(path => Promise.resolve(path))
   beforeEach(() => {
-    vi.spyOn(fs, 'readdirSync').mockImplementation((readPath) => {
+    // @ts-expect-error - we don't need the full fs readdirsync
+    // method signature here
+    vi.spyOn(fs, 'readdirSync').mockImplementation(readPath => {
       return [readPath + '/plugin-1', readPath + '/plugin-2']
     })
   })

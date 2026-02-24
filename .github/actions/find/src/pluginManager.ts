@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import { fileURLToPath } from 'url'
-import { dynamicImport } from './dynamicImport.js'
+import {fileURLToPath} from 'url'
+import {dynamicImport} from './dynamicImport.js'
 
 // Helper to get __dirname equivalent in ES Modules
 const __filename = fileURLToPath(import.meta.url)
@@ -11,7 +11,6 @@ const __dirname = path.dirname(__filename)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const plugins: any[] = []
 let pluginsLoaded = false
-
 
 export async function loadPlugins() {
   console.log('loading plugins')
@@ -33,16 +32,14 @@ export async function loadPlugins() {
 export const abortError = [
   'There was an error while loading plugins.',
   'Clearing all plugins and aborting custom plugin scans.',
-  'Please check the logs for hints as to what may have gone wrong.'
+  'Please check the logs for hints as to what may have gone wrong.',
 ].join('\n')
-
 
 export function clearCache() {
   console.log('clearing plugin cache')
   pluginsLoaded = false
   plugins.length = 0
 }
-
 
 // exported for mocking/testing. not for actual use
 export async function loadBuiltInPlugins() {
@@ -62,12 +59,12 @@ export async function loadCustomPlugins() {
   const pluginsPath = process.cwd() + '/.github/scanner-plugins/'
   await loadPluginsFromPath({
     readPath: pluginsPath,
-    importPath: pluginsPath
+    importPath: pluginsPath,
   })
 }
 
 // exported for mocking/testing. not for actual use
-export async function loadPluginsFromPath({ readPath, importPath }: { readPath: string, importPath: string }) {
+export async function loadPluginsFromPath({readPath, importPath}: {readPath: string; importPath: string}) {
   try {
     const res = fs.readdirSync(readPath)
     for (const pluginFolder of res) {
@@ -79,6 +76,6 @@ export async function loadPluginsFromPath({ readPath, importPath }: { readPath: 
     console.log('error: ')
     console.log(e)
     // - throw error to handle aborting the plugin scans
-    throw(e)
+    throw e
   }
 }
