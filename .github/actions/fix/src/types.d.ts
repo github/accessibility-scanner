@@ -1,14 +1,14 @@
 export type Issue = {
-  url: string;
-  nodeId?: string;
-};
+  url: string
+  nodeId?: string
+}
 
 export type PullRequest = {
-  url: string;
-  nodeId?: string;
-};
+  url: string
+  nodeId?: string
+}
 
 export type Fixing = {
-  issue: Issue;
-  pullRequest: PullRequest;
-};
+  issue: Issue
+  pullRequest: PullRequest
+}

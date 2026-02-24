@@ -60,20 +60,23 @@ runs:
           echo "Created new orphaned 'gh-cache' branch"
         fi
 
-    - name: Copy file to repo
+    - name: Delete file from repo
       shell: bash
       run: |
-        if [ -f "${{ inputs.path }}" ]; then
+        if [ -e "${{ inputs.path }}" ]; then
           rm -Rf "${{ inputs.path }}"
           rm -Rf ".gh-cache-${{ github.run_id }}/${{ inputs.path }}"
           echo "Deleted '${{ inputs.path }}' from 'gh-cache' branch"
+        else
+          echo "'${{ inputs.path }}' does not exist in 'gh-cache' branch"
+          echo "Skipping delete"
         fi
 
     - name: Commit and push
       shell: bash
       working-directory: .gh-cache-${{ github.run_id }}
       run: |
-        git add "${{ inputs.path }}" || true
+        git add --all -- "${{ inputs.path }}" || true
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
         git commit -m "$(printf 'Delete artifact: %s' "${{ inputs.path }}")" \
