@@ -60,21 +60,36 @@ runs:
           echo "Created new orphaned 'gh-cache' branch"
         fi
 
-    - name: Copy file to repo
+    - name: Copy file or directory to repo
       shell: bash
       run: |
-        if [ -f "${{ inputs.path }}" ]; then
-          mkdir -p ".gh-cache-${{ github.run_id }}/$(dirname "${{ inputs.path }}")"
-          cp -Rf "${{ inputs.path }}" ".gh-cache-${{ github.run_id }}/${{ inputs.path }}"
-          echo "Copied '${{ inputs.path }}' to 'gh-cache' branch"
+        if [ -e "${{ inputs.path }}" ]; then
+          if [ -d "${{ inputs.path }}" ]; then
+            # For directories, copy contents to avoid nesting
+            mkdir -p ".gh-cache-${{ github.run_id }}/${{ inputs.path }}"
+            # Check if directory has files before copying
+            if [ "$(ls -A "${{ inputs.path }}" 2>/dev/null)" ]; then
+              cp -Rf "${{ inputs.path }}"/* ".gh-cache-${{ github.run_id }}/${{ inputs.path }}"/
+              echo "Copied directory contents of '${{ inputs.path }}' to 'gh-cache' branch"
+            else
+              echo "Directory '${{ inputs.path }}' is empty, nothing to copy"
+            fi
+          else
+            # For files, copy file to path
+            mkdir -p ".gh-cache-${{ github.run_id }}/$(dirname "${{ inputs.path }}")"
+            cp -Rf "${{ inputs.path }}" ".gh-cache-${{ github.run_id }}/${{ inputs.path }}"
+            echo "Copied file '${{ inputs.path }}' to 'gh-cache' branch"
+          fi
+        else
+          echo "'${{ inputs.path }}' does not exist"
         fi
 
     - name: Commit and push
       shell: bash
       working-directory: .gh-cache-${{ github.run_id }}
       run: |
-        if [ -f "${{ inputs.path }}" ]; then
-          git add "${{ inputs.path }}"
+        if [ -e "${{ inputs.path }}" ]; then
+          git add -- "${{ inputs.path }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git commit -m "$(printf 'Save artifact: %s' "${{ inputs.path }}")" \
