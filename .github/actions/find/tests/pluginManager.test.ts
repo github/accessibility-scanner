@@ -17,6 +17,11 @@ describe('loadPlugins', () => {
     vi.spyOn(fs, 'readdirSync').mockImplementation(readPath => {
       return [readPath + '/plugin-1', readPath + '/plugin-2']
     })
+    vi.spyOn(fs, 'lstatSync').mockImplementation(() => {
+      return {
+        isDirectory: () => true,
+      } as unknown as fs.Stats
+    })
   })
 
   describe('when plugins are not loaded', () => {

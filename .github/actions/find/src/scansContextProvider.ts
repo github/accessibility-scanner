@@ -10,8 +10,8 @@ let scansContext: ScansContext | undefined
 export function getScansContext() {
   if (!scansContext) {
     const scansJson = core.getInput('scans', {required: false})
-    const scansToPerform = JSON.parse(scansJson || '{}')
-    // - if we dont have a scans input
+    const scansToPerform = JSON.parse(scansJson || '[]')
+    // - if we don't have a scans input
     //   or we do have a scans input, but it only has 1 item and its 'axe'
     //   then we only want to run 'axe' and not the plugins
     // - keep in mind, 'onlyAxeScan' is not the same as 'shouldPerformAxeScan'

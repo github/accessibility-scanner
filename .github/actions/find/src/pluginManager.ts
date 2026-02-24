@@ -72,8 +72,11 @@ export async function loadPluginsFromPath({readPath, importPath}: {readPath: str
   try {
     const res = fs.readdirSync(readPath)
     for (const pluginFolder of res) {
-      console.log('Found plugin: ', pluginFolder)
-      plugins.push(await dynamicImport(path.join(importPath, pluginFolder, '/index.js')))
+      const pluginFolderPath = path.join(importPath, pluginFolder)
+      if (fs.lstatSync(pluginFolderPath).isDirectory()) {
+        console.log('Found plugin: ', pluginFolder)
+        plugins.push(await dynamicImport(path.join(importPath, pluginFolder, '/index.js')))
+      }
     }
   } catch (e) {
     // - log errors here for granular info

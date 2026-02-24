@@ -22,7 +22,7 @@ export async function findForUrl(
   await page.goto(url)
   console.log(`Scanning ${page.url()}`)
 
-  let findings: Finding[] = []
+  const findings: Finding[] = []
   const addFinding = (findingData: Finding) => {
     findings.push(findingData)
   }
@@ -58,18 +58,18 @@ export async function findForUrl(
       screenshotId = await generateScreenshots(page)
     }
 
-    findings =
-      rawFindings?.violations.map(violation => ({
-        scannerType: 'axe',
-        url,
-        html: violation.nodes[0].html.replace(/'/g, '&apos;'),
-        problemShort: violation.help.toLowerCase().replace(/'/g, '&apos;'),
-        problemUrl: violation.helpUrl.replace(/'/g, '&apos;'),
-        ruleId: violation.id,
-        solutionShort: violation.description.toLowerCase().replace(/'/g, '&apos;'),
-        solutionLong: violation.nodes[0].failureSummary?.replace(/'/g, '&apos;'),
-        screenshotId,
-      })) || []
+    const axeFindings = rawFindings?.violations.map(violation => ({
+      scannerType: 'axe',
+      url,
+      html: violation.nodes[0].html.replace(/'/g, '&apos;'),
+      problemShort: violation.help.toLowerCase().replace(/'/g, '&apos;'),
+      problemUrl: violation.helpUrl.replace(/'/g, '&apos;'),
+      ruleId: violation.id,
+      solutionShort: violation.description.toLowerCase().replace(/'/g, '&apos;'),
+      solutionLong: violation.nodes[0].failureSummary?.replace(/'/g, '&apos;'),
+      screenshotId,
+    }))
+    findings.push(...(axeFindings || []))
   } catch (e) {
     console.error('Error during accessibility scan:', e)
   }
