@@ -1,5 +1,5 @@
 import type {AuthContextInput} from './types.js'
-import core from '@actions/core'
+import * as core from '@actions/core'
 import {AuthContext} from './AuthContext.js'
 import {findForUrl} from './findForUrl.js'
 
