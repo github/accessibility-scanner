@@ -2,14 +2,19 @@ import * as fs from 'fs'
 import * as path from 'path'
 import {fileURLToPath} from 'url'
 import {dynamicImport} from './dynamicImport.js'
+import type {Finding} from './types.d.js'
+import playwright from 'playwright'
 
 // Helper to get __dirname equivalent in ES Modules
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-// - plugins are js files right now, so they dont have a type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const plugins: any[] = []
+export type Plugin = {
+  name: string
+  default: (options: {page: playwright.Page; addFinding: (findingData: Finding) => void; url: string}) => Promise<void>
+}
+
+const plugins: Plugin[] = []
 let pluginsLoaded = false
 
 export async function loadPlugins() {
@@ -36,7 +41,6 @@ export const abortError = [
 ].join('\n')
 
 export function clearCache() {
-  console.log('clearing plugin cache')
   pluginsLoaded = false
   plugins.length = 0
 }

@@ -30,18 +30,24 @@ export async function findForUrl(
   try {
     const scansContext = getScansContext()
 
-    let rawFindings = {} as axe.AxeResults
+    let rawFindings: axe.AxeResults | undefined
     if (scansContext.shouldPerformAxeScan) {
       rawFindings = await new AxeBuilder({page}).analyze()
     }
 
-    const plugins = await loadPlugins()
-    for (const plugin of plugins) {
-      if (scansContext.scans.includes(plugin.name)) {
-        console.log('Running plugin: ', plugin.name)
-        await plugin.default({page, addFinding, url})
-      } else {
-        console.log(`Skipping plugin ${plugin.name} because it is not included in the 'scans' input`)
+    // - this condition is not required, but makes it easier to make assertions
+    //   in unit tests on whether 'loadPlugins' was called or not
+    // - alternatively, we can wrap the 'plugin.default(...)' call in another function
+    //   and make assertions on whether that function was called or not
+    if (scansContext.shouldRunPlugins) {
+      const plugins = await loadPlugins()
+      for (const plugin of plugins) {
+        if (scansContext.scansToPerform.includes(plugin.name)) {
+          console.log('Running plugin: ', plugin.name)
+          await plugin.default({page, addFinding, url})
+        } else {
+          console.log(`Skipping plugin ${plugin.name} because it is not included in the 'scans' input`)
+        }
       }
     }
 
@@ -51,17 +57,18 @@ export async function findForUrl(
     }
 
     console.log('rawFindings: ', rawFindings)
-    findings = rawFindings?.violations.map(violation => ({
-      scannerType: 'axe',
-      url,
-      html: violation.nodes[0].html.replace(/'/g, '&apos;'),
-      problemShort: violation.help.toLowerCase().replace(/'/g, '&apos;'),
-      problemUrl: violation.helpUrl.replace(/'/g, '&apos;'),
-      ruleId: violation.id,
-      solutionShort: violation.description.toLowerCase().replace(/'/g, '&apos;'),
-      solutionLong: violation.nodes[0].failureSummary?.replace(/'/g, '&apos;'),
-      screenshotId,
-    }))
+    findings =
+      rawFindings?.violations.map(violation => ({
+        scannerType: 'axe',
+        url,
+        html: violation.nodes[0].html.replace(/'/g, '&apos;'),
+        problemShort: violation.help.toLowerCase().replace(/'/g, '&apos;'),
+        problemUrl: violation.helpUrl.replace(/'/g, '&apos;'),
+        ruleId: violation.id,
+        solutionShort: violation.description.toLowerCase().replace(/'/g, '&apos;'),
+        solutionLong: violation.nodes[0].failureSummary?.replace(/'/g, '&apos;'),
+        screenshotId,
+      })) || []
   } catch (e) {
     console.error('Error during accessibility scan:', e)
   }
