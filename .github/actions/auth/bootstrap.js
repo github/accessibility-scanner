@@ -5,8 +5,6 @@ import fs from 'node:fs'
 import * as url from 'node:url'
 import {spawn} from 'node:child_process'
 
-import * as core from '@actions/core'
-
 function spawnPromisified(command, args, {quiet = false, ...options} = {}) {
   return new Promise((resolve, reject) => {
     const proc = spawn(command, args, options)
@@ -41,10 +39,11 @@ await (async () => {
         quiet: true,
       })
     } catch (error) {
-      core.setFailed(`npm ci failed: ${error}`)
+      console.error(`npm ci failed: ${error}`)
       process.exit(1)
     }
   } finally {
+    const core = await import('@actions/core')
     // Compile TypeScript.
     try {
       await spawnPromisified('npm', ['run', 'build'], {
