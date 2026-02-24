@@ -50,6 +50,7 @@ jobs:
           # password: ${{ secrets.PASSWORD }} # Optional: Password for authentication (use secrets!)
           # auth_context: # Optional: Stringified JSON object for complex authentication
           # skip_copilot_assignment: false # Optional: Set to true to skip assigning issues to GitHub Copilot (or if you don't have GitHub Copilot)
+          # include_screenshots: false # Optional: Set to true to capture screenshots and include links to them in filed issues
 ```
 
 > 👉 Update all `REPLACE_THIS` placeholders with your actual values. See [Action Inputs](#action-inputs) for details.
@@ -113,6 +114,7 @@ Trigger the workflow manually or automatically based on your configuration. The 
 | `password` | No | If scanned pages require authentication, the password to use for login | `${{ secrets.PASSWORD }}` |
 | `auth_context` | No | If scanned pages require authentication, a stringified JSON object containing username, password, cookies, and/or localStorage from an authenticated session | `{"username":"some-user","password":"***","cookies":[...]}` |
 | `skip_copilot_assignment` | No | Whether to skip assigning filed issues to GitHub Copilot. Set to `true` if you don't have GitHub Copilot or prefer to handle issues manually | `true` |
+| `include_screenshots` | No | Whether to capture screenshots of scanned pages and include links to them in filed issues. Screenshots are stored on the `gh-cache` branch of the repository running the workflow. Default: `false` | `true` |
 
 ---
 
