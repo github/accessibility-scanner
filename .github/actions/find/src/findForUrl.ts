@@ -4,6 +4,8 @@ import playwright from 'playwright'
 import {AuthContext} from './AuthContext.js'
 import {generateScreenshots} from './generateScreenshots.js'
 import {loadPlugins} from './pluginManager.js'
+import {getScansContext} from './scansContextProvider.js'
+import axe from 'axe-core'
 
 export async function findForUrl(
   url: string,
@@ -26,12 +28,21 @@ export async function findForUrl(
   }
 
   try {
-    const rawFindings = await new AxeBuilder({page}).analyze()
+    const scansContext = getScansContext()
+
+    let rawFindings = {} as axe.AxeResults
+    if (scansContext.shouldPerformAxeScan) {
+      rawFindings = await new AxeBuilder({page}).analyze()
+    }
 
     const plugins = await loadPlugins()
     for (const plugin of plugins) {
-      console.log('Running plugin: ', plugin.name)
-      await plugin.default({page, addFinding, url})
+      if (scansContext.scans.includes(plugin.name)) {
+        console.log('Running plugin: ', plugin.name)
+        await plugin.default({page, addFinding, url})
+      } else {
+        console.log(`Skipping plugin ${plugin.name} because it is not included in the 'scans' input`)
+      }
     }
 
     let screenshotId: string | undefined
@@ -39,7 +50,8 @@ export async function findForUrl(
       screenshotId = await generateScreenshots(page)
     }
 
-    findings = rawFindings.violations.map(violation => ({
+    console.log('rawFindings: ', rawFindings)
+    findings = rawFindings?.violations.map(violation => ({
       scannerType: 'axe',
       url,
       html: violation.nodes[0].html.replace(/'/g, '&apos;'),
