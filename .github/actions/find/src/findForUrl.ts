@@ -35,8 +35,10 @@ export async function findForUrl(
       rawFindings = await new AxeBuilder({page}).analyze()
     }
 
-    // - this condition is not required, but makes it easier to make assertions
-    //   in unit tests on whether 'loadPlugins' was called or not
+    // - this if condition is not required, but makes it easier to make assertions
+    //   in unit tests on whether 'loadPlugins' was called or not (it does have the added
+    //   benefit of completely skipping plugin loading if we just want axe - so thats
+    //   a minor performance boost)
     // - alternatively, we can wrap the 'plugin.default(...)' call in another function
     //   and make assertions on whether that function was called or not
     // - the other option is to wrap each plugin in a class instance
