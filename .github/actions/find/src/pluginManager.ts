@@ -34,11 +34,11 @@ export async function loadPlugins() {
   }
 }
 
-export const abortError = [
-  'There was an error while loading plugins.',
-  'Clearing all plugins and aborting custom plugin scans.',
-  'Please check the logs for hints as to what may have gone wrong.',
-].join('\n')
+export const abortError = `
+There was an error while loading plugins.
+Clearing all plugins and aborting custom plugin scans.
+Please check the logs for hints as to what may have gone wrong.
+`
 
 export function clearCache() {
   pluginsLoaded = false
