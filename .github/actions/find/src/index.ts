@@ -11,11 +11,27 @@ export default async function () {
   const authContext = new AuthContext(authContextInput)
 
   const includeScreenshots = core.getInput('include_screenshots', {required: false}) !== 'false'
+  const reducedMotionInput = core.getInput('reduced_motion', {required: false})
+  let reducedMotion: 'reduce' | 'no-preference' | undefined
+  if (reducedMotionInput) {
+    if (!['reduce', 'no-preference'].includes(reducedMotionInput)) {
+      throw new Error("Input 'reduced_motion' must be one of: 'reduce', 'no-preference'")
+    }
+    reducedMotion = reducedMotionInput
+  }
+  const colorSchemeInput = core.getInput('color_scheme', {required: false})
+  let colorScheme: 'light' | 'dark' | 'no-preference' | undefined
+  if (colorSchemeInput) {
+    if (!['light', 'dark', 'no-preference'].includes(colorSchemeInput)) {
+      throw new Error("Input 'color_scheme' must be one of: 'light', 'dark', 'no-preference'")
+    }
+    colorScheme = colorSchemeInput
+  }
 
   const findings = []
   for (const url of urls) {
     core.info(`Preparing to scan ${url}`)
-    const findingsForUrl = await findForUrl(url, authContext, includeScreenshots)
+    const findingsForUrl = await findForUrl(url, authContext, includeScreenshots, reducedMotion, colorScheme)
     if (findingsForUrl.length === 0) {
       core.info(`No accessibility gaps were found on ${url}`)
       continue

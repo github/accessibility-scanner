@@ -8,12 +8,18 @@ export async function findForUrl(
   url: string,
   authContext?: AuthContext,
   includeScreenshots: boolean = false,
+  reducedMotion?: 'reduce' | 'no-preference',
+  colorScheme?: 'light' | 'dark' | 'no-preference',
 ): Promise<Finding[]> {
   const browser = await playwright.chromium.launch({
     headless: true,
     executablePath: process.env.CI ? '/usr/bin/google-chrome' : undefined,
   })
-  const contextOptions = authContext?.toPlaywrightBrowserContextOptions() ?? {}
+  const contextOptions = {
+    ...(authContext?.toPlaywrightBrowserContextOptions() ?? {}),
+    ...(reducedMotion ? {reducedMotion} : {}),
+    ...(colorScheme ? {colorScheme} : {}),
+  }
   const context = await browser.newContext(contextOptions)
   const page = await context.newPage()
   await page.goto(url)

@@ -35,6 +35,12 @@ inputs:
     description: "Whether to capture screenshots and include links to them in the issue"
     required: false
     default: "false"
+  reduced_motion:
+    description: "Playwright reducedMotion setting for scans. Allowed values: 'reduce', 'no-preference'"
+    required: false
+  color_scheme:
+    description: "Playwright colorScheme setting for scans. Allowed values: 'light', 'dark', 'no-preference'"
+    required: false
 
 outputs:
   results:
@@ -85,6 +91,8 @@ runs:
         urls: ${{ inputs.urls }}
         auth_context: ${{ inputs.auth_context || steps.auth.outputs.auth_context }}
         include_screenshots: ${{ inputs.include_screenshots }}
+        reduced_motion: ${{ inputs.reduced_motion }}
+        color_scheme: ${{ inputs.color_scheme }}
     - name: File
       id: file
       uses: ./../../_actions/github/accessibility-scanner/current/.github/actions/file

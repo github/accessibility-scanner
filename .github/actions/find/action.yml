@@ -13,6 +13,12 @@ inputs:
     description: "Whether to capture screenshots of scanned pages and include links to them in the issue"
     required: false
     default: "false"
+  reduced_motion:
+    description: "Playwright reducedMotion setting. Allowed values: 'reduce', 'no-preference'"
+    required: false
+  color_scheme:
+    description: "Playwright colorScheme setting. Allowed values: 'light', 'dark', 'no-preference'"
+    required: false
 
 outputs:
   findings:
