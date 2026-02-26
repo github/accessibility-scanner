@@ -1,4 +1,4 @@
-import type {Finding} from './types.d.js'
+import type {ColorSchemePreference, Finding, ReducedMotionPreference} from './types.d.js'
 import {AxeBuilder} from '@axe-core/playwright'
 import playwright from 'playwright'
 import {AuthContext} from './AuthContext.js'
@@ -8,8 +8,8 @@ export async function findForUrl(
   url: string,
   authContext?: AuthContext,
   includeScreenshots: boolean = false,
-  reducedMotion?: 'reduce' | 'no-preference',
-  colorScheme?: 'light' | 'dark' | 'no-preference',
+  reducedMotion?: ReducedMotionPreference,
+  colorScheme?: ColorSchemePreference,
 ): Promise<Finding[]> {
   const browser = await playwright.chromium.launch({
     headless: true,

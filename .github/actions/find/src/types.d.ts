@@ -31,3 +31,7 @@ export type AuthContextInput = {
   cookies?: Cookie[]
   localStorage?: LocalStorage
 }
+
+export type ReducedMotionPreference = 'reduce' | 'no-preference' | null
+
+export type ColorSchemePreference = 'light' | 'dark' | 'no-preference' | null
