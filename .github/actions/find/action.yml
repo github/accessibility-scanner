@@ -1,27 +1,30 @@
-name: "Find"
-description: "Finds potential accessibility gaps."
+name: 'Find'
+description: 'Finds potential accessibility gaps.'
 
 inputs:
   urls:
-    description: "Newline-delimited list of URLs to check for accessibility issues"
+    description: 'Newline-delimited list of URLs to check for accessibility issues'
     required: true
     multiline: true
   auth_context:
     description: "Stringified JSON object containing 'username', 'password', 'cookies', and/or 'localStorage' from an authenticated session"
     required: false
   include_screenshots:
-    description: "Whether to capture screenshots of scanned pages and include links to them in the issue"
+    description: 'Whether to capture screenshots of scanned pages and include links to them in the issue'
     required: false
-    default: "false"
+    default: 'false'
+  scans:
+    description: 'Stringified JSON array of scans to perform. If not provided, only axe will be performed'
+    required: false
 
 outputs:
   findings:
-    description: "List of potential accessibility gaps, as stringified JSON"
+    description: 'List of potential accessibility gaps, as stringified JSON'
 
 runs:
-  using: "node24"
-  main: "bootstrap.js"
+  using: 'node24'
+  main: 'bootstrap.js'
 
 branding:
-  icon: "compass"
-  color: "blue"
+  icon: 'compass'
+  color: 'blue'
