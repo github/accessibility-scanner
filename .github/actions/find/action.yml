@@ -14,10 +14,10 @@ inputs:
     required: false
     default: "false"
   reduced_motion:
-    description: "Playwright reducedMotion setting. Allowed values: 'reduce', 'no-preference'"
+    description: "Playwright reducedMotion setting: https://playwright.dev/docs/api/class-browser#browser-new-page-option-reduced-motion"
     required: false
   color_scheme:
-    description: "Playwright colorScheme setting. Allowed values: 'light', 'dark', 'no-preference'"
+    description: "Playwright colorScheme setting: https://playwright.dev/docs/api/class-browser#browser-new-context-option-color-scheme"
     required: false
 
 outputs:

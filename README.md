@@ -51,8 +51,8 @@ jobs:
           # auth_context: # Optional: Stringified JSON object for complex authentication
           # skip_copilot_assignment: false # Optional: Set to true to skip assigning issues to GitHub Copilot (or if you don't have GitHub Copilot)
           # include_screenshots: false # Optional: Set to true to capture screenshots and include links to them in filed issues
-          # reduced_motion: no-preference # Optional: Playwright reduced motion emulation (`reduce` or `no-preference`)
-          # color_scheme: dark # Optional: Playwright color scheme emulation (`light`, `dark`, or `no-preference`)
+          # reduced_motion: no-preference # Optional: Playwright reduced motion configuration option
+          # color_scheme: light # Optional: Playwright color scheme configuration option
 ```
 
 > 👉 Update all `REPLACE_THIS` placeholders with your actual values. See [Action Inputs](#action-inputs) for details.
@@ -152,11 +152,11 @@ The a11y scanner leverages GitHub Copilot coding agent, which can be configured 
 
 💬 We welcome your feedback! To submit feedback or report issues, please create an issue in this repository. For more information on contributing, please refer to the [CONTRIBUTING](./CONTRIBUTING.md) file.
 
-## License 
+## License
 
 📄 This project is licensed under the terms of the MIT open source license. Please refer to the [LICENSE](./LICENSE) file for the full terms.
 
-## Maintainers 
+## Maintainers
 
 🔧 Please refer to the [CODEOWNERS](./.github/CODEOWNERS) file for more information.
 

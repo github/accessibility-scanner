@@ -21,11 +21,15 @@ https://primer.style/octicons/
 
 #### `reduced_motion`
 
-**Optional** Playwright [`reducedMotion`](https://playwright.dev/docs/api/class-browser#browser-new-context-option-reduced-motion) setting to emulate user preference. Allowed values: `reduce`, `no-preference`.
+**Optional** Playwright
+[`reducedMotion`](https://playwright.dev/docs/api/class-browser#browser-new-context-option-reduced-motion)
+configuration option.
 
 #### `color_scheme`
 
-**Optional** Playwright [`colorScheme`](https://playwright.dev/docs/api/class-browser#browser-new-context-option-color-scheme) setting to emulate user preference. Allowed values: `light`, `dark`, `no-preference`.
+**Optional** Playwright
+[`colorScheme`](https://playwright.dev/docs/api/class-browser#browser-new-context-option-color-scheme)
+configuration option.
 
 ### Outputs
 
