@@ -1,5 +1,5 @@
-// - this exists because I'm not sure how to mock
-//   the dynamic import function, so mocking this instead
+// - this exists because it looks like there's no straight-forward
+//   way to mock the dynamic import function, so mocking this instead
 //   (also, if it _is_ possible to mock the dynamic import,
 //   there's the risk of altering/breaking the behavior of imports
 //   across the board - including non-dynamic imports)
