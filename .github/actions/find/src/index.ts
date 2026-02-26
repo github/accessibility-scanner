@@ -17,7 +17,7 @@ export default async function () {
     if (!['reduce', 'no-preference'].includes(reducedMotionInput)) {
       throw new Error("Input 'reduced_motion' must be one of: 'reduce', 'no-preference'")
     }
-    reducedMotion = reducedMotionInput
+    reducedMotion = reducedMotionInput as 'reduce' | 'no-preference'
   }
   const colorSchemeInput = core.getInput('color_scheme', {required: false})
   let colorScheme: 'light' | 'dark' | 'no-preference' | undefined
@@ -25,7 +25,7 @@ export default async function () {
     if (!['light', 'dark', 'no-preference'].includes(colorSchemeInput)) {
       throw new Error("Input 'color_scheme' must be one of: 'light', 'dark', 'no-preference'")
     }
-    colorScheme = colorSchemeInput
+    colorScheme = colorSchemeInput as 'light' | 'dark' | 'no-preference'
   }
 
   const findings = []
