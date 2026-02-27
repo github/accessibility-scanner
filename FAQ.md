@@ -32,7 +32,7 @@ your users, that's exactly what we're here for.
 ### What's the `gh-cache` branch/Action all about?
 
 **The short version:** It's an orphan branch we use to store data between Action
-runs. You can safely ignore it — it's just a behind-the-scenes detail.
+runs. You can safely ignore it and any prompts to use it for a pull request — it's just a behind-the-scenes detail.
 
 **The longer version:** We use the `gh-cache` branch (and its associated Action)
 to keep track of issue data across runs. This is what prevents the Action from
