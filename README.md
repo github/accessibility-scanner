@@ -4,7 +4,7 @@ The AI-powered Accessibility Scanner (a11y scanner) is a GitHub Action that dete
 
 The a11y scanner helps teams:
 
-- 🔍 Scan websites, files, repositories, and dynamic content for accessibility issues
+- 🔍 Scan websites, repositories, and dynamic content for accessibility issues
 - 📝 Create actionable GitHub issues that can be assigned to GitHub Copilot
 - 🤖 Propose fixes with GitHub Copilot, with humans reviewing before merging
 
@@ -13,6 +13,8 @@ The a11y scanner helps teams:
 🎥 **[Watch the demo video](https://youtu.be/CvRJcEzCSQM)** to see the a11y scanner in action.
 
 ---
+
+## [Frequently-Asked Questions (FAQ)](FAQ.md)
 
 ## Requirements
 
@@ -148,11 +150,24 @@ The a11y scanner leverages GitHub Copilot coding agent, which can be configured 
 
 💬 We welcome your feedback! To submit feedback or report issues, please create an issue in this repository. For more information on contributing, please refer to the [CONTRIBUTING](./CONTRIBUTING.md) file.
 
-## License 
+## How We Decide What to Build Next
+
+We love hearing ideas and suggestions from the community — your feedback genuinely helps shape our thinking. That said, we want to be upfront: **there's no guarantee that any specific feature request will be implemented.**
+
+Our team prioritizes upcoming work based on a number of factors, including:
+
+- Alignment with the Action's core mission (website accessibility scanning)
+- The complexity and scope of the work involved
+- How many users would benefit from the change
+- Our current bandwidth and roadmap commitments
+
+We read every suggestion and appreciate the time people take to share them. Even if we can't act on a request right away (or at all), it still helps us understand what matters most to the people using this tool. So please keep the ideas coming — just know that we can't make promises about what will or won't ship.
+
+## License
 
 📄 This project is licensed under the terms of the MIT open source license. Please refer to the [LICENSE](./LICENSE) file for the full terms.
 
-## Maintainers 
+## Maintainers
 
 🔧 Please refer to the [CODEOWNERS](./.github/CODEOWNERS) file for more information.
 
