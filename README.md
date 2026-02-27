@@ -4,7 +4,7 @@ The AI-powered Accessibility Scanner (a11y scanner) is a GitHub Action that dete
 
 The a11y scanner helps teams:
 
-- 🔍 Scan websites, files, repositories, and dynamic content for accessibility issues
+- 🔍 Scan websites, repositories, and dynamic content for accessibility issues
 - 📝 Create actionable GitHub issues that can be assigned to GitHub Copilot
 - 🤖 Propose fixes with GitHub Copilot, with humans reviewing before merging
 
@@ -13,6 +13,8 @@ The a11y scanner helps teams:
 🎥 **[Watch the demo video](https://youtu.be/CvRJcEzCSQM)** to see the a11y scanner in action.
 
 ---
+
+## [Frequently-Asked Questions (FAQ)](FAQ.md)
 
 ## Requirements
 
@@ -148,11 +150,11 @@ The a11y scanner leverages GitHub Copilot coding agent, which can be configured 
 
 💬 We welcome your feedback! To submit feedback or report issues, please create an issue in this repository. For more information on contributing, please refer to the [CONTRIBUTING](./CONTRIBUTING.md) file.
 
-## License 
+## License
 
 📄 This project is licensed under the terms of the MIT open source license. Please refer to the [LICENSE](./LICENSE) file for the full terms.
 
-## Maintainers 
+## Maintainers
 
 🔧 Please refer to the [CODEOWNERS](./.github/CODEOWNERS) file for more information.
 
