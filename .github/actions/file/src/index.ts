@@ -69,6 +69,7 @@ export default async function () {
 
         // Track for grouping
         if (shouldOpenGroupedIssues) {
+          core.info(`Tracking new issue for grouping: ${filing.findings[0].problemShort}`)
           const problemShort: string = filing.findings[0].problemShort
           if (!newIssuesByProblemShort[problemShort]) {
             newIssuesByProblemShort[problemShort] = []
@@ -108,6 +109,7 @@ export default async function () {
   // Open tracking issues for groups with >1 new issue and link back from each
   // new issue
   if (shouldOpenGroupedIssues) {
+    core.info(`New issues by problem short: ${JSON.stringify(newIssuesByProblemShort)}`)
     for (const [problemShort, issues] of Object.entries(newIssuesByProblemShort)) {
       if (issues.length > 1) {
         const title: string = `${problemShort} issues`
