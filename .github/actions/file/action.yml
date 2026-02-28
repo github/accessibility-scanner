@@ -17,6 +17,10 @@ inputs:
   screenshot_repository:
     description: "Repository (with owner) where screenshots are stored on the gh-cache branch. Defaults to the 'repository' input if not set. Required if issues are open in a different repo to construct proper screenshot URLs."
     required: false
+  open_grouped_issues:
+    description: "In the 'file' step, also open grouped issues which link to all issues with the same root cause"
+    required: false
+    default: "false"
 
 outputs:
   filings:
