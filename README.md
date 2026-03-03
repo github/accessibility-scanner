@@ -53,6 +53,8 @@ jobs:
           # auth_context: # Optional: Stringified JSON object for complex authentication
           # skip_copilot_assignment: false # Optional: Set to true to skip assigning issues to GitHub Copilot (or if you don't have GitHub Copilot)
           # include_screenshots: false # Optional: Set to true to capture screenshots and include links to them in filed issues
+          # reduced_motion: no-preference # Optional: Playwright reduced motion configuration option
+          # color_scheme: light # Optional: Playwright color scheme configuration option
 ```
 
 > 👉 Update all `REPLACE_THIS` placeholders with your actual values. See [Action Inputs](#action-inputs) for details.
@@ -117,6 +119,8 @@ Trigger the workflow manually or automatically based on your configuration. The 
 | `auth_context` | No | If scanned pages require authentication, a stringified JSON object containing username, password, cookies, and/or localStorage from an authenticated session | `{"username":"some-user","password":"***","cookies":[...]}` |
 | `skip_copilot_assignment` | No | Whether to skip assigning filed issues to GitHub Copilot. Set to `true` if you don't have GitHub Copilot or prefer to handle issues manually | `true` |
 | `include_screenshots` | No | Whether to capture screenshots of scanned pages and include links to them in filed issues. Screenshots are stored on the `gh-cache` branch of the repository running the workflow. Default: `false` | `true` |
+| `reduced_motion` | No | Playwright `reducedMotion` setting for scan contexts. Allowed values: `reduce`, `no-preference` | `reduce` |
+| `color_scheme` | No | Playwright `colorScheme` setting for scan contexts. Allowed values: `light`, `dark`, `no-preference` | `dark` |
 
 ---
 
@@ -162,6 +166,8 @@ Our team prioritizes upcoming work based on a number of factors, including:
 - Our current bandwidth and roadmap commitments
 
 We read every suggestion and appreciate the time people take to share them. Even if we can't act on a request right away (or at all), it still helps us understand what matters most to the people using this tool. So please keep the ideas coming — just know that we can't make promises about what will or won't ship.
+
+---
 
 ## License
 
