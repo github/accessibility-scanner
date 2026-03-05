@@ -82,7 +82,7 @@ export default async function () {
         )
       }
     } catch (error) {
-      core.setFailed(`Failed on filing: ${filing}\n${error}`)
+      core.setFailed(`Failed on filing: ${JSON.stringify(filing, null, 2)}\n${error}`)
       process.exit(1)
     }
   }
