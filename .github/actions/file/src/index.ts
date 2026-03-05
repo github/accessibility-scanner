@@ -52,15 +52,18 @@ export default async function () {
     let response
     try {
       if (isResolvedFiling(filing)) {
+        core.info('isResolvedFiling')
         // Close the filing’s issue (if necessary)
         response = await closeIssue(octokit, new Issue(filing.issue))
         filing.issue.state = 'closed'
       } else if (isNewFiling(filing)) {
+        core.info('isNewFiling')
         // Open a new issue for the filing
         response = await openIssue(octokit, repoWithOwner, filing.findings[0], screenshotRepo)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ;(filing as any).issue = {state: 'open'} as Issue
       } else if (isRepeatedFiling(filing)) {
+        core.info('isRepeatedFiling')
         // Reopen the filing's issue (if necessary) and update the body with the latest finding
         response = await reopenIssue(
           octokit,
@@ -71,6 +74,7 @@ export default async function () {
         )
         filing.issue.state = 'reopened'
       }
+      core.info('response: ' + JSON.stringify(response, null, 2))
       if (response?.data && filing.issue) {
         // Update the filing with the latest issue data
         filing.issue.id = response.data.id
