@@ -4,7 +4,7 @@ The AI-powered Accessibility Scanner (a11y scanner) is a GitHub Action that dete
 
 The a11y scanner helps teams:
 
-- 🔍 Scan websites, files, repositories, and dynamic content for accessibility issues
+- 🔍 Scan websites, repositories, and dynamic content for accessibility issues
 - 📝 Create actionable GitHub issues that can be assigned to GitHub Copilot
 - 🤖 Propose fixes with GitHub Copilot, with humans reviewing before merging
 
@@ -13,6 +13,8 @@ The a11y scanner helps teams:
 🎥 **[Watch the demo video](https://youtu.be/CvRJcEzCSQM)** to see the a11y scanner in action.
 
 ---
+
+## [Frequently-Asked Questions (FAQ)](FAQ.md)
 
 ## Requirements
 
@@ -51,6 +53,8 @@ jobs:
           # auth_context: # Optional: Stringified JSON object for complex authentication
           # skip_copilot_assignment: false # Optional: Set to true to skip assigning issues to GitHub Copilot (or if you don't have GitHub Copilot)
           # include_screenshots: false # Optional: Set to true to capture screenshots and include links to them in filed issues
+          # reduced_motion: no-preference # Optional: Playwright reduced motion configuration option
+          # color_scheme: light # Optional: Playwright color scheme configuration option
 ```
 
 > 👉 Update all `REPLACE_THIS` placeholders with your actual values. See [Action Inputs](#action-inputs) for details.
@@ -115,6 +119,8 @@ Trigger the workflow manually or automatically based on your configuration. The 
 | `auth_context` | No | If scanned pages require authentication, a stringified JSON object containing username, password, cookies, and/or localStorage from an authenticated session | `{"username":"some-user","password":"***","cookies":[...]}` |
 | `skip_copilot_assignment` | No | Whether to skip assigning filed issues to GitHub Copilot. Set to `true` if you don't have GitHub Copilot or prefer to handle issues manually | `true` |
 | `include_screenshots` | No | Whether to capture screenshots of scanned pages and include links to them in filed issues. Screenshots are stored on the `gh-cache` branch of the repository running the workflow. Default: `false` | `true` |
+| `reduced_motion` | No | Playwright `reducedMotion` setting for scan contexts. Allowed values: `reduce`, `no-preference` | `reduce` |
+| `color_scheme` | No | Playwright `colorScheme` setting for scan contexts. Allowed values: `light`, `dark`, `no-preference` | `dark` |
 
 ---
 
@@ -148,11 +154,26 @@ The a11y scanner leverages GitHub Copilot coding agent, which can be configured 
 
 💬 We welcome your feedback! To submit feedback or report issues, please create an issue in this repository. For more information on contributing, please refer to the [CONTRIBUTING](./CONTRIBUTING.md) file.
 
-## License 
+## How We Decide What to Build Next
+
+We love hearing ideas and suggestions from the community — your feedback genuinely helps shape our thinking. That said, we want to be upfront: **there's no guarantee that any specific feature request will be implemented.**
+
+Our team prioritizes upcoming work based on a number of factors, including:
+
+- Alignment with the Action's core mission (website accessibility scanning)
+- The complexity and scope of the work involved
+- How many users would benefit from the change
+- Our current bandwidth and roadmap commitments
+
+We read every suggestion and appreciate the time people take to share them. Even if we can't act on a request right away (or at all), it still helps us understand what matters most to the people using this tool. So please keep the ideas coming — just know that we can't make promises about what will or won't ship.
+
+---
+
+## License
 
 📄 This project is licensed under the terms of the MIT open source license. Please refer to the [LICENSE](./LICENSE) file for the full terms.
 
-## Maintainers 
+## Maintainers
 
 🔧 Please refer to the [CODEOWNERS](./.github/CODEOWNERS) file for more information.
 
