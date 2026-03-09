@@ -123,8 +123,10 @@ export default async function () {
   if (shouldOpenGroupedIssues) {
     for (const [problemShort, issues] of Object.entries(newIssuesByProblemShort)) {
       if (issues.length > 1) {
-        const title: string = `${problemShort} issues`
-        const body: string = `# ${problemShort} issues\n\n` + issues.map(issue => `- [ ] ${issue.url}`).join('\n')
+        const capitalizedProblemShort = problemShort[0].toUpperCase() + problemShort.slice(1)
+        const title: string = `${capitalizedProblemShort} issues`
+        const body: string =
+          `# ${capitalizedProblemShort} issues\n\n` + issues.map(issue => `- [ ] ${issue.url}`).join('\n')
         try {
           const trackingResponse = await octokit.request(`POST /repos/${repoWithOwner}/issues`, {
             owner: repoWithOwner.split('/')[0],
@@ -134,9 +136,9 @@ export default async function () {
           })
           const trackingUrl: string = trackingResponse.data.html_url
           trackingIssueUrls[problemShort] = trackingUrl
-          core.info(`Opened tracking issue for '${problemShort}' with ${issues.length} issues.`)
+          core.info(`Opened tracking issue for '${capitalizedProblemShort}' with ${issues.length} issues.`)
         } catch (error) {
-          core.warning(`Failed to open tracking issue for '${problemShort}': ${error}`)
+          core.warning(`Failed to open tracking issue for '${capitalizedProblemShort}': ${error}`)
         }
       }
     }
