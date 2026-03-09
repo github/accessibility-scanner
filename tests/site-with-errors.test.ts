@@ -152,13 +152,13 @@ describe('site-with-errors', () => {
             /https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/]+)\/pull\/(?<pullNumber>\d+)/.exec(
               pullRequestUrl!,
             )!.groups!
-          const {data: pullRequest} = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
+          const {data: fetchedPullRequest} = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
             owner,
             repo,
             pull_number: parseInt(pullNumber, 10),
           })
-          expect(pullRequest).toBeDefined()
-          return pullRequest
+          expect(fetchedPullRequest).toBeDefined()
+          return fetchedPullRequest
         }),
       )
     })
