@@ -88,19 +88,6 @@ export default async function () {
           screenshotRepo,
         )
         filing.issue.state = 'reopened'
-
-        // TEMP: only to test this is working
-        if (shouldOpenGroupedIssues) {
-          core.info('grouped issue within repeated filing')
-          const problemShort: string = filing.findings[0].problemShort
-          if (!newIssuesByProblemShort[problemShort]) {
-            newIssuesByProblemShort[problemShort] = []
-          }
-          newIssuesByProblemShort[problemShort].push({
-            url: response.data.html_url,
-            id: response.data.number,
-          })
-        }
       }
       if (response?.data && filing.issue) {
         // Update the filing with the latest issue data
