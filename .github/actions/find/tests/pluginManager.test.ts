@@ -3,6 +3,7 @@ import {describe, it, expect, vi, beforeEach} from 'vitest'
 import * as fs from 'fs'
 import * as dynamicImportModule from '../src/dynamicImport.js'
 import * as pluginManager from '../src/pluginManager.js'
+import core from '@actions/core'
 
 // - enable spying on fs
 // https://vitest.dev/guide/browser/#limitations
@@ -52,10 +53,10 @@ describe('loadPlugins', () => {
 
     it('Aborts loading all plugins', async () => {
       pluginManager.clearCache()
-      const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+      const logSpy = vi.spyOn(core, 'error').mockImplementation(() => {})
       const plugins = await pluginManager.loadPlugins()
       expect(plugins.length).toBe(0)
-      expect(consoleLogSpy).toHaveBeenCalledWith(pluginManager.abortError)
+      expect(logSpy).toHaveBeenCalledWith(pluginManager.abortError)
     })
   })
 })

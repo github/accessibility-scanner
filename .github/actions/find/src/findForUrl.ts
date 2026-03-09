@@ -3,9 +3,10 @@ import AxeBuilder from '@axe-core/playwright'
 import playwright from 'playwright'
 import {AuthContext} from './AuthContext.js'
 import {generateScreenshots} from './generateScreenshots.js'
-import {loadPlugins} from './pluginManager.js'
+import {loadPlugins, invokePlugin} from './pluginManager.js'
 import {getScansContext} from './scansContextProvider.js'
 import axe from 'axe-core'
+import core from '@actions/core'
 
 export async function findForUrl(
   url: string,
@@ -20,7 +21,7 @@ export async function findForUrl(
   const context = await browser.newContext(contextOptions)
   const page = await context.newPage()
   await page.goto(url)
-  console.log(`Scanning ${page.url()}`)
+  core.info(`Scanning ${page.url()}`)
 
   const findings: Finding[] = []
   const addFinding = (findingData: Finding) => {
@@ -35,22 +36,14 @@ export async function findForUrl(
       rawFindings = await new AxeBuilder({page}).analyze()
     }
 
-    // - this if condition is not required, but makes it easier to make assertions
-    //   in unit tests on whether 'loadPlugins' was called or not (it does have the added
-    //   benefit of completely skipping plugin loading if we just want axe - so thats
-    //   a minor performance boost)
-    // - alternatively, we can wrap the 'plugin.default(...)' call in another function
-    //   and make assertions on whether that function was called or not
-    // - the other option is to wrap each plugin in a class instance
-    //   and make assertions on something like 'plugin.run' being called or not
     if (scansContext.shouldRunPlugins) {
       const plugins = await loadPlugins()
       for (const plugin of plugins) {
         if (scansContext.scansToPerform.includes(plugin.name)) {
-          console.log('Running plugin: ', plugin.name)
-          await plugin.default({page, addFinding, url})
+          core.info(`Running plugin: ${plugin.name}`)
+          await invokePlugin({plugin, page, addFinding, url})
         } else {
-          console.log(`Skipping plugin ${plugin.name} because it is not included in the 'scans' input`)
+          core.info(`Skipping plugin ${plugin.name} because it is not included in the 'scans' input`)
         }
       }
     }
@@ -73,7 +66,7 @@ export async function findForUrl(
     }))
     findings.push(...(axeFindings || []))
   } catch (e) {
-    console.error('Error during accessibility scan:', e)
+    core.error(`Error during accessibility scan: ${e}`)
   }
   await context.close()
   await browser.close()

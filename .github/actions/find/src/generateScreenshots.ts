@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import crypto from 'node:crypto'
 import type {Page} from 'playwright'
+import core from '@actions/core'
 
 // Use GITHUB_WORKSPACE to ensure screenshots are saved in the workflow workspace root
 // where the artifact upload step can find them
@@ -12,9 +13,9 @@ export const generateScreenshots = async function (page: Page) {
   // Ensure screenshot directory exists
   if (!fs.existsSync(SCREENSHOT_DIR)) {
     fs.mkdirSync(SCREENSHOT_DIR, {recursive: true})
-    console.log(`Created screenshot directory: ${SCREENSHOT_DIR}`)
+    core.info(`Created screenshot directory: ${SCREENSHOT_DIR}`)
   } else {
-    console.log(`Using existing screenshot directory ${SCREENSHOT_DIR}`)
+    core.info(`Using existing screenshot directory ${SCREENSHOT_DIR}`)
   }
 
   try {
@@ -28,9 +29,9 @@ export const generateScreenshots = async function (page: Page) {
     const filepath = path.join(SCREENSHOT_DIR, filename)
 
     fs.writeFileSync(filepath, screenshotBuffer)
-    console.log(`Screenshot saved: ${filename}`)
+    core.info(`Screenshot saved: ${filename}`)
   } catch (error) {
-    console.error('Failed to capture/save screenshot:', error)
+    core.error(`Failed to capture/save screenshot: ${error}`)
     screenshotId = undefined
   }
 

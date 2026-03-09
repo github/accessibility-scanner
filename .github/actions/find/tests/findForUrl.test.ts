@@ -42,6 +42,7 @@ function clearAll() {
 describe('findForUrl', () => {
   vi.spyOn(core, 'getInput').mockImplementation(() => actionInput)
   vi.spyOn(pluginManager, 'loadPlugins').mockImplementation(() => Promise.resolve(loadedPlugins))
+  vi.spyOn(pluginManager, 'invokePlugin')
 
   async function axeOnlyTest() {
     clearAll()
@@ -49,6 +50,7 @@ describe('findForUrl', () => {
     await findForUrl('test.com')
     expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(1)
     expect(pluginManager.loadPlugins).toHaveBeenCalledTimes(0)
+    expect(pluginManager.invokePlugin).toHaveBeenCalledTimes(0)
   }
 
   describe('when no scans list is provided', () => {
@@ -68,23 +70,35 @@ describe('findForUrl', () => {
 
     describe('and the list includes axe and other scans', () => {
       it('runs axe and plugins', async () => {
-        actionInput = JSON.stringify(['axe', 'custom-scan'])
+        loadedPlugins = [
+          {name: 'custom-scan-1', default: vi.fn()},
+          {name: 'custom-scan-2', default: vi.fn()},
+        ]
+
+        actionInput = JSON.stringify(['axe', 'custom-scan-1'])
         clearAll()
 
         await findForUrl('test.com')
         expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(1)
         expect(pluginManager.loadPlugins).toHaveBeenCalledTimes(1)
+        expect(pluginManager.invokePlugin).toHaveBeenCalledTimes(1)
       })
     })
 
     describe('and the list does not include axe', () => {
       it('only runs plugins', async () => {
-        actionInput = JSON.stringify(['custom-scan'])
+        loadedPlugins = [
+          {name: 'custom-scan-1', default: vi.fn()},
+          {name: 'custom-scan-2', default: vi.fn()},
+        ]
+
+        actionInput = JSON.stringify(['custom-scan-1', 'custom-scan-2'])
         clearAll()
 
         await findForUrl('test.com')
         expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(0)
         expect(pluginManager.loadPlugins).toHaveBeenCalledTimes(1)
+        expect(pluginManager.invokePlugin).toHaveBeenCalledTimes(2)
       })
     })
 

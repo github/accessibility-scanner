@@ -4,6 +4,7 @@ import {fileURLToPath} from 'url'
 import {dynamicImport} from './dynamicImport.js'
 import type {Finding} from './types.d.js'
 import playwright from 'playwright'
+import core from '@actions/core'
 
 // Helper to get __dirname equivalent in ES Modules
 const __filename = fileURLToPath(import.meta.url)
@@ -18,7 +19,7 @@ const plugins: Plugin[] = []
 let pluginsLoaded = false
 
 export async function loadPlugins() {
-  console.log('loading plugins')
+  core.info('loading plugins')
 
   try {
     if (!pluginsLoaded) {
@@ -27,7 +28,7 @@ export async function loadPlugins() {
     }
   } catch {
     plugins.length = 0
-    console.log(abortError)
+    core.error(abortError)
   } finally {
     pluginsLoaded = true
     return plugins
@@ -47,7 +48,7 @@ export function clearCache() {
 
 // exported for mocking/testing. not for actual use
 export async function loadBuiltInPlugins() {
-  console.log('Loading built-in plugins')
+  core.info('Loading built-in plugins')
 
   const pluginsPath = '../../../scanner-plugins/'
   await loadPluginsFromPath({
@@ -58,7 +59,7 @@ export async function loadBuiltInPlugins() {
 
 // exported for mocking/testing. not for actual use
 export async function loadCustomPlugins() {
-  console.log('Loading custom plugins')
+  core.info('Loading custom plugins')
 
   const pluginsPath = process.cwd() + '/.github/scanner-plugins/'
   await loadPluginsFromPath({
@@ -74,15 +75,26 @@ export async function loadPluginsFromPath({readPath, importPath}: {readPath: str
     for (const pluginFolder of res) {
       const pluginFolderPath = path.join(importPath, pluginFolder)
       if (fs.lstatSync(pluginFolderPath).isDirectory()) {
-        console.log('Found plugin: ', pluginFolder)
+        core.info(`Found plugin: ${pluginFolder}`)
         plugins.push(await dynamicImport(path.join(importPath, pluginFolder, '/index.js')))
       }
     }
   } catch (e) {
     // - log errors here for granular info
-    console.log('error: ')
-    console.log(e)
+    core.error('error: ')
+    core.error(e as Error)
     // - throw error to handle aborting the plugin scans
     throw e
   }
+}
+
+
+type InvokePluginParams = {
+  plugin: Plugin,
+  page: playwright.Page,
+  addFinding: (findingData: Finding) => void,
+  url: string
+}
+export function invokePlugin({ plugin, page, addFinding, url }: InvokePluginParams) {
+  return plugin.default({page, addFinding, url})
 }

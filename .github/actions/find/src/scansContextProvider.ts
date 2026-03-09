@@ -9,8 +9,8 @@ let scansContext: ScansContext | undefined
 
 export function getScansContext() {
   if (!scansContext) {
-    const scansJson = core.getInput('scans', {required: false})
-    const scansToPerform = JSON.parse(scansJson || '[]')
+    const scansInput = core.getInput('scans', {required: false})
+    const scansToPerform = JSON.parse(scansInput || '[]')
     // - if we don't have a scans input
     //   or we do have a scans input, but it only has 1 item and its 'axe'
     //   then we only want to run 'axe' and not the plugins
@@ -23,7 +23,7 @@ export function getScansContext() {
       //   (only axe scan) for backwards compatability.
       // - we can enforce using the 'scans' input in a future major release and
       //   mark it as required
-      shouldPerformAxeScan: !scansJson || scansToPerform.includes('axe'),
+      shouldPerformAxeScan: !scansInput || scansToPerform.includes('axe'),
       shouldRunPlugins: scansToPerform.length > 0 && !onlyAxeScan,
     }
   }

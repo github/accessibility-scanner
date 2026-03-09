@@ -25,7 +25,7 @@ https://primer.style/octicons/
 
 #### `scans`
 
-**Optional** Stringified JSON array of scans (string) to perform. If not provided, only axe will be performed. Valid options currently include 'axe'
+**Optional** Stringified JSON array of scans (string) to perform. If not provided, only axe will be performed.
 
 ### Outputs
 
