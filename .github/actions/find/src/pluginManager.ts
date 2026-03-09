@@ -88,13 +88,12 @@ export async function loadPluginsFromPath({readPath, importPath}: {readPath: str
   }
 }
 
-
 type InvokePluginParams = {
-  plugin: Plugin,
-  page: playwright.Page,
-  addFinding: (findingData: Finding) => void,
+  plugin: Plugin
+  page: playwright.Page
+  addFinding: (findingData: Finding) => void
   url: string
 }
-export function invokePlugin({ plugin, page, addFinding, url }: InvokePluginParams) {
+export function invokePlugin({plugin, page, addFinding, url}: InvokePluginParams) {
   return plugin.default({page, addFinding, url})
 }
