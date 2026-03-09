@@ -1,4 +1,4 @@
-# AI-powered Accessibility Scanner
+# AI-powered Accessibility Scanner test
 
 The AI-powered Accessibility Scanner (a11y scanner) is a GitHub Action that detects accessibility barriers across your digital products, creates trackable issues, and leverages GitHub Copilot for AI-powered fixes.
 
