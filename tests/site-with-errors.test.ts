@@ -16,7 +16,8 @@ describe('site-with-errors', () => {
   })
 
   it('cache has expected results', () => {
-    const actual = results.map(({issue: {url: issueUrl}, pullRequest: {url: pullRequestUrl}, findings}) => {
+    const actual = results.map(({issue: {url: issueUrl}, pullRequest, findings}) => {
+      const pullRequestUrl = pullRequest?.url
       const {problemUrl, solutionLong, screenshotId, ...finding} = findings[0]
       // Check volatile fields for existence only
       expect(issueUrl).toBeDefined()
@@ -144,19 +145,20 @@ describe('site-with-errors', () => {
       )
       // Fetch pull requests referenced in the findings file
       pullRequests = await Promise.all(
-        results.map(async ({pullRequest: {url: pullRequestUrl}}) => {
+        results.map(async ({pullRequest}) => {
+          const pullRequestUrl = pullRequest?.url
           expect(pullRequestUrl).toBeDefined()
           const {owner, repo, pullNumber} =
             /https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/]+)\/pull\/(?<pullNumber>\d+)/.exec(
               pullRequestUrl!,
             )!.groups!
-          const {data: pullRequest} = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
+          const {data: fetchedPullRequest} = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
             owner,
             repo,
             pull_number: parseInt(pullNumber, 10),
           })
-          expect(pullRequest).toBeDefined()
-          return pullRequest
+          expect(fetchedPullRequest).toBeDefined()
+          return fetchedPullRequest
         }),
       )
     })
