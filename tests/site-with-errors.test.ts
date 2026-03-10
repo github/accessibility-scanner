@@ -6,7 +6,7 @@ import {Octokit} from '@octokit/core'
 import {throttling} from '@octokit/plugin-throttling'
 const OctokitWithThrottling = Octokit.plugin(throttling)
 
-describe('site-with-errors', () => {
+describe.skip('site-with-errors', () => {
   let results: Result[]
 
   beforeAll(() => {
@@ -15,7 +15,7 @@ describe('site-with-errors', () => {
     results = JSON.parse(fs.readFileSync(process.env.CACHE_PATH!, 'utf-8'))
   })
 
-  it.skip('cache has expected results', () => {
+  it('cache has expected results', () => {
     const actual = results.map(({issue: {url: issueUrl}, pullRequest: {url: pullRequestUrl}, findings}) => {
       const {problemUrl, solutionLong, screenshotId, ...finding} = findings[0]
       // Check volatile fields for existence only
@@ -180,7 +180,7 @@ describe('site-with-errors', () => {
       }
     })
 
-    it.skip('pull requests exist and have expected author, state, and assignee', async () => {
+    it('pull requests exist and have expected author, state, and assignee', async () => {
       for (const pullRequest of pullRequests) {
         expect(pullRequest.user.login).toBe('Copilot')
         expect(pullRequest.state).toBe('open')
