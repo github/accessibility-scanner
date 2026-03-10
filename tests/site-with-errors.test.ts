@@ -8,7 +8,6 @@ const OctokitWithThrottling = Octokit.plugin(throttling)
 
 describe('site-with-errors', () => {
   let results: Result[]
-  const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
   beforeAll(() => {
     expect(process.env.CACHE_PATH).toBeDefined()
