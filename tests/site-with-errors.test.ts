@@ -8,6 +8,7 @@ const OctokitWithThrottling = Octokit.plugin(throttling)
 
 describe('site-with-errors', () => {
   let results: Result[]
+  const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
   beforeAll(() => {
     expect(process.env.CACHE_PATH).toBeDefined()
@@ -145,6 +146,8 @@ describe('site-with-errors', () => {
       // Fetch pull requests referenced in the findings file
       pullRequests = await Promise.all(
         results.map(async ({pullRequest: {url: pullRequestUrl}}) => {
+          // Give linked Copilot PR creation a short grace period before asserting.
+          await wait(3000)
           expect(pullRequestUrl).toBeDefined()
           const {owner, repo, pullNumber} =
             /https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/]+)\/pull\/(?<pullNumber>\d+)/.exec(

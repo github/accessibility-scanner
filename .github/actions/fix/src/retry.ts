@@ -16,7 +16,7 @@ function sleep(ms: number): Promise<void> {
  */
 export async function retry<T>(
   fn: () => Promise<T | null | undefined> | T | null | undefined,
-  maxAttempts = 10,
+  maxAttempts = 6,
   baseDelay = 2000,
   attempt = 1,
 ): Promise<T | undefined> {
