@@ -16,10 +16,11 @@ describe('site-with-errors', () => {
   })
 
   it('cache has expected results', () => {
-    const actual = results.map(({issue: {url: issueUrl}, findings}) => {
+    const actual = results.map(({issue: {url: issueUrl}, pullRequest: {url: pullRequestUrl}, findings}) => {
       const {problemUrl, solutionLong, screenshotId, ...finding} = findings[0]
       // Check volatile fields for existence only
       expect(issueUrl).toBeDefined()
+      expect(pullRequestUrl).toBeDefined()
       expect(problemUrl).toBeDefined()
       expect(solutionLong).toBeDefined()
       // Check `problemUrl`, ignoring axe version
@@ -141,24 +142,22 @@ describe('site-with-errors', () => {
           return issue
         }),
       )
-      // Fetch pull requests referenced in the findings file if they exist
+      // Fetch pull requests referenced in the findings file
       pullRequests = await Promise.all(
-        results
-          .filter(({pullRequest}) => !!pullRequest?.url)
-          .map(async ({pullRequest}) => {
-            const pullRequestUrl = pullRequest!.url
-            const {owner, repo, pullNumber} =
-              /https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/]+)\/pull\/(?<pullNumber>\d+)/.exec(
-                pullRequestUrl,
-              )!.groups!
-            const {data: fetchedPullRequest} = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
-              owner,
-              repo,
-              pull_number: parseInt(pullNumber, 10),
-            })
-            expect(fetchedPullRequest).toBeDefined()
-            return fetchedPullRequest
-          }),
+        results.map(async ({pullRequest: {url: pullRequestUrl}}) => {
+          expect(pullRequestUrl).toBeDefined()
+          const {owner, repo, pullNumber} =
+            /https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/]+)\/pull\/(?<pullNumber>\d+)/.exec(
+              pullRequestUrl!,
+            )!.groups!
+          const {data: pullRequest} = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
+            owner,
+            repo,
+            pull_number: parseInt(pullNumber, 10),
+          })
+          expect(pullRequest).toBeDefined()
+          return pullRequest
+        }),
       )
     })
 
@@ -181,11 +180,7 @@ describe('site-with-errors', () => {
       }
     })
 
-    it('pull requests exist and have expected author, state, and assignee if they are created', async () => {
-      if (pullRequests.length === 0) {
-        // No pull requests with URLs were fetched; skip further assertions.
-        return
-      }
+    it('pull requests exist and have expected author, state, and assignee', async () => {
       for (const pullRequest of pullRequests) {
         expect(pullRequest.user.login).toBe('Copilot')
         expect(pullRequest.state).toBe('open')
