@@ -146,8 +146,8 @@ describe('site-with-errors', () => {
       // Fetch pull requests referenced in the findings file
       pullRequests = await Promise.all(
         results.map(async ({pullRequest: {url: pullRequestUrl}}) => {
-          // Give linked Copilot PR creation a short grace period before asserting.
-          await wait(3000)
+          // Give linked Copilot PR creation a grace period before asserting.
+          await wait(120000)
           expect(pullRequestUrl).toBeDefined()
           const {owner, repo, pullNumber} =
             /https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/]+)\/pull\/(?<pullNumber>\d+)/.exec(
