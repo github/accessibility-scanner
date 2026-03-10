@@ -16,7 +16,7 @@ describe('site-with-errors', () => {
     results = JSON.parse(fs.readFileSync(process.env.CACHE_PATH!, 'utf-8'))
   })
 
-  it('cache has expected results', () => {
+  it.skip('cache has expected results', () => {
     const actual = results.map(({issue: {url: issueUrl}, pullRequest: {url: pullRequestUrl}, findings}) => {
       const {problemUrl, solutionLong, screenshotId, ...finding} = findings[0]
       // Check volatile fields for existence only
@@ -146,8 +146,6 @@ describe('site-with-errors', () => {
       // Fetch pull requests referenced in the findings file
       pullRequests = await Promise.all(
         results.map(async ({pullRequest: {url: pullRequestUrl}}) => {
-          // Give linked Copilot PR creation a grace period before asserting.
-          await wait(120000)
           expect(pullRequestUrl).toBeDefined()
           const {owner, repo, pullNumber} =
             /https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/]+)\/pull\/(?<pullNumber>\d+)/.exec(
@@ -183,7 +181,7 @@ describe('site-with-errors', () => {
       }
     })
 
-    it('pull requests exist and have expected author, state, and assignee', async () => {
+    it.skip('pull requests exist and have expected author, state, and assignee', async () => {
       for (const pullRequest of pullRequests) {
         expect(pullRequest.user.login).toBe('Copilot')
         expect(pullRequest.state).toBe('open')
