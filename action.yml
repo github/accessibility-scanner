@@ -1,58 +1,61 @@
-name: "accessibility-scanner"
-description: "Finds potential accessibility gaps, files GitHub issues to track them, and attempts to fix them with Copilot."
+name: 'accessibility-scanner'
+description: 'Finds potential accessibility gaps, files GitHub issues to track them, and attempts to fix them with Copilot.'
 
 inputs:
   urls:
-    description: "Newline-delimited list of URLs to check for accessibility issues"
+    description: 'Newline-delimited list of URLs to check for accessibility issues'
     required: true
     multiline: true
   repository:
-    description: "Repository (with owner) to file issues in"
+    description: 'Repository (with owner) to file issues in'
     required: true
   token:
     description: "Personal access token (PAT) with fine-grained permissions 'contents: write', 'issues: write', and 'pull_requests: write'"
     required: true
   cache_key:
-    description: "Key for caching results across runs"
+    description: 'Key for caching results across runs'
     required: true
   login_url:
-    description: "If scanned pages require authentication, the URL of the login page"
+    description: 'If scanned pages require authentication, the URL of the login page'
     required: false
   username:
-    description: "If scanned pages require authentication, the username to use for login"
+    description: 'If scanned pages require authentication, the username to use for login'
     required: false
   password:
-    description: "If scanned pages require authentication, the password to use for login"
+    description: 'If scanned pages require authentication, the password to use for login'
     required: false
   auth_context:
     description: "If scanned pages require authentication, a stringified JSON object containing 'username', 'password', 'cookies', and/or 'localStorage' from an authenticated session"
     required: false
   skip_copilot_assignment:
-    description: "Whether to skip assigning filed issues to Copilot"
+    description: 'Whether to skip assigning filed issues to Copilot'
     required: false
-    default: "false"
+    default: 'false'
   include_screenshots:
-    description: "Whether to capture screenshots and include links to them in the issue"
+    description: 'Whether to capture screenshots and include links to them in the issue'
     required: false
-    default: "false"
+    default: 'false'
   open_grouped_issues:
     description: "In the 'file' step, also open grouped issues which link to all issues with the same problem"
     required: false
-    default: "false"
+    default: 'false'
   reduced_motion:
-    description: "Playwright reducedMotion setting: https://playwright.dev/docs/api/class-browser#browser-new-page-option-reduced-motion"
+    description: 'Playwright reducedMotion setting: https://playwright.dev/docs/api/class-browser#browser-new-page-option-reduced-motion'
     required: false
   color_scheme:
-    description: "Playwright colorScheme setting: https://playwright.dev/docs/api/class-browser#browser-new-context-option-color-scheme"
+    description: 'Playwright colorScheme setting: https://playwright.dev/docs/api/class-browser#browser-new-context-option-color-scheme'
+    required: false
+  scans:
+    description: 'Stringified JSON array of scans to perform. If not provided, only Axe will be performed'
     required: false
 
 outputs:
   results:
-    description: "List of issues and pull requests filed (and their associated finding(s)), as stringified JSON"
+    description: 'List of issues and pull requests filed (and their associated finding(s)), as stringified JSON'
     value: ${{ steps.results.outputs.results }}
 
 runs:
-  using: "composite"
+  using: 'composite'
   steps:
     - name: Make sub-actions referenceable
       working-directory: ${{ github.action_path }}
@@ -163,5 +166,5 @@ runs:
         token: ${{ inputs.token }}
 
 branding:
-  icon: "compass"
-  color: "blue"
+  icon: 'compass'
+  color: 'blue'
