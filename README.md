@@ -53,6 +53,7 @@ jobs:
           # auth_context: # Optional: Stringified JSON object for complex authentication
           # skip_copilot_assignment: false # Optional: Set to true to skip assigning issues to GitHub Copilot (or if you don't have GitHub Copilot)
           # include_screenshots: false # Optional: Set to true to capture screenshots and include links to them in filed issues
+          # open_grouped_issues: false # Optional: Set to true to open an issue grouping individual issues per violation
           # reduced_motion: no-preference # Optional: Playwright reduced motion configuration option
           # color_scheme: light # Optional: Playwright color scheme configuration option
 ```

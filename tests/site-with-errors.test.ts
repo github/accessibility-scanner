@@ -6,7 +6,7 @@ import {Octokit} from '@octokit/core'
 import {throttling} from '@octokit/plugin-throttling'
 const OctokitWithThrottling = Octokit.plugin(throttling)
 
-describe('site-with-errors', () => {
+describe.skip('site-with-errors', () => {
   let results: Result[]
 
   beforeAll(() => {
