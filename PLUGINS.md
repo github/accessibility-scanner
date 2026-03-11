@@ -12,8 +12,16 @@ Plugins are dynamically loaded by the scanner when it runs. The scanner will loo
 
 When the default function is invoked, the following arguments are passed to the function:
 
-- `page`: this is the [playwright page](https://playwright.dev/docs/api/class-page) instance.
-- `addFinding`: this is a function that will add a finding to the list. Findings are used to generate and file issues. This function expects a single object as an argument, and it should match the [`Finding` type](https://github.com/github/accessibility-scanner/blob/main/.github/actions/find/src/types.d.ts#L1-L9).
+#### `page`
+
+This is the [playwright page](https://playwright.dev/docs/api/class-page) instance.
+
+#### `addFinding`
+
+This is a function that will add a finding to the list. Findings are used to generate and file issues. This function has 2 arguments:
+
+1. An object that should match the [`Finding` type](https://github.com/github/accessibility-scanner/blob/main/.github/actions/find/src/types.d.ts#L1-L9).
+2. An 'options' object that has an optional `includeScreenshots` field. This function will automatically generate a screenshot and add the screenshotId to the `Finding` data if `includeScreenshots` is true in either the action input, or in the options field of this function.
 
 ## How to create plugins
 
