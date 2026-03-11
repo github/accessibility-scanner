@@ -179,7 +179,7 @@ As mentioned above, plugins need to live under `./.github/scanner-plugins`. For 
 - Each seperate plugin should live in a separate folder under `./.github/scanner-plugins`. So `./.github/scanner-plugins/plugin-1` would be 1 plugin loaded by the scanner
 - Each plugin should have one `index.js` file inside its folder
 - The `index.js` file must export a `name` field. This is the name used to pass to the `scans` input. So the following: `scans: ['my-custom-plugin']` would cause the scanner to only run that plugin
-- The `index.js` file must export a default function. This is the function that the scanner uses to run the plugin.
+- The `index.js` file must export a default function. This is the function that the scanner uses to run the plugin. This can be an async function.
 
 ### Things To Lookout For
 
