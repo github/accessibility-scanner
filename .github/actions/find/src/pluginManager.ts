@@ -10,9 +10,16 @@ import core from '@actions/core'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+type PluginDefaultParams = {
+  page: playwright.Page
+  addFinding: (findingData: Finding) => void
+  // - this will be coming soon
+  // runAxeScan: (options: {includeScreenshots: boolean; page: playwright.Page; findings: Finding[]}) => Promise<void>
+}
+
 export type Plugin = {
   name: string
-  default: (options: {page: playwright.Page; addFinding: (findingData: Finding) => void; url: string}) => Promise<void>
+  default: (options: PluginDefaultParams) => Promise<void>
 }
 
 const plugins: Plugin[] = []
@@ -88,12 +95,9 @@ export async function loadPluginsFromPath({readPath, importPath}: {readPath: str
   }
 }
 
-type InvokePluginParams = {
+type InvokePluginParams = PluginDefaultParams & {
   plugin: Plugin
-  page: playwright.Page
-  addFinding: (findingData: Finding) => void
-  url: string
 }
-export function invokePlugin({plugin, page, addFinding, url}: InvokePluginParams) {
-  return plugin.default({page, addFinding, url})
+export function invokePlugin({plugin, page, addFinding}: InvokePluginParams) {
+  return plugin.default({page, addFinding})
 }

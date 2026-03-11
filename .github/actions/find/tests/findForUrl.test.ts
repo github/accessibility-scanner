@@ -1,7 +1,7 @@
 import {describe, it, expect, vi} from 'vitest'
 import core from '@actions/core'
 import {findForUrl} from '../src/findForUrl.js'
-import AxeBuilder from '@axe-core/playwright'
+import {AxeBuilder} from '@axe-core/playwright'
 import axe from 'axe-core'
 import * as pluginManager from '../src/pluginManager.js'
 import {clearCache} from '../src/scansContextProvider.js'
@@ -28,7 +28,7 @@ vi.mock('@axe-core/playwright', () => {
   const AxeBuilderMock = vi.fn()
   const rawFinding = {violations: []} as unknown as axe.AxeResults
   AxeBuilderMock.prototype.analyze = vi.fn(() => Promise.resolve(rawFinding))
-  return {default: AxeBuilderMock}
+  return {AxeBuilder: AxeBuilderMock}
 })
 
 let actionInput: string = ''
