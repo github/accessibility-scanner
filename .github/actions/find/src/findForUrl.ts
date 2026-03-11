@@ -10,7 +10,7 @@ import core from '@actions/core'
 export async function findForUrl(
   url: string,
   authContext?: AuthContext,
-  includeScreenshots: boolean = false,
+  includeScreenshotsInput: boolean = false,
   reducedMotion?: ReducedMotionPreference,
   colorScheme?: ColorSchemePreference,
 ): Promise<Finding[]> {
@@ -28,8 +28,15 @@ export async function findForUrl(
   await page.goto(url)
 
   const findings: Finding[] = []
-  const addFinding = (findingData: Finding) => {
-    findings.push(findingData)
+  const addFinding = async (
+    findingData: Finding,
+    {includeScreenshots = false}: {includeScreenshots?: boolean} = {},
+  ) => {
+    let screenshotId
+    if (includeScreenshotsInput || includeScreenshots) {
+      screenshotId = await generateScreenshots(page)
+    }
+    findings.push({...findingData, screenshotId})
   }
 
   try {
@@ -45,7 +52,7 @@ export async function findForUrl(
             page,
             addFinding,
             // - this will be coming soon
-            // runAxeScan: () => runAxeScan({page, includeScreenshots, findings}),
+            // runAxeScan: () => runAxeScan({page, includeScreenshots: includeScreenshotsInput, findings}),
           })
         } else {
           core.info(`Skipping plugin ${plugin.name} because it is not included in the 'scans' input`)
@@ -55,7 +62,7 @@ export async function findForUrl(
 
     if (scansContext.shouldPerformAxeScan) {
       runAxeScan({
-        includeScreenshots,
+        includeScreenshots: includeScreenshotsInput,
         page,
         findings,
       })

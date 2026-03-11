@@ -37,7 +37,7 @@ configuration option.
 
 #### `scans`
 
-**Optional** Stringified JSON array of scans (string) to perform. If not provided, only axe will be performed.
+**Optional** Stringified JSON array of scans (string) to perform. If not provided, only Axe will be performed.
 
 ### Outputs
 
