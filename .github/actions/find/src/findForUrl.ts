@@ -6,6 +6,7 @@ import {generateScreenshots} from './generateScreenshots.js'
 import {loadPlugins, invokePlugin} from './pluginManager.js'
 import {getScansContext} from './scansContextProvider.js'
 import * as core from '@actions/core'
+import {FindingWithContext} from './types.d.js'
 
 export async function findForUrl(
   url: string,
@@ -29,7 +30,7 @@ export async function findForUrl(
 
   const findings: Finding[] = []
   const addFinding = async (
-    findingData: Finding,
+    findingData: FindingWithContext,
     {includeScreenshots = false}: {includeScreenshots?: boolean} = {},
   ) => {
     let screenshotId
@@ -61,11 +62,7 @@ export async function findForUrl(
     }
 
     if (scansContext.shouldPerformAxeScan) {
-      runAxeScan({
-        includeScreenshots: includeScreenshotsInput,
-        page,
-        findings,
-      })
+      runAxeScan({page, addFinding})
     }
   } catch (e) {
     core.error(`Error during accessibility scan: ${e}`)
@@ -76,32 +73,26 @@ export async function findForUrl(
 }
 
 async function runAxeScan({
-  includeScreenshots,
   page,
-  findings,
+  addFinding,
 }: {
-  includeScreenshots: boolean
   page: playwright.Page
-  findings: Finding[]
+  addFinding: (findingData: FindingWithContext, options?: {includeScreenshots?: boolean}) => Promise<void>
 }) {
   const url = page.url()
   core.info(`Scanning ${url}`)
   const rawFindings = await new AxeBuilder({page}).analyze()
-  let screenshotId: string | undefined
-  if (includeScreenshots) {
-    screenshotId = await generateScreenshots(page)
-  }
 
-  const axeFindings = rawFindings?.violations.map(violation => ({
-    scannerType: 'axe',
-    url,
-    html: violation.nodes[0].html.replace(/'/g, '&apos;'),
-    problemShort: violation.help.toLowerCase().replace(/'/g, '&apos;'),
-    problemUrl: violation.helpUrl.replace(/'/g, '&apos;'),
-    ruleId: violation.id,
-    solutionShort: violation.description.toLowerCase().replace(/'/g, '&apos;'),
-    solutionLong: violation.nodes[0].failureSummary?.replace(/'/g, '&apos;'),
-    screenshotId,
-  }))
-  findings.push(...(axeFindings || []))
+  rawFindings?.violations.forEach(violation =>
+    addFinding({
+      scannerType: 'axe',
+      url,
+      html: violation.nodes[0].html.replace(/'/g, '&apos;'),
+      problemShort: violation.help.toLowerCase().replace(/'/g, '&apos;'),
+      problemUrl: violation.helpUrl.replace(/'/g, '&apos;'),
+      ruleId: violation.id,
+      solutionShort: violation.description.toLowerCase().replace(/'/g, '&apos;'),
+      solutionLong: violation.nodes[0].failureSummary?.replace(/'/g, '&apos;'),
+    }),
+  )
 }

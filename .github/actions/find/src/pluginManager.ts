@@ -2,7 +2,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import {fileURLToPath} from 'url'
 import {dynamicImport} from './dynamicImport.js'
-import type {Finding} from './types.d.js'
+import type {FindingWithContext} from './types.d.js'
 import playwright from 'playwright'
 import * as core from '@actions/core'
 
@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename)
 
 type PluginDefaultParams = {
   page: playwright.Page
-  addFinding: (findingData: Finding) => void
+  addFinding: (findingData: FindingWithContext) => void
   // - this will be coming soon
   // runAxeScan: (options: {includeScreenshots: boolean; page: playwright.Page; findings: Finding[]}) => Promise<void>
 }
