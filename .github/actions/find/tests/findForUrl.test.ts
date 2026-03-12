@@ -1,5 +1,5 @@
 import {describe, it, expect, vi} from 'vitest'
-import core from '@actions/core'
+import * as core from '@actions/core'
 import {findForUrl} from '../src/findForUrl.js'
 import {AxeBuilder} from '@axe-core/playwright'
 import axe from 'axe-core'

@@ -3,7 +3,7 @@ import {describe, it, expect, vi, beforeEach} from 'vitest'
 import * as fs from 'fs'
 import * as dynamicImportModule from '../src/dynamicImport.js'
 import * as pluginManager from '../src/pluginManager.js'
-import core from '@actions/core'
+import * as core from '@actions/core'
 
 // - enable spying on fs
 // https://vitest.dev/guide/browser/#limitations
