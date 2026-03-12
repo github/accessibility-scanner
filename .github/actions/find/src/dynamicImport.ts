@@ -16,6 +16,6 @@
 //   https://github.com/vitest-dev/vitest/blob/main/test/core/test/mock-internals.test.ts#L27
 //
 // - so this looks like a reasonable approach
-export async function dynamicImport(path: string) {
+export function dynamicImport(path: string) {
   return import(path)
 }
