@@ -67,6 +67,7 @@ export async function loadBuiltInPlugins() {
 export async function loadCustomPlugins() {
   core.info('Loading custom plugins')
 
+  console.log('current working directory: ' + process.cwd())
   const pluginsPath = process.cwd() + '/.github/scanner-plugins/'
   await loadPluginsFromPath({
     readPath: pluginsPath,
@@ -80,7 +81,7 @@ export async function loadPluginsFromPath({readPath, importPath}: {readPath: str
     const res = fs.readdirSync(readPath)
     for (const pluginFolder of res) {
       const pluginFolderPath = path.join(importPath, pluginFolder)
-      console.log('pluing folder path: ' + pluginFolderPath)
+      console.log('plugin folder path: ' + pluginFolderPath)
       if (fs.existsSync(pluginFolderPath) && fs.lstatSync(pluginFolderPath).isDirectory()) {
         core.info(`Found plugin: ${pluginFolder}`)
         plugins.push(await dynamicImport(path.join(importPath, pluginFolder, '/index.js')))
