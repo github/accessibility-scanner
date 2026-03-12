@@ -56,9 +56,10 @@ export function clearCache() {
 export async function loadBuiltInPlugins() {
   core.info('Loading built-in plugins')
 
-  const pluginsPath = '../../../scanner-plugins/'
+  // - this is the path where actions appear when they're used in a workflow/repo
+  const pluginsPath = '/home/runner/work/_actions/github/accessibility-scanner/scanner-plugins/'
   await loadPluginsFromPath({
-    readPath: path.join(__dirname, pluginsPath),
+    readPath: pluginsPath,
     importPath: pluginsPath,
   })
 }
