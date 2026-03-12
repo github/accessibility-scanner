@@ -11,9 +11,9 @@ function spawnPromisified(command, args, {quiet = false, ...options} = {}) {
       const proc = spawn(command, args, options)
       proc.stdout.setEncoding('utf8')
       proc.stdout.on('data', data => {
-        if (!quiet) {
-          console.log(data)
-        }
+        // if (!quiet) {
+        console.log('data: ', data)
+        // }
       })
       proc.stderr.setEncoding('utf8')
       proc.stderr.on('data', data => {
@@ -57,6 +57,7 @@ await (async () => {
         quiet: true,
       })
     } catch (error) {
+      console.log('error in build catch: ', error)
       core.setFailed(`npm run build (TypeScript compilation) failed: ${error}`)
       process.exit(1)
     }
