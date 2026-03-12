@@ -56,39 +56,28 @@ export function clearCache() {
 export async function loadBuiltInPlugins() {
   core.info('Loading built-in plugins')
 
-  // - this is the path where actions appear when they're used in a workflow/repo
-  console.log('__dirname: ' + __dirname)
   const pluginsPath = path.join(__dirname, '../../../scanner-plugins/')
-
-  console.log('path.join(__dirname, "../../../scanner-plugins/"): ' + pluginsPath)
-  await loadPluginsFromPath({
-    readPath: pluginsPath,
-    importPath: pluginsPath,
-  })
+  await loadPluginsFromPath({ pluginsPath })
 }
 
 // exported for mocking/testing. not for actual use
 export async function loadCustomPlugins() {
   core.info('Loading custom plugins')
 
-  console.log('current working directory: ' + process.cwd())
-  const pluginsPath = process.cwd() + '/.github/scanner-plugins/'
-  await loadPluginsFromPath({
-    readPath: pluginsPath,
-    importPath: pluginsPath,
-  })
+  const pluginsPath = path.join(process.cwd(), '/.github/scanner-plugins/')
+  await loadPluginsFromPath({ pluginsPath })
 }
 
 // exported for mocking/testing. not for actual use
-export async function loadPluginsFromPath({readPath, importPath}: {readPath: string; importPath: string}) {
+export async function loadPluginsFromPath({pluginsPath}: {pluginsPath: string}) {
   try {
-    const res = fs.readdirSync(readPath)
+    const res = fs.readdirSync(pluginsPath)
     for (const pluginFolder of res) {
-      const pluginFolderPath = path.join(importPath, pluginFolder)
-      console.log('plugin folder path: ' + pluginFolderPath)
+      const pluginFolderPath = path.join(pluginsPath, pluginFolder)
+
       if (fs.existsSync(pluginFolderPath) && fs.lstatSync(pluginFolderPath).isDirectory()) {
         core.info(`Found plugin: ${pluginFolder}`)
-        plugins.push(await dynamicImport(path.join(importPath, pluginFolder, '/index.js')))
+        plugins.push(await dynamicImport(path.join(pluginsPath, pluginFolder, '/index.js')))
       }
     }
   } catch (e) {
