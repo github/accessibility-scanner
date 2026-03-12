@@ -9,6 +9,7 @@ import * as core from '@actions/core'
 // https://vitest.dev/guide/browser/#limitations
 vi.mock('fs', {spy: true})
 vi.mock('../src/pluginManager.js', {spy: true})
+vi.mock('@actions/core', {spy: true})
 
 describe('loadPlugins', () => {
   vi.spyOn(dynamicImportModule, 'dynamicImport').mockImplementation(path => Promise.resolve(path))
