@@ -7,24 +7,30 @@ import {spawn} from 'node:child_process'
 
 function spawnPromisified(command, args, {quiet = false, ...options} = {}) {
   return new Promise((resolve, reject) => {
-    const proc = spawn(command, args, options)
-    proc.stdout.setEncoding('utf8')
-    proc.stdout.on('data', data => {
-      if (!quiet) {
-        console.log(data)
-      }
-    })
-    proc.stderr.setEncoding('utf8')
-    proc.stderr.on('data', data => {
-      console.error(data)
-    })
-    proc.on('close', code => {
-      if (code !== 0) {
-        reject(code)
-      } else {
-        resolve(code)
-      }
-    })
+    try {
+      const proc = spawn(command, args, options)
+      proc.stdout.setEncoding('utf8')
+      proc.stdout.on('data', data => {
+        if (!quiet) {
+          console.log(data)
+        }
+      })
+      proc.stderr.setEncoding('utf8')
+      proc.stderr.on('data', data => {
+        console.log('error on read data', data)
+        console.error(data)
+      })
+      proc.on('close', code => {
+        if (code !== 0) {
+          reject(code)
+        } else {
+          resolve(code)
+        }
+      })
+    } catch (error) {
+      console.log('error on catch: ', error)
+      reject(error)
+    }
   })
 }
 
