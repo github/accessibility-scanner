@@ -28,6 +28,7 @@ export function getScansContext() {
     }
   }
 
+  console.log(JSON.stringify(scansContext, null, 2))
   return scansContext
 }
 
