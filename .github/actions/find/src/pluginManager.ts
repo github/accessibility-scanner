@@ -57,7 +57,8 @@ export async function loadBuiltInPlugins() {
   core.info('Loading built-in plugins')
 
   // - this is the path where actions appear when they're used in a workflow/repo
-  const pluginsPath = '/home/runner/work/_actions/github/accessibility-scanner/scanner-plugins/'
+  console.log('__dirname: ' + __dirname)
+  const pluginsPath = '~/home/runner/work/_actions/github/accessibility-scanner/scanner-plugins/'
   await loadPluginsFromPath({
     readPath: pluginsPath,
     importPath: pluginsPath,
