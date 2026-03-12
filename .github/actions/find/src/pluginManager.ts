@@ -26,10 +26,9 @@ const plugins: Plugin[] = []
 let pluginsLoaded = false
 
 export async function loadPlugins() {
-  core.info('loading plugins')
-
   try {
     if (!pluginsLoaded) {
+      core.info('loading plugins')
       await loadBuiltInPlugins()
       await loadCustomPlugins()
     }
@@ -83,7 +82,7 @@ export async function loadPluginsFromPath({readPath, importPath}: {readPath: str
       const pluginFolderPath = path.join(importPath, pluginFolder)
       if (fs.lstatSync(pluginFolderPath).isDirectory()) {
         core.info(`Found plugin: ${pluginFolder}`)
-        plugins.push(await dynamicImport(path.join(importPath, pluginFolder, '/index.js')))
+        plugins.push(await dynamicImport(importPath + pluginFolder + '/index.js'))
       }
     }
   } catch (e) {
