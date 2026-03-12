@@ -62,7 +62,7 @@ export async function findForUrl(
     }
 
     if (scansContext.shouldPerformAxeScan) {
-      runAxeScan({page, addFinding})
+      await runAxeScan({page, addFinding})
     }
   } catch (e) {
     core.error(`Error during accessibility scan: ${e}`)
