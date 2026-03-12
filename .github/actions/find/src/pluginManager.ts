@@ -58,7 +58,9 @@ export async function loadBuiltInPlugins() {
 
   // - this is the path where actions appear when they're used in a workflow/repo
   console.log('__dirname: ' + __dirname)
-  const pluginsPath = '~/home/runner/work/_actions/github/accessibility-scanner/scanner-plugins/'
+  const pluginsPath = '../../../scanner-plugins/'
+
+  console.log('path.join(__dirname, "../../../scanner-plugins/"): ' + path.join(__dirname, pluginsPath))
   await loadPluginsFromPath({
     readPath: pluginsPath,
     importPath: pluginsPath,
