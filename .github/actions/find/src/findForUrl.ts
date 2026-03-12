@@ -5,7 +5,7 @@ import {AuthContext} from './AuthContext.js'
 import {generateScreenshots} from './generateScreenshots.js'
 import {loadPlugins, invokePlugin} from './pluginManager.js'
 import {getScansContext} from './scansContextProvider.js'
-import core from '@actions/core'
+import * as core from '@actions/core'
 
 export async function findForUrl(
   url: string,

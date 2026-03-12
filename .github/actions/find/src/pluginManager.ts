@@ -4,7 +4,7 @@ import {fileURLToPath} from 'url'
 import {dynamicImport} from './dynamicImport.js'
 import type {Finding} from './types.d.js'
 import playwright from 'playwright'
-import core from '@actions/core'
+import * as core from '@actions/core'
 
 // Helper to get __dirname equivalent in ES Modules
 const __filename = fileURLToPath(import.meta.url)

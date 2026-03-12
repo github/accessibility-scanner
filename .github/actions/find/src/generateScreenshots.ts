@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import crypto from 'node:crypto'
 import type {Page} from 'playwright'
-import core from '@actions/core'
+import * as core from '@actions/core'
 
 // Use GITHUB_WORKSPACE to ensure screenshots are saved in the workflow workspace root
 // where the artifact upload step can find them
