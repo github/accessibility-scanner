@@ -6,6 +6,7 @@ import axe from 'axe-core'
 import * as pluginManager from '../src/pluginManager.js'
 import {clearCache} from '../src/scansContextProvider.js'
 
+vi.mock('@actions/core', {spy: true})
 vi.mock('playwright', () => ({
   default: {
     chromium: {
