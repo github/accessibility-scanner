@@ -18,10 +18,23 @@ This is the [playwright page](https://playwright.dev/docs/api/class-page) instan
 
 #### `addFinding`
 
-This is a function that will add a finding to the list. Findings are used to generate and file issues. This function has 2 arguments:
+A function that will add a finding to the list (findings are used to generate and file issues). It will also generate a screenshot and add the `screenshotId` to the finding data if `includeScreenshots` is true in either the scanner action input OR in the arguments to this function (see below). It has the following arguments:
 
-1. An object that should match the [`Finding` type](https://github.com/github/accessibility-scanner/blob/main/.github/actions/find/src/types.d.ts#L1-L9).
-2. An 'options' object that has an optional `includeScreenshots` field. This function will automatically generate a screenshot and add the screenshotId to the `Finding` data if `includeScreenshots` is true in either the action input, or in the options field of this function.
+- An object that should match the [`Finding` type](https://github.com/github/accessibility-scanner/blob/main/.github/actions/find/src/types.d.ts#L1-L9).
+- An [optional] 'options' object that has the following fields:
+  - [optional] `includeScreenshots` <bool>: Will automatically generate a screenshot and add the screenshotId to the `Finding` data if it's set to true.
+
+Example usage:
+
+```
+addFinding({ ...findingTypeData })
+addFinding({
+  ...findingTypeData
+}, {
+  includeScreenshots: true
+})
+
+```
 
 ## How to create plugins
 
