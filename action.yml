@@ -105,6 +105,7 @@ runs:
         include_screenshots: ${{ inputs.include_screenshots }}
         reduced_motion: ${{ inputs.reduced_motion }}
         color_scheme: ${{ inputs.color_scheme }}
+        scans: ${{ inputs.scans }}
     - name: File
       id: file
       uses: ./../../_actions/github/accessibility-scanner/current/.github/actions/file
