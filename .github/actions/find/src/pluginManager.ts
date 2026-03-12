@@ -28,6 +28,7 @@ let pluginsLoaded = false
 export async function loadPlugins() {
   try {
     if (!pluginsLoaded) {
+      logDirs()
       core.info('loading plugins')
       await loadBuiltInPlugins()
       await loadCustomPlugins()
@@ -80,9 +81,10 @@ export async function loadPluginsFromPath({readPath, importPath}: {readPath: str
     const res = fs.readdirSync(readPath)
     for (const pluginFolder of res) {
       const pluginFolderPath = path.join(importPath, pluginFolder)
-      if (fs.lstatSync(pluginFolderPath).isDirectory()) {
+      console.log('pluing folder path: ' + pluginFolderPath)
+      if (fs.existsSync(pluginFolderPath) && fs.lstatSync(pluginFolderPath).isDirectory()) {
         core.info(`Found plugin: ${pluginFolder}`)
-        plugins.push(await dynamicImport(importPath + pluginFolder + '/index.js'))
+        plugins.push(await dynamicImport(path.join(importPath, pluginFolder, '/index.js')))
       }
     }
   } catch (e) {
@@ -91,6 +93,33 @@ export async function loadPluginsFromPath({readPath, importPath}: {readPath: str
     core.error(e as Error)
     // - throw error to handle aborting the plugin scans
     throw e
+  }
+}
+
+let total = 0;
+const max = 3000;
+function logDirs(dirPath?: string) {
+  if (total > max) {
+    console.log('max reached, stopping recursion');
+    return;
+  }
+  const absoluteFolderPath = dirPath ?? path.join(__dirname, '../../../../../');
+
+  if (fs.existsSync(absoluteFolderPath) && fs.lstatSync(absoluteFolderPath).isDirectory()) {
+    const dirs = fs.readdirSync(absoluteFolderPath);
+    console.log('Directories in ', absoluteFolderPath, ':');
+    dirs.forEach(dir => {
+      total++;
+      if (dir !== 'node_modules') {
+        if (fs.lstatSync(path.join(absoluteFolderPath, dir)).isDirectory()) console.log(dir);
+      }
+    });
+
+    dirs.forEach(dir => {
+      if (dir !== 'node_modules') {
+        logDirs(path.join(absoluteFolderPath, dir));
+      }
+    });
   }
 }
 
