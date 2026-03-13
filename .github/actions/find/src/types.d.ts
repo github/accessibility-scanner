@@ -1,6 +1,7 @@
 export type Finding = {
+  scannerType?: string
   url: string
-  html: string
+  html?: string
   problemShort: string
   problemUrl: string
   solutionShort: string

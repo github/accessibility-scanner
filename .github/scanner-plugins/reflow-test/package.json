@@ -1,0 +1,6 @@
+{
+  "name": "reflow-test",
+  "version": "1.0.0",
+  "description": "Scans pages on 320x256 screen sizes",
+  "type": "module"
+}
