@@ -1,0 +1,16 @@
+name: Report failure
+
+on: workflow_call
+
+permissions:
+  issues: write
+
+jobs:
+  report-failure:
+    runs-on: ubuntu-latest
+    name: Report failure
+    steps:
+      - uses: actions/github-script@v8
+        with:
+          script: |
+            github.rest.issues.create({ owner: context.repo.owner, repo: context.repo.repo, title: "`${{ github.workflow }}` workflow failed", body: "The workflow, `${{ github.workflow }}`, failed to run. See [Action run output](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for more information. cc: @github/accessibility-reviewers." })
