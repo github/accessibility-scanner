@@ -8,10 +8,10 @@ export type Finding = {
   screenshotId?: string
 }
 
-export type FindingWithContext = Finding & {
-  scannerType: string
-  ruleId?: string
-}
+// export type FindingWithContext = Finding & {
+//   scannerType: string
+//   ruleId?: string
+// }
 
 export type Cookie = {
   name: string

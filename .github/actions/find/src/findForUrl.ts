@@ -6,12 +6,11 @@ import {generateScreenshots} from './generateScreenshots.js'
 import {loadPlugins, invokePlugin} from './pluginManager.js'
 import {getScansContext} from './scansContextProvider.js'
 import * as core from '@actions/core'
-import {FindingWithContext} from './types.d.js'
 
 export async function findForUrl(
   url: string,
   authContext?: AuthContext,
-  includeScreenshotsInput: boolean = false,
+  includeScreenshots: boolean = false,
   reducedMotion?: ReducedMotionPreference,
   colorScheme?: ColorSchemePreference,
 ): Promise<Finding[]> {
@@ -29,12 +28,9 @@ export async function findForUrl(
   await page.goto(url)
 
   const findings: Finding[] = []
-  const addFinding = async (
-    findingData: FindingWithContext,
-    {includeScreenshots = false}: {includeScreenshots?: boolean} = {},
-  ) => {
+  const addFinding = async (findingData: Finding) => {
     let screenshotId
-    if (includeScreenshotsInput || includeScreenshots) {
+    if (includeScreenshots) {
       screenshotId = await generateScreenshots(page)
     }
     findings.push({...findingData, screenshotId})
@@ -53,7 +49,7 @@ export async function findForUrl(
             page,
             addFinding,
             // - this will be coming soon
-            // runAxeScan: () => runAxeScan({page, includeScreenshots: includeScreenshotsInput, findings}),
+            // runAxeScan: () => runAxeScan({page, includeScreenshots, findings}),
           })
         } else {
           core.info(`Skipping plugin ${plugin.name} because it is not included in the 'scans' input`)
@@ -77,7 +73,7 @@ async function runAxeScan({
   addFinding,
 }: {
   page: playwright.Page
-  addFinding: (findingData: FindingWithContext, options?: {includeScreenshots?: boolean}) => Promise<void>
+  addFinding: (findingData: Finding, options?: {includeScreenshots?: boolean}) => Promise<void>
 }) {
   const url = page.url()
   core.info(`Scanning ${url}`)
