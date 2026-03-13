@@ -24,6 +24,7 @@ describe('loadPlugins', () => {
         isDirectory: () => true,
       } as unknown as fs.Stats
     })
+    vi.spyOn(fs, 'existsSync').mockImplementation(() => true)
   })
 
   describe('when plugins are not loaded', () => {
