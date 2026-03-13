@@ -31,6 +31,14 @@ configuration option.
 [`colorScheme`](https://playwright.dev/docs/api/class-browser#browser-new-context-option-color-scheme)
 configuration option.
 
+#### `include_screenshots`
+
+**Optional** Bool - whether to capture screenshots of scanned pages and include links to them in the issue
+
+#### `scans`
+
+**Optional** Stringified JSON array of scans (string) to perform. If not provided, only Axe will be performed.
+
 ### Outputs
 
 #### `findings`

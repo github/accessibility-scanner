@@ -3,6 +3,9 @@ import {AxeBuilder} from '@axe-core/playwright'
 import playwright from 'playwright'
 import {AuthContext} from './AuthContext.js'
 import {generateScreenshots} from './generateScreenshots.js'
+import {loadPlugins, invokePlugin} from './pluginManager.js'
+import {getScansContext} from './scansContextProvider.js'
+import * as core from '@actions/core'
 
 export async function findForUrl(
   url: string,
@@ -23,18 +26,61 @@ export async function findForUrl(
   const context = await browser.newContext(contextOptions)
   const page = await context.newPage()
   await page.goto(url)
-  console.log(`Scanning ${page.url()}`)
 
-  let findings: Finding[] = []
-  try {
-    const rawFindings = await new AxeBuilder({page}).analyze()
-
-    let screenshotId: string | undefined
+  const findings: Finding[] = []
+  const addFinding = async (findingData: Finding) => {
+    let screenshotId
     if (includeScreenshots) {
       screenshotId = await generateScreenshots(page)
     }
+    findings.push({...findingData, screenshotId})
+  }
 
-    findings = rawFindings.violations.map(violation => ({
+  try {
+    const scansContext = getScansContext()
+
+    if (scansContext.shouldRunPlugins) {
+      const plugins = await loadPlugins()
+      for (const plugin of plugins) {
+        if (scansContext.scansToPerform.includes(plugin.name)) {
+          core.info(`Running plugin: ${plugin.name}`)
+          await invokePlugin({
+            plugin,
+            page,
+            addFinding,
+            // - this will be coming soon
+            // runAxeScan: () => runAxeScan({page, includeScreenshots, findings}),
+          })
+        } else {
+          core.info(`Skipping plugin ${plugin.name} because it is not included in the 'scans' input`)
+        }
+      }
+    }
+
+    if (scansContext.shouldPerformAxeScan) {
+      await runAxeScan({page, addFinding})
+    }
+  } catch (e) {
+    core.error(`Error during accessibility scan: ${e}`)
+  }
+  await context.close()
+  await browser.close()
+  return findings
+}
+
+async function runAxeScan({
+  page,
+  addFinding,
+}: {
+  page: playwright.Page
+  addFinding: (findingData: Finding, options?: {includeScreenshots?: boolean}) => Promise<void>
+}) {
+  const url = page.url()
+  core.info(`Scanning ${url}`)
+  const rawFindings = await new AxeBuilder({page}).analyze()
+
+  rawFindings?.violations.forEach(violation =>
+    addFinding({
       scannerType: 'axe',
       url,
       html: violation.nodes[0].html.replace(/'/g, '&apos;'),
@@ -43,12 +89,6 @@ export async function findForUrl(
       ruleId: violation.id,
       solutionShort: violation.description.toLowerCase().replace(/'/g, '&apos;'),
       solutionLong: violation.nodes[0].failureSummary?.replace(/'/g, '&apos;'),
-      screenshotId,
-    }))
-  } catch (e) {
-    console.error('Error during accessibility scan:', e)
-  }
-  await context.close()
-  await browser.close()
-  return findings
+    }),
+  )
 }
