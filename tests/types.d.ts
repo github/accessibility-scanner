@@ -26,5 +26,5 @@ export type PullRequest = {
 export type Result = {
   findings: Finding[]
   issue: Issue
-  pullRequest: PullRequest
+  pullRequest: PullRequest | null
 }
