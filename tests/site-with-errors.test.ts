@@ -6,7 +6,58 @@ import {Octokit} from '@octokit/core'
 import {throttling} from '@octokit/plugin-throttling'
 const OctokitWithThrottling = Octokit.plugin(throttling)
 
-describe.skip('site-with-errors', () => {
+const WAIT_FOR_PULL_REQUESTS = !!process.env.WAIT_FOR_PULL_REQUESTS
+const POLL_INTERVAL_MS = 30_000 // 30 seconds
+const POLL_TIMEOUT_MS = 15 * 60 * 1000 // 15 minutes
+
+/**
+ * Repeatedly calls `fn` until `predicate(result)` returns `true`, or until the timeout is exceeded.
+ * Errors thrown by `fn` (e.g. HTTP 404) are swallowed while polling continues.
+ */
+async function pollUntil<T>(
+  fn: () => Promise<T>,
+  predicate: (result: T) => boolean,
+  {intervalMs, timeoutMs}: {intervalMs: number; timeoutMs: number},
+): Promise<T> {
+  const deadline = Date.now() + timeoutMs
+  let lastError: unknown
+  while (true) {
+    try {
+      const result = await fn()
+      if (predicate(result)) return result
+    } catch (error) {
+      lastError = error
+    }
+    if (Date.now() >= deadline) {
+      throw lastError ?? new Error(`Timed out after ${timeoutMs}ms waiting for condition`)
+    }
+    await new Promise(resolve => setTimeout(resolve, intervalMs))
+  }
+}
+
+function createOctokit(): InstanceType<typeof OctokitWithThrottling> {
+  return new OctokitWithThrottling({
+    auth: process.env.GITHUB_TOKEN,
+    throttle: {
+      onRateLimit: (retryAfter, options, octokit, retryCount) => {
+        octokit.log.warn(`Request quota exhausted for request ${options.method} ${options.url}`)
+        if (retryCount < 3) {
+          octokit.log.info(`Retrying after ${retryAfter} seconds!`)
+          return true
+        }
+      },
+      onSecondaryRateLimit: (retryAfter, options, octokit, retryCount) => {
+        octokit.log.warn(`Secondary rate limit hit for request ${options.method} ${options.url}`)
+        if (retryCount < 3) {
+          octokit.log.info(`Retrying after ${retryAfter} seconds!`)
+          return true
+        }
+      },
+    },
+  })
+}
+
+describe('site-with-errors', () => {
   let results: Result[]
 
   beforeAll(() => {
@@ -16,11 +67,13 @@ describe.skip('site-with-errors', () => {
   })
 
   it('cache has expected results', () => {
-    const actual = results.map(({issue: {url: issueUrl}, pullRequest: {url: pullRequestUrl}, findings}) => {
+    const actual = results.map(({issue: {url: issueUrl}, pullRequest, findings}) => {
       const {problemUrl, solutionLong, screenshotId, ...finding} = findings[0]
       // Check volatile fields for existence only
       expect(issueUrl).toBeDefined()
-      expect(pullRequestUrl).toBeDefined()
+      if (WAIT_FOR_PULL_REQUESTS) {
+        expect(pullRequest?.url).toBeDefined()
+      }
       expect(problemUrl).toBeDefined()
       expect(solutionLong).toBeDefined()
       // Check `problemUrl`, ignoring axe version
@@ -100,32 +153,11 @@ describe.skip('site-with-errors', () => {
     expect(process.env.GITHUB_TOKEN).toBeDefined()
   })
 
-  describe.runIf(!!process.env.GITHUB_TOKEN)('—', () => {
-    let octokit: Octokit
+  describe.runIf(!!process.env.GITHUB_TOKEN)('issues', () => {
     let issues: Endpoints['GET /repos/{owner}/{repo}/issues/{issue_number}']['response']['data'][]
-    let pullRequests: Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}']['response']['data'][]
 
     beforeAll(async () => {
-      octokit = new OctokitWithThrottling({
-        auth: process.env.GITHUB_TOKEN,
-        throttle: {
-          onRateLimit: (retryAfter, options, octokit, retryCount) => {
-            octokit.log.warn(`Request quota exhausted for request ${options.method} ${options.url}`)
-            if (retryCount < 3) {
-              octokit.log.info(`Retrying after ${retryAfter} seconds!`)
-              return true
-            }
-          },
-          onSecondaryRateLimit: (retryAfter, options, octokit, retryCount) => {
-            octokit.log.warn(`Secondary rate limit hit for request ${options.method} ${options.url}`)
-            if (retryCount < 3) {
-              octokit.log.info(`Retrying after ${retryAfter} seconds!`)
-              return true
-            }
-          },
-        },
-      })
-      // Fetch issues referenced in the cache file
+      const octokit = createOctokit()
       issues = await Promise.all(
         results.map(async ({issue: {url: issueUrl}}) => {
           expect(issueUrl).toBeDefined()
@@ -140,23 +172,6 @@ describe.skip('site-with-errors', () => {
           })
           expect(issue).toBeDefined()
           return issue
-        }),
-      )
-      // Fetch pull requests referenced in the findings file
-      pullRequests = await Promise.all(
-        results.map(async ({pullRequest: {url: pullRequestUrl}}) => {
-          expect(pullRequestUrl).toBeDefined()
-          const {owner, repo, pullNumber} =
-            /https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/]+)\/pull\/(?<pullNumber>\d+)/.exec(
-              pullRequestUrl!,
-            )!.groups!
-          const {data: pullRequest} = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
-            owner,
-            repo,
-            pull_number: parseInt(pullNumber, 10),
-          })
-          expect(pullRequest).toBeDefined()
-          return pullRequest
         }),
       )
     })
@@ -179,6 +194,35 @@ describe.skip('site-with-errors', () => {
         expect(issue.assignees!.some(a => a.login === 'Copilot')).toBe(true)
       }
     })
+  })
+
+  describe.runIf(!!process.env.GITHUB_TOKEN && WAIT_FOR_PULL_REQUESTS)('pull requests', () => {
+    let pullRequests: Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}']['response']['data'][]
+
+    beforeAll(async () => {
+      const octokit = createOctokit()
+      pullRequests = await Promise.all(
+        results.map(async ({pullRequest: {url: pullRequestUrl}}) => {
+          expect(pullRequestUrl).toBeDefined()
+          const {owner, repo, pullNumber} =
+            /https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/]+)\/pull\/(?<pullNumber>\d+)/.exec(
+              pullRequestUrl!,
+            )!.groups!
+          return pollUntil(
+            async () => {
+              const {data} = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
+                owner,
+                repo,
+                pull_number: parseInt(pullNumber, 10),
+              })
+              return data
+            },
+            pr => pr.state === 'open',
+            {intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS},
+          )
+        }),
+      )
+    }, POLL_TIMEOUT_MS + 60_000)
 
     it('pull requests exist and have expected author, state, and assignee', async () => {
       for (const pullRequest of pullRequests) {
