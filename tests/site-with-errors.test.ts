@@ -67,11 +67,13 @@ describe('site-with-errors', () => {
   })
 
   it('cache has expected results', () => {
-    const actual = results.map(({issue: {url: issueUrl}, pullRequest: {url: pullRequestUrl}, findings}) => {
+    const actual = results.map(({issue: {url: issueUrl}, pullRequest, findings}) => {
       const {problemUrl, solutionLong, screenshotId, ...finding} = findings[0]
       // Check volatile fields for existence only
       expect(issueUrl).toBeDefined()
-      expect(pullRequestUrl).toBeDefined()
+      if (WAIT_FOR_PULL_REQUESTS) {
+        expect(pullRequest?.url).toBeDefined()
+      }
       expect(problemUrl).toBeDefined()
       expect(solutionLong).toBeDefined()
       // Check `problemUrl`, ignoring axe version
