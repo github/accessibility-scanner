@@ -25,7 +25,7 @@ jobs:
         site: ["sites/site-with-errors"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@6ca151fd1bfcfd6fe0c4eb6837eb0584d0134a0c
@@ -133,4 +133,4 @@ jobs:
   notify-of-failures:
     if: always() && github.ref_name == 'main' && needs.test_pull_request_creation.result == 'failure'
     needs: [test_pull_request_creation]
-    uses: github/accessibility-scorecard/.github/workflows/report-failure.yml@main
+    uses: ./.github/workflows/report-failure.yml
