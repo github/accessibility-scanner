@@ -57,7 +57,7 @@ export async function loadBuiltInPlugins() {
   core.info('Loading built-in plugins')
 
   const pluginsPath = path.join(__dirname, '../../../scanner-plugins/')
-  await loadPluginsFromPath({ pluginsPath })
+  await loadPluginsFromPath({pluginsPath})
 }
 
 // exported for mocking/testing. not for actual use
@@ -65,7 +65,7 @@ export async function loadCustomPlugins() {
   core.info('Loading custom plugins')
 
   const pluginsPath = path.join(process.cwd(), '/.github/scanner-plugins/')
-  await loadPluginsFromPath({ pluginsPath })
+  await loadPluginsFromPath({pluginsPath})
 }
 
 // exported for mocking/testing. not for actual use
