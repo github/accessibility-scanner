@@ -1,0 +1,136 @@
+name: Test Copilot PR creation
+on:
+  schedule:
+    - cron: "0 6 * * *" # Every day at 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+env:
+  TESTING_REPOSITORY: github/accessibility-scanner-testing
+
+jobs:
+  test_pull_request_creation:
+    name: Test (with PR creation)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        site: ["sites/site-with-errors"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@6ca151fd1bfcfd6fe0c4eb6837eb0584d0134a0c
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+          working-directory: ${{ matrix.site }}
+
+      - name: Build Jekyll site (${{ matrix.site }})
+        shell: bash
+        working-directory: ${{ matrix.site }}
+        env:
+          JEKYLL_ENV: production
+        run: bundle exec jekyll build
+
+      - name: Start Puma (${{ matrix.site }})
+        shell: bash
+        working-directory: ${{ matrix.site }}
+        env:
+          TEST_USERNAME: ${{ secrets.TEST_USERNAME }}
+          TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+        run: |
+          set -euo pipefail
+          bundle exec puma -b tcp://127.0.0.1:4000 &
+          echo "Starting Puma on port 4000"
+          curl -fsS --retry 25 --retry-delay 1 --retry-all-errors -u "${TEST_USERNAME}:${TEST_PASSWORD}" "http://127.0.0.1:4000/" > /dev/null
+          echo "Puma has started"
+
+      - name: Generate cache key
+        id: cache_key
+        shell: bash
+        run: |
+          echo "cache_key=$(printf 'cached_results-%s-%s.json' "${{ matrix.site }}" "daily" | tr -cs 'A-Za-z0-9._-' '_')" >> $GITHUB_OUTPUT
+
+      - name: Scan site (${{ matrix.site }})
+        uses: ./
+        with:
+          urls: |
+            http://127.0.0.1:4000/
+            http://127.0.0.1:4000/jekyll/update/2025/07/30/welcome-to-jekyll.html
+            http://127.0.0.1:4000/about/
+            http://127.0.0.1:4000/404.html
+          login_url: http://127.0.0.1:4000/
+          username: ${{ secrets.TEST_USERNAME }}
+          password: ${{ secrets.TEST_PASSWORD }}
+          repository: ${{ env.TESTING_REPOSITORY }}
+          token: ${{ secrets.GH_TOKEN }}
+          cache_key: ${{ steps.cache_key.outputs.cache_key }}
+
+      - name: Retrieve cached results
+        uses: ./.github/actions/gh-cache/restore
+        with:
+          path: ${{ steps.cache_key.outputs.cache_key }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Validate scan results (${{ matrix.site }})
+        run: |
+          npm ci
+          npm run test
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          CACHE_PATH: ${{ steps.cache_key.outputs.cache_key }}
+          WAIT_FOR_PULL_REQUESTS: "true"
+
+      - name: Clean up issues and pull requests
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! -f "${{ steps.cache_key.outputs.cache_key }}" ]]; then
+            echo "Skipping 'Clean up issues and pull requests' (no cached results)."
+            exit 0
+          fi
+          jq -r '
+            (if type=="string" then fromjson else . end)
+            | .[] | .issue.url, .pullRequest.url
+            | select(. != null)
+          ' "${{ steps.cache_key.outputs.cache_key }}" \
+            | while read -r URL; do
+                if [[ "$URL" == *"/pull/"* ]]; then
+                  echo "Closing pull request: $URL"
+                  gh pr close "$URL" || echo "Failed to close pull request: $URL"
+                  branch="$(gh pr view "$URL" --json headRefName -q .headRefName || true)"
+                  if [[ -n "$branch" ]]; then
+                    echo "Deleting branch: $branch"
+                    gh api -X DELETE "repos/${{ env.TESTING_REPOSITORY }}/git/refs/heads/$branch" || echo "Failed to delete branch: $branch"
+                  fi
+                elif [[ "$URL" == *"/issues/"* ]]; then
+                  echo "Closing issue: $URL"
+                  gh issue close "$URL" || echo "Failed to close issue: $URL"
+                else
+                  echo "Skipping unrecognized url: $URL"
+                fi
+              done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Clean up cached results
+        if: ${{ always() }}
+        uses: ./.github/actions/gh-cache/delete
+        with:
+          path: ${{ steps.cache_key.outputs.cache_key }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  notify-of-failures:
+    if: always() && github.ref_name == 'main' && needs.test_pull_request_creation.result == 'failure'
+    needs: [test_pull_request_creation]
+    uses: github/accessibility-scorecard/.github/workflows/report-failure.yml@main
