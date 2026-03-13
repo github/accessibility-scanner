@@ -133,4 +133,4 @@ jobs:
   notify-of-failures:
     if: always() && github.ref_name == 'main' && needs.test_pull_request_creation.result == 'failure'
     needs: [test_pull_request_creation]
-    uses: github/accessibility-scorecard/.github/workflows/report-failure.yml@main
+    uses: github/accessibility-scanner/.github/workflows/report-failure.yml@main
