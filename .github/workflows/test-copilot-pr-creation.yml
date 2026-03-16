@@ -81,6 +81,13 @@ jobs:
           path: ${{ steps.cache_key.outputs.cache_key }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Wait for Copilot to create pull requests
+        shell: bash
+        run: |
+          echo "Waiting 30 minutes for Copilot to create pull requests..."
+          sleep 1800
+          echo "Done waiting"
+
       - name: Validate scan results (${{ matrix.site }})
         run: |
           npm ci
