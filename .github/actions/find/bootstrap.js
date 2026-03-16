@@ -55,7 +55,7 @@ await (async () => {
       process.exit(1)
     }
     // Run the main script.
-    core.info('Running file Action index.js...')
+    core.info('Running find Action index.js...')
     const action = await import('./dist/index.js')
     await action.default()
   }
