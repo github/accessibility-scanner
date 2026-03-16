@@ -7,7 +7,7 @@ export type Finding = {
   solutionShort: string
   solutionLong?: string
   screenshotId?: string
-  ruleId: string
+  ruleId?: string
 }
 
 export type Cookie = {

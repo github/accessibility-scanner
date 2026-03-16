@@ -13,11 +13,9 @@ const __dirname = path.dirname(__filename)
 type PluginDefaultParams = {
   page: playwright.Page
   addFinding: (findingData: Finding) => void
-  // - this will be coming soon
-  // runAxeScan: (options: {includeScreenshots: boolean; page: playwright.Page; findings: Finding[]}) => Promise<void>
 }
 
-export type Plugin = {
+type Plugin = {
   name: string
   default: (options: PluginDefaultParams) => Promise<void>
 }

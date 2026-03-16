@@ -48,8 +48,6 @@ export async function findForUrl(
             plugin,
             page,
             addFinding,
-            // - this will be coming soon
-            // runAxeScan: () => runAxeScan({page, includeScreenshots, findings}),
           })
         } else {
           core.info(`Skipping plugin ${plugin.name} because it is not included in the 'scans' input`)
