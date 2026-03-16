@@ -67,13 +67,10 @@ describe('site-with-errors', () => {
   })
 
   it('cache has expected results', () => {
-    const actual = results.map(({issue: {url: issueUrl}, pullRequest, findings}) => {
+    const actual = results.map(({issue: {url: issueUrl}, findings}) => {
       const {problemUrl, solutionLong, screenshotId, ...finding} = findings[0]
       // Check volatile fields for existence only
       expect(issueUrl).toBeDefined()
-      if (WAIT_FOR_PULL_REQUESTS) {
-        expect(pullRequest?.url).toBeDefined()
-      }
       expect(problemUrl).toBeDefined()
       expect(solutionLong).toBeDefined()
       // Check `problemUrl`, ignoring axe version
@@ -202,17 +199,56 @@ describe('site-with-errors', () => {
     beforeAll(async () => {
       const octokit = createOctokit()
       pullRequests = await Promise.all(
-        results.map(async ({pullRequest: {url: pullRequestUrl}}) => {
-          expect(pullRequestUrl).toBeDefined()
-          const {owner, repo, pullNumber} =
-            /https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/]+)\/pull\/(?<pullNumber>\d+)/.exec(
-              pullRequestUrl!,
+        results.map(async ({issue: {url: issueUrl}}) => {
+          expect(issueUrl).toBeDefined()
+          const {owner, repo, issueNumber} =
+            /https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/]+)\/issues\/(?<issueNumber>\d+)/.exec(
+              issueUrl!,
             )!.groups!
           return pollUntil(
             async () => {
+              const response = await octokit.graphql<{
+                repository?: {
+                  issue?: {
+                    timelineItems?: {
+                      nodes: (
+                        | {source?: {url?: string}}
+                        | {subject?: {url?: string}}
+                      )[]
+                    }
+                  }
+                }
+              }>(
+                `query($owner: String!, $repository: String!, $issueNumber: Int!) {
+                  repository(owner: $owner, name: $repository) {
+                    issue(number: $issueNumber) {
+                      timelineItems(first: 100, itemTypes: [CONNECTED_EVENT, CROSS_REFERENCED_EVENT]) {
+                        nodes {
+                          ... on CrossReferencedEvent { source { ... on PullRequest { url } } }
+                          ... on ConnectedEvent { subject { ... on PullRequest { url } } }
+                        }
+                      }
+                    }
+                  }
+                }`,
+                {owner, repository: repo, issueNumber: parseInt(issueNumber, 10)},
+              )
+              const nodes = response?.repository?.issue?.timelineItems?.nodes ?? []
+              const prUrl = nodes
+                .map(node => {
+                  if ('source' in node && node.source?.url) return node.source.url
+                  if ('subject' in node && node.subject?.url) return node.subject.url
+                  return undefined
+                })
+                .find(url => !!url)
+              if (!prUrl) throw new Error(`No linked PR found yet for issue ${issueUrl}`)
+              const {owner: prOwner, repo: prRepo, pullNumber} =
+                /https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/]+)\/pull\/(?<pullNumber>\d+)/.exec(
+                  prUrl,
+                )!.groups!
               const {data} = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
-                owner,
-                repo,
+                owner: prOwner,
+                repo: prRepo,
                 pull_number: parseInt(pullNumber, 10),
               })
               return data
