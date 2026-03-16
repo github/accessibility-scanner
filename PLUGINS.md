@@ -18,7 +18,7 @@ This is the [playwright page](https://playwright.dev/docs/api/class-page) instan
 
 #### `addFinding`
 
-A function that will add a finding to the list (findings are used to generate and file issues). It will also generate a screenshot and add the `screenshotId` to the finding data if `includeScreenshots` is true in the scanner action input. It has the following arguments:
+A async function (you must use `await` or `.then` when invoking this function) that will add a finding to the list (findings are used to generate and file issues). It will also generate a screenshot and add the `screenshotId` to the finding data if `includeScreenshots` is true in the scanner action input. It has the following arguments:
 
 - An object that should match the [`Finding` type](https://github.com/github/accessibility-scanner/blob/main/.github/actions/find/src/types.d.ts#L1-L9).
 

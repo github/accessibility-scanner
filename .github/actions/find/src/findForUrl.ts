@@ -79,16 +79,18 @@ async function runAxeScan({
   core.info(`Scanning ${url}`)
   const rawFindings = await new AxeBuilder({page}).analyze()
 
-  rawFindings?.violations.forEach(violation =>
-    addFinding({
-      scannerType: 'axe',
-      url,
-      html: violation.nodes[0].html.replace(/'/g, '&apos;'),
-      problemShort: violation.help.toLowerCase().replace(/'/g, '&apos;'),
-      problemUrl: violation.helpUrl.replace(/'/g, '&apos;'),
-      ruleId: violation.id,
-      solutionShort: violation.description.toLowerCase().replace(/'/g, '&apos;'),
-      solutionLong: violation.nodes[0].failureSummary?.replace(/'/g, '&apos;'),
-    }),
-  )
+  if (rawFindings) {
+    for (const violation of rawFindings.violations) {
+      await addFinding({
+        scannerType: 'axe',
+        url,
+        html: violation.nodes[0].html.replace(/'/g, '&apos;'),
+        problemShort: violation.help.toLowerCase().replace(/'/g, '&apos;'),
+        problemUrl: violation.helpUrl.replace(/'/g, '&apos;'),
+        ruleId: violation.id,
+        solutionShort: violation.description.toLowerCase().replace(/'/g, '&apos;'),
+        solutionLong: violation.nodes[0].failureSummary?.replace(/'/g, '&apos;'),
+      })
+    }
+  }
 }
