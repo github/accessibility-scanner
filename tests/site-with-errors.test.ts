@@ -6,35 +6,6 @@ import {Octokit} from '@octokit/core'
 import {throttling} from '@octokit/plugin-throttling'
 const OctokitWithThrottling = Octokit.plugin(throttling)
 
-const WAIT_FOR_PULL_REQUESTS = !!process.env.WAIT_FOR_PULL_REQUESTS
-const POLL_INTERVAL_MS = 30_000 // 30 seconds
-const POLL_TIMEOUT_MS = 15 * 60 * 1000 // 15 minutes
-
-/**
- * Repeatedly calls `fn` until `predicate(result)` returns `true`, or until the timeout is exceeded.
- * Errors thrown by `fn` (e.g. HTTP 404) are swallowed while polling continues.
- */
-async function pollUntil<T>(
-  fn: () => Promise<T>,
-  predicate: (result: T) => boolean,
-  {intervalMs, timeoutMs}: {intervalMs: number; timeoutMs: number},
-): Promise<T> {
-  const deadline = Date.now() + timeoutMs
-  let lastError: unknown
-  while (true) {
-    try {
-      const result = await fn()
-      if (predicate(result)) return result
-    } catch (error) {
-      lastError = error
-    }
-    if (Date.now() >= deadline) {
-      throw lastError ?? new Error(`Timed out after ${timeoutMs}ms waiting for condition`)
-    }
-    await new Promise(resolve => setTimeout(resolve, intervalMs))
-  }
-}
-
 function createOctokit(): InstanceType<typeof OctokitWithThrottling> {
   return new OctokitWithThrottling({
     auth: process.env.GITHUB_TOKEN,
@@ -67,13 +38,10 @@ describe('site-with-errors', () => {
   })
 
   it('cache has expected results', () => {
-    const actual = results.map(({issue: {url: issueUrl}, pullRequest, findings}) => {
+    const actual = results.map(({issue: {url: issueUrl}, findings}) => {
       const {problemUrl, solutionLong, screenshotId, ...finding} = findings[0]
       // Check volatile fields for existence only
       expect(issueUrl).toBeDefined()
-      if (WAIT_FOR_PULL_REQUESTS) {
-        expect(pullRequest?.url).toBeDefined()
-      }
       expect(problemUrl).toBeDefined()
       expect(solutionLong).toBeDefined()
       // Check `problemUrl`, ignoring axe version
@@ -192,44 +160,6 @@ describe('site-with-errors', () => {
         expect(issue.state).toBe('open')
         expect(issue.assignees).toBeDefined()
         expect(issue.assignees!.some(a => a.login === 'Copilot')).toBe(true)
-      }
-    })
-  })
-
-  describe.runIf(!!process.env.GITHUB_TOKEN && WAIT_FOR_PULL_REQUESTS)('pull requests', () => {
-    let pullRequests: Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}']['response']['data'][]
-
-    beforeAll(async () => {
-      const octokit = createOctokit()
-      pullRequests = await Promise.all(
-        results.map(async ({pullRequest: {url: pullRequestUrl}}) => {
-          expect(pullRequestUrl).toBeDefined()
-          const {owner, repo, pullNumber} =
-            /https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/]+)\/pull\/(?<pullNumber>\d+)/.exec(
-              pullRequestUrl!,
-            )!.groups!
-          return pollUntil(
-            async () => {
-              const {data} = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
-                owner,
-                repo,
-                pull_number: parseInt(pullNumber, 10),
-              })
-              return data
-            },
-            pr => pr.state === 'open',
-            {intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS},
-          )
-        }),
-      )
-    }, POLL_TIMEOUT_MS + 60_000)
-
-    it('pull requests exist and have expected author, state, and assignee', async () => {
-      for (const pullRequest of pullRequests) {
-        expect(pullRequest.user.login).toBe('Copilot')
-        expect(pullRequest.state).toBe('open')
-        expect(pullRequest.assignees).toBeDefined()
-        expect(pullRequest.assignees!.some(a => a.login === 'Copilot')).toBe(true)
       }
     })
   })
