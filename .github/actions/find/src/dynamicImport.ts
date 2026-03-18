@@ -1,3 +1,5 @@
+import {pathToFileURL} from 'url'
+
 // - this exists because it looks like there's no straight-forward
 //   way to mock the dynamic import function, so mocking this instead
 //   (also, if it _is_ possible to mock the dynamic import,
@@ -17,5 +19,5 @@
 //
 // - so this looks like a reasonable approach
 export function dynamicImport(path: string) {
-  return import(path)
+  return import(pathToFileURL(path).href)
 }
