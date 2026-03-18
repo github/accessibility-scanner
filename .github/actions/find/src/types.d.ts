@@ -1,4 +1,5 @@
 export type Finding = {
+  scannerType: string
   url: string
   html: string
   problemShort: string
@@ -6,6 +7,7 @@ export type Finding = {
   solutionShort: string
   solutionLong?: string
   screenshotId?: string
+  ruleId?: string
 }
 
 export type Cookie = {

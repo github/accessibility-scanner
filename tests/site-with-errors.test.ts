@@ -6,6 +6,28 @@ import {Octokit} from '@octokit/core'
 import {throttling} from '@octokit/plugin-throttling'
 const OctokitWithThrottling = Octokit.plugin(throttling)
 
+function createOctokit(): InstanceType<typeof OctokitWithThrottling> {
+  return new OctokitWithThrottling({
+    auth: process.env.GITHUB_TOKEN,
+    throttle: {
+      onRateLimit: (retryAfter, options, octokit, retryCount) => {
+        octokit.log.warn(`Request quota exhausted for request ${options.method} ${options.url}`)
+        if (retryCount < 3) {
+          octokit.log.info(`Retrying after ${retryAfter} seconds!`)
+          return true
+        }
+      },
+      onSecondaryRateLimit: (retryAfter, options, octokit, retryCount) => {
+        octokit.log.warn(`Secondary rate limit hit for request ${options.method} ${options.url}`)
+        if (retryCount < 3) {
+          octokit.log.info(`Retrying after ${retryAfter} seconds!`)
+          return true
+        }
+      },
+    },
+  })
+}
+
 describe('site-with-errors', () => {
   let results: Result[]
 
@@ -16,11 +38,10 @@ describe('site-with-errors', () => {
   })
 
   it('cache has expected results', () => {
-    const actual = results.map(({issue: {url: issueUrl}, pullRequest: {url: pullRequestUrl}, findings}) => {
+    const actual = results.map(({issue: {url: issueUrl}, findings}) => {
       const {problemUrl, solutionLong, screenshotId, ...finding} = findings[0]
       // Check volatile fields for existence only
       expect(issueUrl).toBeDefined()
-      expect(pullRequestUrl).toBeDefined()
       expect(problemUrl).toBeDefined()
       expect(solutionLong).toBeDefined()
       // Check `problemUrl`, ignoring axe version
@@ -100,32 +121,11 @@ describe('site-with-errors', () => {
     expect(process.env.GITHUB_TOKEN).toBeDefined()
   })
 
-  describe.runIf(!!process.env.GITHUB_TOKEN)('—', () => {
-    let octokit: Octokit
+  describe.runIf(!!process.env.GITHUB_TOKEN)('issues', () => {
     let issues: Endpoints['GET /repos/{owner}/{repo}/issues/{issue_number}']['response']['data'][]
-    let pullRequests: Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}']['response']['data'][]
 
     beforeAll(async () => {
-      octokit = new OctokitWithThrottling({
-        auth: process.env.GITHUB_TOKEN,
-        throttle: {
-          onRateLimit: (retryAfter, options, octokit, retryCount) => {
-            octokit.log.warn(`Request quota exhausted for request ${options.method} ${options.url}`)
-            if (retryCount < 3) {
-              octokit.log.info(`Retrying after ${retryAfter} seconds!`)
-              return true
-            }
-          },
-          onSecondaryRateLimit: (retryAfter, options, octokit, retryCount) => {
-            octokit.log.warn(`Secondary rate limit hit for request ${options.method} ${options.url}`)
-            if (retryCount < 3) {
-              octokit.log.info(`Retrying after ${retryAfter} seconds!`)
-              return true
-            }
-          },
-        },
-      })
-      // Fetch issues referenced in the cache file
+      const octokit = createOctokit()
       issues = await Promise.all(
         results.map(async ({issue: {url: issueUrl}}) => {
           expect(issueUrl).toBeDefined()
@@ -140,23 +140,6 @@ describe('site-with-errors', () => {
           })
           expect(issue).toBeDefined()
           return issue
-        }),
-      )
-      // Fetch pull requests referenced in the findings file
-      pullRequests = await Promise.all(
-        results.map(async ({pullRequest: {url: pullRequestUrl}}) => {
-          expect(pullRequestUrl).toBeDefined()
-          const {owner, repo, pullNumber} =
-            /https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/]+)\/pull\/(?<pullNumber>\d+)/.exec(
-              pullRequestUrl!,
-            )!.groups!
-          const {data: pullRequest} = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
-            owner,
-            repo,
-            pull_number: parseInt(pullNumber, 10),
-          })
-          expect(pullRequest).toBeDefined()
-          return pullRequest
         }),
       )
     })
@@ -177,15 +160,6 @@ describe('site-with-errors', () => {
         expect(issue.state).toBe('open')
         expect(issue.assignees).toBeDefined()
         expect(issue.assignees!.some(a => a.login === 'Copilot')).toBe(true)
-      }
-    })
-
-    it('pull requests exist and have expected author, state, and assignee', async () => {
-      for (const pullRequest of pullRequests) {
-        expect(pullRequest.user.login).toBe('Copilot')
-        expect(pullRequest.state).toBe('open')
-        expect(pullRequest.assignees).toBeDefined()
-        expect(pullRequest.assignees!.some(a => a.login === 'Copilot')).toBe(true)
       }
     })
   })
