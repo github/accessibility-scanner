@@ -61,8 +61,20 @@ export async function loadBuiltInPlugins() {
 // exported for mocking/testing. not for actual use
 export async function loadCustomPlugins() {
   core.info('Loading custom plugins')
+  const pluginsPath = path.join(process.cwd(), '.github/scanner-plugins/')
 
-  const pluginsPath = path.join(process.cwd(), '/.github/scanner-plugins/')
+  // - currently, the plugin manager will abort loading
+  //   all plugins if there's an error
+  // - the problem with this is that if a scanner user doesnt
+  //   have custom plugins, they won't have a 'scanner-plugins' folder
+  //   which will cause an error and abort loading all plugins, including built-in ones
+  // - so for custom plugins, if the path doesn't exist, we can return early
+  //   and not abort the loading of built-in plugins
+  if (!fs.existsSync(pluginsPath)) {
+    core.info('No custom plugins found.')
+    return
+  }
+
   await loadPluginsFromPath({pluginsPath})
 }
 
@@ -75,7 +87,7 @@ export async function loadPluginsFromPath({pluginsPath}: {pluginsPath: string}) 
 
       if (fs.existsSync(pluginFolderPath) && fs.lstatSync(pluginFolderPath).isDirectory()) {
         core.info(`Found plugin: ${pluginFolder}`)
-        plugins.push(await dynamicImport(path.join(pluginsPath, pluginFolder, '/index.js')))
+        plugins.push(await dynamicImport(path.join(pluginsPath, pluginFolder, 'index.js')))
       }
     }
   } catch (e) {
