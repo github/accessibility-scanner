@@ -38,14 +38,16 @@ describe('site-with-errors', () => {
   })
 
   it('cache has expected results', () => {
-    const actual = results.map(;({issue: {url: issueUrl}, findings}) => {
+    const actual = results.map(({issue: {url: issueUrl}, findings}) => {
       const {problemUrl, solutionLong, screenshotId, ...finding} = findings[0]
       // Check volatile fields for existence only
       expect(issueUrl).toBeDefined()
       expect(problemUrl).toBeDefined()
-      // solutionLong is optional for non-axe scans
+      // Axe-specific assertions
       if (finding.scannerType === 'axe') {
         expect(solutionLong).toBeDefined()
+        expect(problemUrl.startsWith('https://dequeuniversity.com/rules/axe/')).toBe(true)
+        expect(problemUrl.endsWith(`/${finding.ruleId}?application=playwright`)).toBe(true)
       }
       // screenshotId is only present when include_screenshots is enabled
       if (screenshotId !== undefined) {
@@ -108,11 +110,10 @@ describe('site-with-errors', () => {
         solutionShort: 'ensure headings have discernible text',
       },
       {
-        scannerType: 'reflow',
+        scannerType: 'reflow-scan',
         url: 'http://127.0.0.1:4000/404.html',
-        problemShort: 'Page requires horizontal scrolling at 320x256 viewport',
-        solutionShort: 'Ensure content is responsive and does not require horizontal scrolling at small viewport sizes',
-        problemUrl: 'https://www.w3.org/WAI/WCAG21/Understanding/reflow.html',
+        problemShort: 'page requires horizontal scrolling at 320x256 viewport',
+        solutionShort: 'ensure content is responsive and does not require horizontal scrolling at small viewport sizes',
       },
     ]
     // Check that:
