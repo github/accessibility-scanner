@@ -1,6 +1,6 @@
 export type Finding = {
   scannerType: string
-  ruleId: string
+  ruleId?: string
   url: string
   html?: string
   problemShort: string

@@ -13,10 +13,10 @@ const baseFinding = {
 
 const findingWithEmptyOptionalFields = {
   scannerType: 'reflow',
-  url: 'https://example.com/page',
-  problemShort: 'elements must meet minimum color contrast ratio thresholds',
-  problemUrl: 'https://dequeuniversity.com/rules/axe/4.10/color-contrast?application=playwright',
-  solutionShort: 'ensure the contrast between foreground and background colors meets WCAG thresholds',
+  url: 'https://example.com/404',
+  problemShort: 'page requires horizontal scrolling at 320x256 viewport',
+  problemUrl: 'https://www.w3.org/WAI/WCAG21/Understanding/reflow.html',
+  solutionShort: 'ensure content is responsive and does not require horizontal scrolling at small viewport sizes',
 }
 
 describe('generateIssueBody', () => {

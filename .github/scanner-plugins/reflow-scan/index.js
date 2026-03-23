@@ -1,5 +1,4 @@
-export default async function reflowScan({ page, addFinding, url } = {}) {
-  console.log('reflow plugin');
+export default async function reflowScan({page, addFinding, url} = {}) {
   const originalViewport = page.viewportSize()
   // Check for horizontal scrolling at 320x256 viewport
   try {
@@ -15,7 +14,7 @@ export default async function reflowScan({ page, addFinding, url } = {}) {
         problemShort: 'page requires horizontal scrolling at 320x256 viewport',
         problemUrl: 'https://www.w3.org/WAI/WCAG21/Understanding/reflow.html',
         solutionShort: 'ensure content is responsive and does not require horizontal scrolling at small viewport sizes',
-        solutionLong: `The page has a scroll width of ${scrollWidth}px but a client width of only ${clientWidth}px at 320x256 viewport, requiring horizontal scrolling. This violates WCAG 2.1 Level AA Success Criterion 1.4.10 (Reflow).`,
+        solutionLong: `The page has a scroll width of ${scrollWidth}px but a client width of only ${clientWidth}px at a 320x256 viewport, requiring horizontal scrolling. This violates WCAG 2.1 Level AA Success Criterion 1.4.10 (Reflow).`,
       })
     }
   } catch (e) {
@@ -28,4 +27,4 @@ export default async function reflowScan({ page, addFinding, url } = {}) {
   }
 }
 
-export const name = 'reflow-scan';
+export const name = 'reflow-scan'
