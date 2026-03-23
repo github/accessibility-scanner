@@ -96,12 +96,15 @@ export async function loadPluginsFromPath({
       const pluginFolderPath = path.join(pluginsPath, pluginFolder)
 
       if (fs.existsSync(pluginFolderPath) && fs.lstatSync(pluginFolderPath).isDirectory()) {
-        if (skipBuiltInPlugins?.includes(pluginFolder)) {
-          core.info(`Skipping built-in plugin: ${pluginFolder}`)
+        const plugin = await dynamicImport(path.join(pluginsPath, pluginFolder, 'index.js'))
+
+        if (skipBuiltInPlugins?.includes(plugin.name)) {
+          core.info(`Skipping built-in plugin: ${plugin.name}`)
           continue
         }
-        core.info(`Found plugin: ${pluginFolder}`)
-        plugins.push(await dynamicImport(path.join(pluginsPath, pluginFolder, 'index.js')))
+
+        core.info(`Found plugin: ${plugin.name}`)
+        plugins.push(plugin)
       }
     }
   } catch (e) {
