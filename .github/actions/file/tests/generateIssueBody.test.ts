@@ -11,6 +11,14 @@ const baseFinding = {
   solutionShort: 'ensure the contrast between foreground and background colors meets WCAG thresholds',
 }
 
+const findingWithEmptyOptionalFields = {
+  scannerType: 'reflow',
+  url: 'https://example.com/page',
+  problemShort: 'elements must meet minimum color contrast ratio thresholds',
+  problemUrl: 'https://dequeuniversity.com/rules/axe/4.10/color-contrast?application=playwright',
+  solutionShort: 'ensure the contrast between foreground and background colors meets WCAG thresholds',
+}
+
 describe('generateIssueBody', () => {
   it('includes acceptance criteria and omits the Specifically section when solutionLong is missing', () => {
     const body = generateIssueBody(baseFinding, 'github/accessibility-scanner')
@@ -60,5 +68,12 @@ describe('generateIssueBody', () => {
 
     expect(body).not.toContain('View screenshot')
     expect(body).not.toContain('.screenshots')
+  })
+
+  it('uses url fallback when html is not present', () => {
+    const body = generateIssueBody(findingWithEmptyOptionalFields, 'github/accessibility-scanner')
+
+    expect(body).toContain(`found an issue on ${findingWithEmptyOptionalFields.url}`)
+    expect(body).not.toContain('flagged the element')
   })
 })

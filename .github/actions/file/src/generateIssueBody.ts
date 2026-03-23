@@ -26,7 +26,7 @@ export function generateIssueBody(finding: Finding, screenshotRepo: string): str
   `
 
   const body = `## What
-  An accessibility scan flagged the element \`${finding.html}\` on ${finding.url} because ${finding.problemShort}. Learn more about why this was flagged by visiting ${finding.problemUrl}.
+  An accessibility scan ${finding.html ? `flagged the element \`${finding.html}\`` : `found an issue on ${finding.url}`} because ${finding.problemShort}. Learn more about why this was flagged by visiting ${finding.problemUrl}.
 
   ${screenshotSection ?? ''}
   To fix this, ${finding.solutionShort}.

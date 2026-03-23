@@ -107,6 +107,13 @@ describe('site-with-errors', () => {
         ruleId: 'empty-heading',
         solutionShort: 'ensure headings have discernible text',
       },
+      {
+        scannerType: 'reflow',
+        url: 'http://127.0.0.1:4000/404.html',
+        problemShort: 'Page requires horizontal scrolling at 320x256 viewport',
+        solutionShort: 'Ensure content is responsive and does not require horizontal scrolling at small viewport sizes',
+        problemUrl: 'https://www.w3.org/WAI/WCAG21/Understanding/reflow.html',
+      },
     ]
     // Check that:
     // - every expected object exists (no more and no fewer), and
@@ -153,6 +160,7 @@ describe('site-with-errors', () => {
         'Accessibility issue: Headings should not be empty on /404.html',
         'Accessibility issue: Elements must meet minimum color contrast ratio thresholds on /about/',
         'Accessibility issue: Elements must meet minimum color contrast ratio thresholds on /jekyll/update/2025/07/30/welcome-to-jekyll.html',
+        'Accessibility issue: Page requires horizontal scrolling at 320x256 viewport on /404.html',
       ]
       expect(actualTitles).toHaveLength(expectedTitles.length)
       expect(actualTitles).toEqual(expect.arrayContaining(expectedTitles))
