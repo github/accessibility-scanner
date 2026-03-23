@@ -21,6 +21,7 @@ export async function openIssue(octokit: Octokit, repoWithOwner: string, finding
   const owner = repoWithOwner.split('/')[0]
   const repo = repoWithOwner.split('/')[1]
 
+  // Only include a ruleId label when it's defined
   const labels = [
     `${finding.scannerType}-scanning-issue`,
     ...(finding.ruleId ? [`${finding.scannerType} rule: ${finding.ruleId}`] : []),

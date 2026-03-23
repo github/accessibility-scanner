@@ -25,7 +25,7 @@ describe('generateIssueBody', () => {
 
     expect(body).toContain('## What')
     expect(body).toContain('## Acceptance Criteria')
-    expect(body).toContain('The specific axe violation reported in this issue is no longer reproducible.')
+    expect(body).toContain('The specific violation reported in this issue is no longer reproducible.')
     expect(body).not.toContain('Specifically:')
   })
 
