@@ -20,6 +20,10 @@ type Plugin = {
   default: (options: PluginDefaultParams) => Promise<void>
 }
 
+// Built-in plugin names shipped with the scanner.
+// Used to skip duplicates when loading custom plugins.
+const BUILT_IN_PLUGINS = ['reflow-scan']
+
 const plugins: Plugin[] = []
 let pluginsLoaded = false
 
@@ -75,25 +79,29 @@ export async function loadCustomPlugins() {
     return
   }
 
-  await loadPluginsFromPath({pluginsPath})
+  await loadPluginsFromPath({pluginsPath, skipBuiltInPlugins: BUILT_IN_PLUGINS})
 }
 
 // exported for mocking/testing. not for actual use
-export async function loadPluginsFromPath({pluginsPath}: {pluginsPath: string}) {
+export async function loadPluginsFromPath({
+  pluginsPath,
+  skipBuiltInPlugins,
+}: {
+  pluginsPath: string
+  skipBuiltInPlugins?: string[]
+}) {
   try {
     const res = fs.readdirSync(pluginsPath)
     for (const pluginFolder of res) {
       const pluginFolderPath = path.join(pluginsPath, pluginFolder)
 
       if (fs.existsSync(pluginFolderPath) && fs.lstatSync(pluginFolderPath).isDirectory()) {
-        core.info(`Found plugin: ${pluginFolder}`)
-        const plugin = await dynamicImport(path.join(pluginsPath, pluginFolder, 'index.js'))
-        // Prevents a plugin from running twice
-        if (plugins.some(p => p.name === plugin.name)) {
-          core.info(`Skipping duplicate plugin: ${plugin.name}`)
+        if (skipBuiltInPlugins?.includes(pluginFolder)) {
+          core.info(`Skipping built-in plugin: ${pluginFolder}`)
           continue
         }
-        plugins.push(plugin)
+        core.info(`Found plugin: ${pluginFolder}`)
+        plugins.push(await dynamicImport(path.join(pluginsPath, pluginFolder, 'index.js')))
       }
     }
   } catch (e) {

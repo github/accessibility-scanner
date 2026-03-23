@@ -126,7 +126,7 @@ Trigger the workflow manually or automatically based on your configuration. The 
 | `include_screenshots`     | No       | Whether to capture screenshots of scanned pages and include links to them in filed issues. Screenshots are stored on the `gh-cache` branch of the repository running the workflow. Default: `false` | `true`                                                      |
 | `reduced_motion`          | No       | Playwright `reducedMotion` setting for scan contexts. Allowed values: `reduce`, `no-preference`                                                                                                     | `reduce`                                                    |
 | `color_scheme`            | No       | Playwright `colorScheme` setting for scan contexts. Allowed values: `light`, `dark`, `no-preference`                                                                                                | `dark`                                                      |
-| `scans`                   | No       | An array of scans (or plugins) to be performed. If not provided, only Axe will be performed.                                                                                                        | `'["axe", "reflow-scan", ...other plugins]'`                                 |
+| `scans`                   | No       | An array of scans (or plugins) to be performed. If not provided, only Axe will be performed.                                                                        | `'["axe", "reflow-scan"]'`                                 |
 
 ---
 

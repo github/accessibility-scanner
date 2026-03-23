@@ -67,7 +67,7 @@ describe('loadPlugins', () => {
     })
   })
 
-  describe('when built-in and custom plugins share the same name', () => {
+  describe('when a custom plugin folder matches a built-in plugin name', () => {
     beforeEach(() => {
       // @ts-expect-error - we don't need the full fs readdirsync
       // method signature here
@@ -79,13 +79,14 @@ describe('loadPlugins', () => {
       })
     })
 
-    it('skips the duplicate and only loads the plugin once', async () => {
+    it('skips the built-in name in custom plugins and only loads it once', async () => {
       pluginManager.clearCache()
       const infoSpy = vi.spyOn(core, 'info').mockImplementation(() => {})
       const plugins = await pluginManager.loadPlugins()
+      // Built-in loads it, custom skips the folder by name
       expect(plugins.length).toBe(1)
       expect(plugins[0].name).toBe('reflow-scan')
-      expect(infoSpy).toHaveBeenCalledWith('Skipping duplicate plugin: reflow-scan')
+      expect(infoSpy).toHaveBeenCalledWith('Skipping built-in plugin: reflow-scan')
     })
   })
 })
