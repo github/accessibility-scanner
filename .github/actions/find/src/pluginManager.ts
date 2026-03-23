@@ -66,7 +66,7 @@ export async function loadCustomPlugins() {
 
   // - currently, the plugin manager will abort loading
   //   all plugins if there's an error
-  // - the problem with this is that if a scanner user doesnt
+  // - the problem with this is that if a scanner user doesn't
   //   have custom plugins, they won't have a 'scanner-plugins' folder
   //   which will cause an error and abort loading all plugins, including built-in ones
   // - so for custom plugins, if the path doesn't exist, we can return early
@@ -88,7 +88,13 @@ export async function loadPluginsFromPath({pluginsPath}: {pluginsPath: string}) 
 
       if (fs.existsSync(pluginFolderPath) && fs.lstatSync(pluginFolderPath).isDirectory()) {
         core.info(`Found plugin: ${pluginFolder}`)
-        plugins.push(await dynamicImport(path.join(pluginsPath, pluginFolder, 'index.js')))
+        const plugin = await dynamicImport(path.join(pluginsPath, pluginFolder, 'index.js'))
+        // Prevents a plugin from running twice
+        if (plugins.some(p => p.name === plugin.name)) {
+          core.info(`Skipping duplicate plugin: ${plugin.name}`)
+          continue
+        }
+        plugins.push(plugin)
       }
     }
   } catch (e) {

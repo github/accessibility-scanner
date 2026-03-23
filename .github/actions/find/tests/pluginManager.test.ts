@@ -12,12 +12,17 @@ vi.mock('../src/pluginManager.js', {spy: true})
 vi.mock('@actions/core', {spy: true})
 
 describe('loadPlugins', () => {
-  vi.spyOn(dynamicImportModule, 'dynamicImport').mockImplementation(path => Promise.resolve(path))
+  let dynamicImportCallCount = 0
+  vi.spyOn(dynamicImportModule, 'dynamicImport').mockImplementation(() => {
+    dynamicImportCallCount++
+    return Promise.resolve({name: `plugin-${dynamicImportCallCount}`, default: vi.fn()})
+  })
   beforeEach(() => {
+    dynamicImportCallCount = 0
     // @ts-expect-error - we don't need the full fs readdirsync
     // method signature here
-    vi.spyOn(fs, 'readdirSync').mockImplementation(readPath => {
-      return [readPath + '/plugin-1', readPath + '/plugin-2']
+    vi.spyOn(fs, 'readdirSync').mockImplementation(() => {
+      return ['folder-a', 'folder-b']
     })
     vi.spyOn(fs, 'lstatSync').mockImplementation(() => {
       return {
@@ -59,6 +64,28 @@ describe('loadPlugins', () => {
       const plugins = await pluginManager.loadPlugins()
       expect(plugins.length).toBe(0)
       expect(logSpy).toHaveBeenCalledWith(pluginManager.abortError)
+    })
+  })
+
+  describe('when built-in and custom plugins share the same name', () => {
+    beforeEach(() => {
+      // @ts-expect-error - we don't need the full fs readdirsync
+      // method signature here
+      vi.spyOn(fs, 'readdirSync').mockImplementation(() => {
+        return ['reflow-scan']
+      })
+      vi.spyOn(dynamicImportModule, 'dynamicImport').mockImplementation(() => {
+        return Promise.resolve({name: 'reflow-scan', default: vi.fn()})
+      })
+    })
+
+    it('skips the duplicate and only loads the plugin once', async () => {
+      pluginManager.clearCache()
+      const infoSpy = vi.spyOn(core, 'info').mockImplementation(() => {})
+      const plugins = await pluginManager.loadPlugins()
+      expect(plugins.length).toBe(1)
+      expect(plugins[0].name).toBe('reflow-scan')
+      expect(infoSpy).toHaveBeenCalledWith('Skipping duplicate plugin: reflow-scan')
     })
   })
 })
