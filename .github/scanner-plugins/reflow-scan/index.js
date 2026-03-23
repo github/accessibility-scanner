@@ -1,10 +1,11 @@
 export default async function reflowScan({ page, addFinding, url } = {}) {
   console.log('reflow plugin');
+  const originalViewport = page.viewportSize()
   // Check for horizontal scrolling at 320x256 viewport
   try {
-    await page.setViewportSize({ width: 320, height: 256 });
-    const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
-    const clientWidth = await page.evaluate(() => document.documentElement.clientWidth);
+    await page.setViewportSize({width: 320, height: 256})
+    const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth)
+    const clientWidth = await page.evaluate(() => document.documentElement.clientWidth)
 
     // If horizontal scroll is required (with 1px tolerance for rounding)
     if (scrollWidth > clientWidth + 1) {
@@ -18,7 +19,12 @@ export default async function reflowScan({ page, addFinding, url } = {}) {
       })
     }
   } catch (e) {
-    console.error('Error checking horizontal scroll:', e);
+    console.error('Error checking horizontal scroll:', e)
+  } finally {
+    // Restore original viewport so subsequent scans (e.g. Axe) aren't affected
+    if (originalViewport) {
+      await page.setViewportSize(originalViewport)
+    }
   }
 }
 
