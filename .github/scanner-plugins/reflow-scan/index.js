@@ -1,5 +1,6 @@
-export default async function reflowScan({page, addFinding, url} = {}) {
+export default async function reflowScan({page, addFinding} = {}) {
   const originalViewport = page.viewportSize()
+  const url = page.url()
   // Check for horizontal scrolling at 320x256 viewport
   try {
     await page.setViewportSize({width: 320, height: 256})

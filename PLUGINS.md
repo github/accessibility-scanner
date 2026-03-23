@@ -22,10 +22,6 @@ A async function (you must use `await` or `.then` when invoking this function) t
 
 - An object that should match the [`Finding` type](https://github.com/github/accessibility-scanner/blob/main/.github/actions/find/src/types.d.ts#L1-L9).
 
-#### `url`
-
-Passes in the URL of the page being scanned to be used when a finding is added.
-
 ## How to create plugins
 
 As mentioned above, plugins need to exist under `./.github/scanner-plugins`. For a plugin to work, it needs to meet the following criteria:

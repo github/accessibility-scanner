@@ -48,7 +48,6 @@ export async function findForUrl(
             plugin,
             page,
             addFinding,
-            url,
           })
         } else {
           core.info(`Skipping plugin ${plugin.name} because it is not included in the 'scans' input`)

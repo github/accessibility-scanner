@@ -5,6 +5,9 @@ function getFilingKey(filing: ResolvedFiling | RepeatedFiling): string {
 }
 
 function getFindingKey(finding: Finding): string {
+  if (finding.ruleId && finding.html) {
+    return `${finding.url};${finding.ruleId};${finding.html}`
+  }
   return `${finding.url};${finding.scannerType};${finding.problemUrl}`
 }
 

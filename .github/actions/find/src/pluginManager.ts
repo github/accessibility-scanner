@@ -13,7 +13,6 @@ const __dirname = path.dirname(__filename)
 type PluginDefaultParams = {
   page: playwright.Page
   addFinding: (findingData: Finding) => Promise<void>
-  url: string
 }
 
 type Plugin = {
@@ -109,6 +108,6 @@ export async function loadPluginsFromPath({pluginsPath}: {pluginsPath: string}) 
 type InvokePluginParams = PluginDefaultParams & {
   plugin: Plugin
 }
-export function invokePlugin({plugin, page, addFinding, url}: InvokePluginParams) {
-  return plugin.default({page, addFinding, url})
+export function invokePlugin({plugin, page, addFinding}: InvokePluginParams) {
+  return plugin.default({page, addFinding})
 }
