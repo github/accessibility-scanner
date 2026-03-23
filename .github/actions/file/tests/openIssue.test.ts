@@ -60,7 +60,7 @@ describe('openIssue', () => {
     expect(octokit.request).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({
-        labels: ['axe rule: color-contrast', 'axe-scanning-issue'],
+        labels: ['axe-scanning-issue', 'axe rule: color-contrast'],
       }),
     )
   })
