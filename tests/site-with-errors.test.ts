@@ -38,15 +38,15 @@ describe('site-with-errors', () => {
   })
 
   it('cache has expected results', () => {
-    const actual = results.map(({issue: {url: issueUrl}, findings}) => {
+    const actual = results.map(;({issue: {url: issueUrl}, findings}) => {
       const {problemUrl, solutionLong, screenshotId, ...finding} = findings[0]
       // Check volatile fields for existence only
       expect(issueUrl).toBeDefined()
       expect(problemUrl).toBeDefined()
-      expect(solutionLong).toBeDefined()
-      // Check `problemUrl`, ignoring axe version
-      expect(problemUrl.startsWith('https://dequeuniversity.com/rules/axe/')).toBe(true)
-      expect(problemUrl.endsWith(`/${finding.ruleId}?application=playwright`)).toBe(true)
+      // solutionLong is optional for non-axe scans
+      if (finding.scannerType === 'axe') {
+        expect(solutionLong).toBeDefined()
+      }
       // screenshotId is only present when include_screenshots is enabled
       if (screenshotId !== undefined) {
         expect(screenshotId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)

@@ -19,9 +19,9 @@ export function generateIssueBody(finding: Finding, screenshotRepo: string): str
   }
 
   const acceptanceCriteria = `## Acceptance Criteria
-  - [ ] The specific axe violation reported in this issue is no longer reproducible.
+  - [ ] The specific violation reported in this issue is no longer reproducible.
   - [ ] The fix MUST meet WCAG 2.1 guidelines OR the accessibility standards specified by the repository or organization.
-  - [ ] A test SHOULD be added to ensure this specific axe violation does not regress.
+  - [ ] A test SHOULD be added to ensure this specific violation does not regress.
   - [ ] This PR MUST NOT introduce any new accessibility issues or regressions.
   `
 

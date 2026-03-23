@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename)
 
 type PluginDefaultParams = {
   page: playwright.Page
-  addFinding: (findingData: Finding) => void
+  addFinding: (findingData: Finding) => Promise<void>
   url: string
 }
 

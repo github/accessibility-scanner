@@ -11,11 +11,11 @@ export default async function reflowScan({ page, addFinding, url } = {}) {
       await addFinding({
         scannerType: 'reflow-scan',
         url,
-        problemShort: 'Page requires horizontal scrolling at 320x256 viewport',
+        problemShort: 'page requires horizontal scrolling at 320x256 viewport',
         problemUrl: 'https://www.w3.org/WAI/WCAG21/Understanding/reflow.html',
-        solutionShort: 'Ensure content is responsive and does not require horizontal scrolling at small viewport sizes',
-        solutionLong: `The page has a scroll width of ${scrollWidth}px but a client width of only ${clientWidth}px at 320x256 viewport, requiring horizontal scrolling. This violates WCAG 2.1 Level AA Success Criterion 1.4.10 (Reflow).`
-      });
+        solutionShort: 'ensure content is responsive and does not require horizontal scrolling at small viewport sizes',
+        solutionLong: `The page has a scroll width of ${scrollWidth}px but a client width of only ${clientWidth}px at 320x256 viewport, requiring horizontal scrolling. This violates WCAG 2.1 Level AA Success Criterion 1.4.10 (Reflow).`,
+      })
     }
   } catch (e) {
     console.error('Error checking horizontal scroll:', e);

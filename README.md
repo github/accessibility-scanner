@@ -56,7 +56,7 @@ jobs:
           # open_grouped_issues: false # Optional: Set to true to open an issue grouping individual issues per violation
           # reduced_motion: no-preference # Optional: Playwright reduced motion configuration option
           # color_scheme: light # Optional: Playwright color scheme configuration option
-          # scans #Optional: An array of scans (or plugins) to be performed. If not provided, only Axe will be performed.
+          # scans: '["axe","reflow-scan"]' #Optional: An array of scans (or plugins) to be performed. If not provided, only Axe will be performed.
 ```
 
 > 👉 Update all `REPLACE_THIS` placeholders with your actual values. See [Action Inputs](#action-inputs) for details.
