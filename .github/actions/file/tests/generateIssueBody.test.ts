@@ -11,13 +11,21 @@ const baseFinding = {
   solutionShort: 'ensure the contrast between foreground and background colors meets WCAG thresholds',
 }
 
+const findingWithEmptyOptionalFields = {
+  scannerType: 'reflow',
+  url: 'https://example.com/404',
+  problemShort: 'page requires horizontal scrolling at 320x256 viewport',
+  problemUrl: 'https://www.w3.org/WAI/WCAG21/Understanding/reflow.html',
+  solutionShort: 'ensure content is responsive and does not require horizontal scrolling at small viewport sizes',
+}
+
 describe('generateIssueBody', () => {
   it('includes acceptance criteria and omits the Specifically section when solutionLong is missing', () => {
     const body = generateIssueBody(baseFinding, 'github/accessibility-scanner')
 
     expect(body).toContain('## What')
     expect(body).toContain('## Acceptance Criteria')
-    expect(body).toContain('The specific axe violation reported in this issue is no longer reproducible.')
+    expect(body).toContain('The specific violation reported in this issue is no longer reproducible.')
     expect(body).not.toContain('Specifically:')
   })
 
@@ -60,5 +68,12 @@ describe('generateIssueBody', () => {
 
     expect(body).not.toContain('View screenshot')
     expect(body).not.toContain('.screenshots')
+  })
+
+  it('uses url fallback when html is not present', () => {
+    const body = generateIssueBody(findingWithEmptyOptionalFields, 'github/accessibility-scanner')
+
+    expect(body).toContain(`found an issue on ${findingWithEmptyOptionalFields.url}`)
+    expect(body).not.toContain('flagged the element')
   })
 })

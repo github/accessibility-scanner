@@ -5,7 +5,10 @@ function getFilingKey(filing: ResolvedFiling | RepeatedFiling): string {
 }
 
 function getFindingKey(finding: Finding): string {
-  return `${finding.url};${finding.ruleId};${finding.html}`
+  if (finding.ruleId && finding.html) {
+    return `${finding.url};${finding.ruleId};${finding.html}`
+  }
+  return `${finding.url};${finding.scannerType};${finding.problemUrl}`
 }
 
 export function updateFilingsWithNewFindings(

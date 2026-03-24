@@ -43,10 +43,12 @@ describe('site-with-errors', () => {
       // Check volatile fields for existence only
       expect(issueUrl).toBeDefined()
       expect(problemUrl).toBeDefined()
-      expect(solutionLong).toBeDefined()
-      // Check `problemUrl`, ignoring axe version
-      expect(problemUrl.startsWith('https://dequeuniversity.com/rules/axe/')).toBe(true)
-      expect(problemUrl.endsWith(`/${finding.ruleId}?application=playwright`)).toBe(true)
+      // Axe-specific assertions
+      if (finding.scannerType === 'axe') {
+        expect(solutionLong).toBeDefined()
+        expect(problemUrl.startsWith('https://dequeuniversity.com/rules/axe/')).toBe(true)
+        expect(problemUrl.endsWith(`/${finding.ruleId}?application=playwright`)).toBe(true)
+      }
       // screenshotId is only present when include_screenshots is enabled
       if (screenshotId !== undefined) {
         expect(screenshotId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
@@ -107,6 +109,12 @@ describe('site-with-errors', () => {
         ruleId: 'empty-heading',
         solutionShort: 'ensure headings have discernible text',
       },
+      {
+        scannerType: 'reflow-scan',
+        url: 'http://127.0.0.1:4000/404.html',
+        problemShort: 'page requires horizontal scrolling at 320x256 viewport',
+        solutionShort: 'ensure content is responsive and does not require horizontal scrolling at small viewport sizes',
+      },
     ]
     // Check that:
     // - every expected object exists (no more and no fewer), and
@@ -153,6 +161,7 @@ describe('site-with-errors', () => {
         'Accessibility issue: Headings should not be empty on /404.html',
         'Accessibility issue: Elements must meet minimum color contrast ratio thresholds on /about/',
         'Accessibility issue: Elements must meet minimum color contrast ratio thresholds on /jekyll/update/2025/07/30/welcome-to-jekyll.html',
+        'Accessibility issue: Page requires horizontal scrolling at 320x256 viewport on /404.html',
       ]
       expect(actualTitles).toHaveLength(expectedTitles.length)
       expect(actualTitles).toEqual(expect.arrayContaining(expectedTitles))

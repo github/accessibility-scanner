@@ -34,7 +34,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@dffb23f65a78bba8db45d387d5ea1bbd6be3ef18
+        uses: ruby/setup-ruby@319994f95fa847cf3fb3cd3dbe89f6dcde9f178f
         with:
           ruby-version: "3.4"
           bundler-cache: true
@@ -80,6 +80,7 @@ jobs:
           repository: ${{ env.TESTING_REPOSITORY }}
           token: ${{ secrets.GH_TOKEN }}
           cache_key: ${{ steps.cache_key.outputs.cache_key }}
+          scans: '["axe", "reflow-scan"]'
 
       - name: Retrieve cached results
         uses: ./.github/actions/gh-cache/restore
