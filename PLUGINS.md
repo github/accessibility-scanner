@@ -1,6 +1,6 @@
 # Plugins
 
-The plugin system allows teams to create custom scans/tests to run on their pages. An example of this is Axe interaction tests. In some cases, it might be desirable to perform specific interactions on elements of a given page before doing an Axe scan. These interactions are usually unique to each page that is scanned, so it would require the owning team to write a custom plugin that can interact with the page and run the Axe scan when ready. See the example under [.github/scanner-plugins/test-plugin](https://github.com/github/accessibility-scanner/tree/main/.github/scanner-plugins/test-plugin) (this is not an Axe interaction test, but should give a general understanding of plugin structure).
+The plugin system allows teams to create custom scans/tests to run on their pages. An example of this is Axe interaction tests. In some cases, it might be desirable to perform specific interactions on elements of a given page before doing an Axe scan. These interactions are usually unique to each page that is scanned, so it would require the owning team to write a custom plugin that can interact with the page and run the Axe scan when ready. See the existing plugins under [.github/scanner-plugins](https://github.com/github/accessibility-scanner/tree/main/.github/scanner-plugins) for examples of plugin structure.
 
 Some plugins come built-in with the scanner and can be enabled via [actions inputs](https://github.com/github/accessibility-scanner/tree/main/action.yml#L48-L50).
 

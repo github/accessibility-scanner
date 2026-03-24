@@ -12,13 +12,17 @@ const __dirname = path.dirname(__filename)
 
 type PluginDefaultParams = {
   page: playwright.Page
-  addFinding: (findingData: Finding) => void
+  addFinding: (findingData: Finding) => Promise<void>
 }
 
 type Plugin = {
   name: string
   default: (options: PluginDefaultParams) => Promise<void>
 }
+
+// Built-in plugin names shipped with the scanner.
+// Used to skip duplicates when loading custom plugins.
+const BUILT_IN_PLUGINS = ['reflow-scan']
 
 const plugins: Plugin[] = []
 let pluginsLoaded = false
@@ -65,7 +69,7 @@ export async function loadCustomPlugins() {
 
   // - currently, the plugin manager will abort loading
   //   all plugins if there's an error
-  // - the problem with this is that if a scanner user doesnt
+  // - the problem with this is that if a scanner user doesn't
   //   have custom plugins, they won't have a 'scanner-plugins' folder
   //   which will cause an error and abort loading all plugins, including built-in ones
   // - so for custom plugins, if the path doesn't exist, we can return early
@@ -75,19 +79,32 @@ export async function loadCustomPlugins() {
     return
   }
 
-  await loadPluginsFromPath({pluginsPath})
+  await loadPluginsFromPath({pluginsPath, skipBuiltInPlugins: BUILT_IN_PLUGINS})
 }
 
 // exported for mocking/testing. not for actual use
-export async function loadPluginsFromPath({pluginsPath}: {pluginsPath: string}) {
+export async function loadPluginsFromPath({
+  pluginsPath,
+  skipBuiltInPlugins,
+}: {
+  pluginsPath: string
+  skipBuiltInPlugins?: string[]
+}) {
   try {
     const res = fs.readdirSync(pluginsPath)
     for (const pluginFolder of res) {
       const pluginFolderPath = path.join(pluginsPath, pluginFolder)
 
       if (fs.existsSync(pluginFolderPath) && fs.lstatSync(pluginFolderPath).isDirectory()) {
-        core.info(`Found plugin: ${pluginFolder}`)
-        plugins.push(await dynamicImport(path.join(pluginsPath, pluginFolder, 'index.js')))
+        const plugin = await dynamicImport(path.join(pluginsPath, pluginFolder, 'index.js'))
+
+        if (skipBuiltInPlugins?.includes(plugin.name)) {
+          core.info(`Skipping built-in plugin: ${plugin.name}`)
+          continue
+        }
+
+        core.info(`Found plugin: ${plugin.name}`)
+        plugins.push(plugin)
       }
     }
   } catch (e) {

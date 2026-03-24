@@ -1,0 +1,6 @@
+{
+  "name": "reflow-scan",
+  "version": "1.0.0",
+  "description": "Scans pages at a 320x256 viewport size to identify potential reflow issues, such as horizontal scrolling and content overflow.",
+  "type": "module"
+}

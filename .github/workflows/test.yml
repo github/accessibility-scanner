@@ -80,6 +80,7 @@ jobs:
           repository: ${{ env.TESTING_REPOSITORY }}
           token: ${{ secrets.GH_TOKEN }}
           cache_key: ${{ steps.cache_key.outputs.cache_key }}
+          scans: '["axe", "reflow-scan"]'
 
       - name: Retrieve cached results
         uses: ./.github/actions/gh-cache/restore
