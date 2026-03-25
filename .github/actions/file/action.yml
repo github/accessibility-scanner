@@ -12,7 +12,7 @@ inputs:
     description: "Token with fine-grained permission 'issues: write'"
     required: true
   base_url:
-    description: "Optional base URL for the GitHub API (for example, 'https://HOSTNAME/api/v3' for GitHub Enterprise Server)"
+    description: "Optional base URL to pass into Octokit for the GitHub API (for example, `https://YOUR_HOSTNAME/api/v3` for GitHub Enterprise Server)"
     required: false
   cached_filings:
     description: "Cached filings from previous runs, as stringified JSON. Without this, duplicate issues may be filed."
