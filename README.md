@@ -46,7 +46,7 @@ jobs:
             REPLACE_THIS
           repository: REPLACE_THIS/REPLACE_THIS # Provide a repository name-with-owner (in the format "primer/primer-docs"). This is where issues will be filed and where Copilot will open PRs; more information below.
           token: ${{ secrets.GH_TOKEN }} # This token must have write access to the repo above (contents, issues, and PRs); more information below. Note: GitHub Actions' GITHUB_TOKEN cannot be used here.
-          # base_url: https://HOSTNAME/api/v3 # Optional: GitHub API base URL to pass into Octokit (required for GitHub Enterprise Server)
+          # base_url: https://REPLACE_THIS # Optional: GitHub API base URL to pass into Octokit (required for GitHub Enterprise Server)
           cache_key: REPLACE_THIS # Provide a filename that will be used when caching results. We recommend including the name or domain of the site being scanned.
           # login_url: # Optional: URL of the login page if authentication is required
           # username: # Optional: Username for authentication
