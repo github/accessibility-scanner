@@ -12,6 +12,9 @@ inputs:
   token:
     description: "Personal access token (PAT) with fine-grained permissions 'contents: write', 'issues: write', and 'pull_requests: write'"
     required: true
+  base_url:
+    description: "Optional base URL for the GitHub API (for example, 'https://HOSTNAME/api/v3' for GitHub Enterprise Server)"
+    required: false
   cache_key:
     description: 'Key for caching results across runs'
     required: true
@@ -113,6 +116,7 @@ runs:
         findings: ${{ steps.find.outputs.findings }}
         repository: ${{ inputs.repository }}
         token: ${{ inputs.token }}
+        base_url: ${{ inputs.base_url }}
         cached_filings: ${{ steps.normalize_cache.outputs.value }}
         screenshot_repository: ${{ github.repository }}
         open_grouped_issues: ${{ inputs.open_grouped_issues }}
@@ -132,6 +136,7 @@ runs:
         issues: ${{ steps.get_issues_from_filings.outputs.issues }}
         repository: ${{ inputs.repository }}
         token: ${{ inputs.token }}
+        base_url: ${{ inputs.base_url }}
     - name: Set results output
       id: results
       uses: actions/github-script@v8

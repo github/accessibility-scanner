@@ -14,11 +14,14 @@ export default async function () {
   const issues: IssueInput[] = JSON.parse(core.getInput('issues', {required: true}) || '[]')
   const repoWithOwner = core.getInput('repository', {required: true})
   const token = core.getInput('token', {required: true})
+  const baseUrl = core.getInput('base_url', {required: false}) || undefined
   core.debug(`Input: 'issues: ${JSON.stringify(issues)}'`)
   core.debug(`Input: 'repository: ${repoWithOwner}'`)
+  core.debug(`Input: 'base_url: ${baseUrl ?? '(default)'}'`)
 
   const octokit = new OctokitWithThrottling({
     auth: token,
+    baseUrl,
     throttle: {
       onRateLimit: (retryAfter, options, octokit, retryCount) => {
         octokit.log.warn(`Request quota exhausted for request ${options.method} ${options.url}`)
