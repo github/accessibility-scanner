@@ -53,6 +53,9 @@ outputs:
   results:
     description: 'List of issues and pull requests filed (and their associated finding(s)), as stringified JSON'
     value: ${{ steps.results.outputs.results }}
+  results_file:
+    description: 'Path to a JSON file containing the results (use for large datasets to avoid output size limits)'
+    value: ${{ steps.results.outputs.results_file }}
 
 runs:
   using: 'composite'
@@ -132,38 +135,68 @@ runs:
         issues: ${{ steps.get_issues_from_filings.outputs.issues }}
         repository: ${{ inputs.repository }}
         token: ${{ inputs.token }}
+    - name: Write filings and fixings to temp files
+      shell: bash
+      run: |
+        cat > "$RUNNER_TEMP/filings.json" << 'FILINGS_HEREDOC_DELIMITER'
+        ${{ steps.file.outputs.filings || '[]' }}
+        FILINGS_HEREDOC_DELIMITER
+
+        cat > "$RUNNER_TEMP/fixings.json" << 'FIXINGS_HEREDOC_DELIMITER'
+        ${{ steps.fix.outputs.fixings || '[]' }}
+        FIXINGS_HEREDOC_DELIMITER
+
     - name: Set results output
       id: results
-      uses: actions/github-script@v8
-      with:
-        script: |
-          const filings = ${{ steps.file.outputs.filings || '""' }} || [];
-          const fixings = ${{ steps.fix.outputs.fixings || '""' }} || [];
-          const fixingsByIssueUrl = fixings.reduce((acc, fixing) => {
-            if (fixing.issue && fixing.issue.url) {
-              acc[fixing.issue.url] = fixing;
-            }
-            return acc;
-          }, {});
-          const results = filings;
-          for (const result of results) {
-            if (result.issue && result.issue.url && fixingsByIssueUrl[result.issue.url]) {
-              result.pullRequest = fixingsByIssueUrl[result.issue.url].pullRequest;
-            }
+      shell: bash
+      run: |
+        node << 'NODE_SCRIPT'
+        const fs = require('fs');
+        const path = require('path');
+        const runnerTemp = process.env.RUNNER_TEMP;
+        const filings = JSON.parse(fs.readFileSync(path.join(runnerTemp, 'filings.json'), 'utf8')) || [];
+        const fixings = JSON.parse(fs.readFileSync(path.join(runnerTemp, 'fixings.json'), 'utf8')) || [];
+        const fixingsByIssueUrl = fixings.reduce((acc, fixing) => {
+          if (fixing.issue && fixing.issue.url) acc[fixing.issue.url] = fixing;
+          return acc;
+        }, {});
+        for (const result of filings) {
+          if (result.issue && result.issue.url && fixingsByIssueUrl[result.issue.url]) {
+            result.pullRequest = fixingsByIssueUrl[result.issue.url].pullRequest;
           }
-          core.setOutput('results', JSON.stringify(results));
-          core.debug(`Results: ${JSON.stringify(results)}`);
+        }
+        const resultsPath = path.join(process.env.GITHUB_WORKSPACE, 'scanner-results.json');
+        fs.writeFileSync(resultsPath, JSON.stringify(filings));
+        NODE_SCRIPT
+
+        RESULTS_FILE="$GITHUB_WORKSPACE/scanner-results.json"
+
+        # Set results output (backward compat)
+        {
+          echo 'results<<__RESULTS_OUTPUT_DELIMITER__'
+          cat "$RESULTS_FILE"
+          echo
+          echo '__RESULTS_OUTPUT_DELIMITER__'
+        } >> "$GITHUB_OUTPUT"
+
+        # Set results_file output
+        echo "results_file=$RESULTS_FILE" >> "$GITHUB_OUTPUT"
     - if: ${{ inputs.include_screenshots == 'true' }}
       name: Save screenshots
       uses: ./../../_actions/github/accessibility-scanner/current/.github/actions/gh-cache/save
       with:
         path: .screenshots
         token: ${{ inputs.token }}
+    - name: Copy results to cache path
+      shell: bash
+      run: |
+        mkdir -p "$(dirname '${{ inputs.cache_key }}')"
+        cp "$GITHUB_WORKSPACE/scanner-results.json" "${{ inputs.cache_key }}"
+
     - name: Save cached results
-      uses: ./../../_actions/github/accessibility-scanner/current/.github/actions/gh-cache/cache
+      uses: ./../../_actions/github/accessibility-scanner/current/.github/actions/gh-cache/save
       with:
-        key: ${{ inputs.cache_key }}
-        value: ${{ steps.results.outputs.results }}
+        path: ${{ inputs.cache_key }}
         token: ${{ inputs.token }}
 
 branding:
