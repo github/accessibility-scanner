@@ -19,7 +19,7 @@ export default async function () {
   const findings: Finding[] = JSON.parse(core.getInput('findings', {required: true}))
   const repoWithOwner = core.getInput('repository', {required: true})
   const token = core.getInput('token', {required: true})
-  const baseUrl = core.getInput('base_url', {required: false}) || undefined
+  const baseUrl = core.getInput('base_url', {required: false})
   const screenshotRepo = core.getInput('screenshot_repository', {required: false}) || repoWithOwner
   const cachedFilings: (ResolvedFiling | RepeatedFiling)[] = JSON.parse(
     core.getInput('cached_filings', {required: false}) || '[]',
