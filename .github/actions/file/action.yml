@@ -2,23 +2,17 @@ name: "File"
 description: "Files GitHub issues to track potential accessibility gaps."
 
 inputs:
-  findings:
-    description: "List of potential accessibility gaps, as stringified JSON"
-    required: false
   findings_file:
-    description: "Path to a JSON file containing findings (alternative to 'findings' for large datasets)"
-    required: false
+    description: "Path to a JSON file containing the list of potential accessibility gaps"
+    required: true
   repository:
     description: "Repository (with owner) to file issues in"
     required: true
   token:
     description: "Token with fine-grained permission 'issues: write'"
     required: true
-  cached_filings:
-    description: "Cached filings from previous runs, as stringified JSON. Without this, duplicate issues may be filed."
-    required: false
   cached_filings_file:
-    description: "Path to a JSON file containing cached filings (alternative to 'cached_filings' for large datasets)"
+    description: "Path to a JSON file containing cached filings from previous runs. Without this, duplicate issues may be filed."
     required: false
   screenshot_repository:
     description: "Repository (with owner) where screenshots are stored on the gh-cache branch. Defaults to the 'repository' input if not set. Required if issues are open in a different repo to construct proper screenshot URLs."
@@ -29,10 +23,8 @@ inputs:
     default: "false"
 
 outputs:
-  filings:
-    description: "List of issues filed (and their associated finding(s)), as stringified JSON"
   filings_file:
-    description: "Path to a JSON file containing filings (use for large datasets to avoid output size limits)"
+    description: "Path to a JSON file containing the list of issues filed (and their associated finding(s))"
 
 runs:
   using: "node24"

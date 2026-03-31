@@ -46,13 +46,11 @@ export default async function () {
     core.info(`Found ${findingsForUrl.length} findings for ${url}`)
   }
 
-  core.setOutput('findings', JSON.stringify(findings))
-
   const findingsPath = path.join(process.env.RUNNER_TEMP || '/tmp', 'findings.json')
   fs.writeFileSync(findingsPath, JSON.stringify(findings))
   core.setOutput('findings_file', findingsPath)
 
-  core.debug(`Output: 'findings: ${JSON.stringify(findings)}'`)
+  core.debug(`Output: 'findings_file: ${findingsPath}'`)
   core.info(`Found ${findings.length} findings in total`)
   core.info("Finished 'find' action")
 }
