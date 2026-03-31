@@ -59,7 +59,7 @@ export default async function () {
     }
   }
 
-  const fixingsPath = path.join(process.env.RUNNER_TEMP || '/tmp', 'fixings.json')
+  const fixingsPath = path.join(process.env.RUNNER_TEMP || '/tmp', `fixings-${crypto.randomUUID()}.json`)
   fs.writeFileSync(fixingsPath, JSON.stringify(fixings))
   core.setOutput('fixings_file', fixingsPath)
 

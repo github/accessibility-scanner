@@ -135,7 +135,7 @@ export default async function () {
     }
   }
 
-  const filingsPath = path.join(process.env.RUNNER_TEMP || '/tmp', 'filings.json')
+  const filingsPath = path.join(process.env.RUNNER_TEMP || '/tmp', `filings-${crypto.randomUUID()}.json`)
   fs.writeFileSync(filingsPath, JSON.stringify(filings))
   core.setOutput('filings_file', filingsPath)
 

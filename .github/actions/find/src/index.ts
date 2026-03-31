@@ -46,7 +46,7 @@ export default async function () {
     core.info(`Found ${findingsForUrl.length} findings for ${url}`)
   }
 
-  const findingsPath = path.join(process.env.RUNNER_TEMP || '/tmp', 'findings.json')
+  const findingsPath = path.join(process.env.RUNNER_TEMP || '/tmp', `findings-${crypto.randomUUID()}.json`)
   fs.writeFileSync(findingsPath, JSON.stringify(findings))
   core.setOutput('findings_file', findingsPath)
 
