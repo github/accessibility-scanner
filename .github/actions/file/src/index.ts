@@ -1,4 +1,6 @@
 import type {Finding, ResolvedFiling, RepeatedFiling, FindingGroupIssue, Filing, IssueResponse} from './types.d.js'
+import fs from 'node:fs'
+import path from 'node:path'
 import process from 'node:process'
 import * as core from '@actions/core'
 import {Octokit} from '@octokit/core'
@@ -16,13 +18,17 @@ const OctokitWithThrottling = Octokit.plugin(throttling)
 
 export default async function () {
   core.info("Started 'file' action")
-  const findings: Finding[] = JSON.parse(core.getInput('findings', {required: true}))
+  const findingsFile = core.getInput('findings_file', {required: false})
+  const findings: Finding[] = findingsFile
+    ? JSON.parse(fs.readFileSync(findingsFile, 'utf8'))
+    : JSON.parse(core.getInput('findings', {required: !findingsFile}))
   const repoWithOwner = core.getInput('repository', {required: true})
   const token = core.getInput('token', {required: true})
   const screenshotRepo = core.getInput('screenshot_repository', {required: false}) || repoWithOwner
-  const cachedFilings: (ResolvedFiling | RepeatedFiling)[] = JSON.parse(
-    core.getInput('cached_filings', {required: false}) || '[]',
-  )
+  const cachedFilingsFile = core.getInput('cached_filings_file', {required: false})
+  const cachedFilings: (ResolvedFiling | RepeatedFiling)[] = cachedFilingsFile
+    ? JSON.parse(fs.readFileSync(cachedFilingsFile, 'utf8'))
+    : JSON.parse(core.getInput('cached_filings', {required: false}) || '[]')
   const shouldOpenGroupedIssues = core.getBooleanInput('open_grouped_issues')
   core.debug(`Input: 'findings: ${JSON.stringify(findings)}'`)
   core.debug(`Input: 'repository: ${repoWithOwner}'`)
@@ -132,6 +138,11 @@ export default async function () {
   }
 
   core.setOutput('filings', JSON.stringify(filings))
+
+  const filingsPath = path.join(process.env.RUNNER_TEMP || '/tmp', 'filings.json')
+  fs.writeFileSync(filingsPath, JSON.stringify(filings))
+  core.setOutput('filings_file', filingsPath)
+
   core.debug(`Output: 'filings: ${JSON.stringify(filings)}'`)
   core.info("Finished 'file' action")
 }

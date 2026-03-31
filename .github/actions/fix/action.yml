@@ -4,7 +4,10 @@ description: "Attempts to fix issues with Copilot."
 inputs:
   issues:
     description: "List of issues to attempt to fix, as stringified JSON"
-    required: true
+    required: false
+  issues_file:
+    description: "Path to a JSON file containing issues (alternative to 'issues' for large datasets)"
+    required: false
   repository:
     description: "Repository (with owner) containing issues"
     required: true
@@ -15,6 +18,8 @@ inputs:
 outputs:
   fixings:
     description: "List of pull requests filed (and their associated issues), as stringified JSON"
+  fixings_file:
+    description: "Path to a JSON file containing fixings (use for large datasets to avoid output size limits)"
 
 runs:
   using: "node24"

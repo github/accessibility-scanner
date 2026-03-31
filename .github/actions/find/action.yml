@@ -26,6 +26,8 @@ inputs:
 outputs:
   findings:
     description: 'List of potential accessibility gaps, as stringified JSON'
+  findings_file:
+    description: 'Path to a JSON file containing findings (use for large datasets to avoid output size limits)'
 
 runs:
   using: 'node24'

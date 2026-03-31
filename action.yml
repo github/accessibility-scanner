@@ -90,7 +90,9 @@ runs:
         # If cached data is a list of Finding objects, each with 'issueUrl' keys (i.e. v1),
         # convert to a list of (partial) Result objects, each with 'findings' and 'issue' keys (i.e. v2).
         # Otherwise, re-output as-is.
-        printf '%s' "value=$(printf '%s' '${{ steps.restore.outputs.value }}' | jq -c 'if (type == "array" and length > 0 and (.[0] | has("issueUrl"))) then map({findings: [del(.issueUrl)], issue: {url: .issueUrl}}) else . end' )" >> $GITHUB_OUTPUT
+        # Read directly from the cache file to avoid shell interpolation of large JSON.
+        jq -c 'if (type == "array" and length > 0 and (.[0] | has("issueUrl"))) then map({findings: [del(.issueUrl)], issue: {url: .issueUrl}}) else . end' "${{ inputs.cache_key }}" > "$RUNNER_TEMP/cached_filings.json"
+        echo "cached_filings_file=$RUNNER_TEMP/cached_filings.json" >> $GITHUB_OUTPUT
     - if: ${{ inputs.login_url && inputs.username && inputs.password && !inputs.auth_context }}
       name: Authenticate
       id: auth
@@ -113,49 +115,42 @@ runs:
       id: file
       uses: ./../../_actions/github/accessibility-scanner/current/.github/actions/file
       with:
-        findings: ${{ steps.find.outputs.findings }}
+        findings_file: ${{ steps.find.outputs.findings_file }}
         repository: ${{ inputs.repository }}
         token: ${{ inputs.token }}
-        cached_filings: ${{ steps.normalize_cache.outputs.value }}
+        cached_filings_file: ${{ steps.normalize_cache.outputs.cached_filings_file }}
         screenshot_repository: ${{ github.repository }}
         open_grouped_issues: ${{ inputs.open_grouped_issues }}
-    - if: ${{ steps.file.outputs.filings }}
+    - if: ${{ steps.file.outputs.filings_file }}
       name: Get issues from filings
       id: get_issues_from_filings
       shell: bash
       run: |
-        # Extract open issues from Filing objects and output as a single-line JSON array
-        issues=$(jq -c '[.[] | select(.issue.state == "open") | .issue]' <<< '${{ steps.file.outputs.filings }}')
-        echo "issues=$issues" >> "$GITHUB_OUTPUT"
+        # Extract open issues from Filing objects and write to a file
+        jq -c '[.[] | select(.issue.state == "open") | .issue]' "${{ steps.file.outputs.filings_file }}" > "$RUNNER_TEMP/issues.json"
+        echo "issues_file=$RUNNER_TEMP/issues.json" >> "$GITHUB_OUTPUT"
     - if: ${{ inputs.skip_copilot_assignment != 'true' }}
       name: Fix
       id: fix
       uses: ./../../_actions/github/accessibility-scanner/current/.github/actions/fix
       with:
-        issues: ${{ steps.get_issues_from_filings.outputs.issues }}
+        issues_file: ${{ steps.get_issues_from_filings.outputs.issues_file }}
         repository: ${{ inputs.repository }}
         token: ${{ inputs.token }}
-    - name: Write filings and fixings to temp files
-      shell: bash
-      run: |
-        cat > "$RUNNER_TEMP/filings.json" << 'FILINGS_HEREDOC_DELIMITER'
-        ${{ steps.file.outputs.filings || '[]' }}
-        FILINGS_HEREDOC_DELIMITER
-
-        cat > "$RUNNER_TEMP/fixings.json" << 'FIXINGS_HEREDOC_DELIMITER'
-        ${{ steps.fix.outputs.fixings || '[]' }}
-        FIXINGS_HEREDOC_DELIMITER
-
     - name: Set results output
       id: results
       shell: bash
+      env:
+        FILINGS_FILE: ${{ steps.file.outputs.filings_file || '' }}
+        FIXINGS_FILE: ${{ steps.fix.outputs.fixings_file || '' }}
       run: |
         node << 'NODE_SCRIPT'
         const fs = require('fs');
         const path = require('path');
-        const runnerTemp = process.env.RUNNER_TEMP;
-        const filings = JSON.parse(fs.readFileSync(path.join(runnerTemp, 'filings.json'), 'utf8')) || [];
-        const fixings = JSON.parse(fs.readFileSync(path.join(runnerTemp, 'fixings.json'), 'utf8')) || [];
+        const filingsFile = process.env.FILINGS_FILE;
+        const fixingsFile = process.env.FIXINGS_FILE;
+        const filings = filingsFile && fs.existsSync(filingsFile) ? JSON.parse(fs.readFileSync(filingsFile, 'utf8')) : [];
+        const fixings = fixingsFile && fs.existsSync(fixingsFile) ? JSON.parse(fs.readFileSync(fixingsFile, 'utf8')) : [];
         const fixingsByIssueUrl = fixings.reduce((acc, fixing) => {
           if (fixing.issue && fixing.issue.url) acc[fixing.issue.url] = fixing;
           return acc;
