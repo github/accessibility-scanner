@@ -141,8 +141,8 @@ runs:
       id: results
       shell: bash
       env:
-        FILINGS_FILE: ${{ steps.file.outputs.filings_file || '' }}
-        FIXINGS_FILE: ${{ steps.fix.outputs.fixings_file || '' }}
+        FILINGS_FILE: ${{ steps.file.outputs.filings_file }}
+        FIXINGS_FILE: ${{ steps.fix.outputs.fixings_file }}
       run: |
         node << 'NODE_SCRIPT'
         const fs = require('fs');
