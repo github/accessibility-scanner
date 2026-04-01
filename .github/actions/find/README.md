@@ -43,7 +43,7 @@ configuration option.
 
 #### `findings_file`
 
-Path to a JSON file containing the list of potential accessibility gaps. For example: `findings.json`.
+Absolute path to a JSON file containing the list of potential accessibility gaps. The action writes this file to a temporary directory and returns the absolute path. For example: `$RUNNER_TEMP/findings-<uuid>.json`.
 
 The file will contain a JSON array of finding objects. For example:
 ```json

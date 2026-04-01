@@ -8,7 +8,7 @@ Files GitHub issues to track potential accessibility gaps.
 
 #### `findings_file`
 
-**Required** Path to a JSON file containing the list of potential accessibility gaps. For example: `findings.json`.
+**Required** Path to a JSON file containing the list of potential accessibility gaps. The path can be absolute or relative to the working directory (which defaults to `GITHUB_WORKSPACE`). For example: `findings.json`.
 
 The file should contain a JSON array of finding objects. For example:
 ```json
@@ -25,7 +25,7 @@ The file should contain a JSON array of finding objects. For example:
 
 #### `cached_filings_file`
 
-**Optional** Path to a JSON file containing cached filings from previous runs. Without this, duplicate issues may be filed. For example: `cached-filings.json`.
+**Optional** Path to a JSON file containing cached filings from previous runs. The path can be absolute or relative to the working directory (which defaults to `GITHUB_WORKSPACE`). Without this, duplicate issues may be filed. For example: `cached-filings.json`.
 
 The file should contain a JSON array of filing objects. For example:
 ```json
@@ -41,7 +41,7 @@ The file should contain a JSON array of filing objects. For example:
 
 #### `filings_file`
 
-Path to a JSON file containing the list of issues filed (and their associated finding(s)). For example: `filings.json`.
+Absolute path to a JSON file containing the list of issues filed (and their associated finding(s)). The action writes this file to a temporary directory and returns the absolute path. For example: `$RUNNER_TEMP/filings-<uuid>.json`.
 
 The file will contain a JSON array of filing objects. For example:
 ```json

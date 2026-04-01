@@ -8,7 +8,7 @@ Attempts to fix issues with Copilot.
 
 #### `issues_file`
 
-**Required** Path to a JSON file containing the list of issues to attempt to fix—including, at a minimum, their `url`s. For example: `issues.json`.
+**Required** Path to a JSON file containing the list of issues to attempt to fix—including, at a minimum, their `url`s. The path can be absolute or relative to the working directory (which defaults to `GITHUB_WORKSPACE`). For example: `issues.json`.
 
 The file should contain a JSON array of issue objects. For example:
 ```json
@@ -31,7 +31,7 @@ The file should contain a JSON array of issue objects. For example:
 
 #### `fixings_file`
 
-Path to a JSON file containing the list of pull requests filed (and their associated issues). For example: `fixings.json`.
+Absolute path to a JSON file containing the list of pull requests filed (and their associated issues). The action writes this file to a temporary directory and returns the absolute path. For example: `$RUNNER_TEMP/fixings-<uuid>.json`.
 
 The file will contain a JSON array of fixing objects. For example:
 ```json
