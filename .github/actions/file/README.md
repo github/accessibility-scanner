@@ -6,12 +6,13 @@ Files GitHub issues to track potential accessibility gaps.
 
 ### Inputs
 
-#### `findings`
+#### `findings_file`
 
-**Required** List of potential accessibility gaps, as stringified JSON. For example:
+**Required** Path to a JSON file containing the list of potential accessibility gaps. The path can be absolute or relative to the working directory (which defaults to `GITHUB_WORKSPACE`). For example: `findings.json`.
 
-```JS
-'[]'
+The file should contain a JSON array of finding objects. For example:
+```json
+[]
 ```
 
 #### `repository`
@@ -22,12 +23,32 @@ Files GitHub issues to track potential accessibility gaps.
 
 **Required** Token with fine-grained permission 'issues: write'.
 
-#### `cached_filings`
+#### `cached_filings_file`
 
-**Optional** Cached filings from previous runs, as stringified JSON. Without this, duplicate issues may be filed. For example: `'[{"findings":[],"issue":{"id":1,"nodeId":"SXNzdWU6MQ==","url":"https://github.com/github/docs/issues/123","title":"Accessibility issue: 1"}}]'`
+**Optional** Path to a JSON file containing cached filings from previous runs. The path can be absolute or relative to the working directory (which defaults to `GITHUB_WORKSPACE`). Without this, duplicate issues may be filed. For example: `cached-filings.json`.
+
+The file should contain a JSON array of filing objects. For example:
+```json
+[
+  {
+    "findings": [],
+    "issue": {"id":1,"nodeId":"SXNzdWU6MQ==","url":"https://github.com/github/docs/issues/123","title":"Accessibility issue: 1"}
+  }
+]
+```
 
 ### Outputs
 
-#### `filings`
+#### `filings_file`
 
-List of issues filed (and their associated finding(s)), as stringified JSON. For example: `'[{"findings":[],"issue":{"id":1,"nodeId":"SXNzdWU6MQ==","url":"https://github.com/github/docs/issues/123","title":"Accessibility issue: 1"}}]'`
+Absolute path to a JSON file containing the list of issues filed (and their associated finding(s)). The action writes this file to a temporary directory and returns the absolute path. For example: `$RUNNER_TEMP/filings-<uuid>.json`.
+
+The file will contain a JSON array of filing objects. For example:
+```json
+[
+  {
+    "findings": [],
+    "issue": {"id":1,"nodeId":"SXNzdWU6MQ==","url":"https://github.com/github/docs/issues/123","title":"Accessibility issue: 1"}
+  }
+]
+```
