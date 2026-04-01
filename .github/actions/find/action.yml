@@ -24,8 +24,8 @@ inputs:
     required: false
 
 outputs:
-  findings:
-    description: 'List of potential accessibility gaps, as stringified JSON'
+  findings_file:
+    description: 'Path to a JSON file containing the list of potential accessibility gaps'
 
 runs:
   using: 'node24'
