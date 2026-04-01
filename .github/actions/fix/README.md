@@ -6,9 +6,18 @@ Attempts to fix issues with Copilot.
 
 ### Inputs
 
-#### `issues`
+#### `issues_file`
 
-**Required** List of issues to attempt to fix—including, at a minimum, their `url`s—as stringified JSON. For example: `'[{"url":"https://github.com/github/docs/issues/123"},{"nodeId":"SXNzdWU6Mg==","url":"https://github.com/github/docs/issues/124"},{"id":4,"nodeId":"SXNzdWU6NA==","url":"https://github.com/github/docs/issues/126","title":"Accessibility issue: 4"}]'`.
+**Required** Path to a JSON file containing the list of issues to attempt to fix—including, at a minimum, their `url`s. The path can be absolute or relative to the working directory (which defaults to `GITHUB_WORKSPACE`). For example: `issues.json`.
+
+The file should contain a JSON array of issue objects. For example:
+```json
+[
+  {"url":"https://github.com/github/docs/issues/123"},
+  {"nodeId":"SXNzdWU6Mg==","url":"https://github.com/github/docs/issues/124"},
+  {"id":4,"nodeId":"SXNzdWU6NA==","url":"https://github.com/github/docs/issues/126","title":"Accessibility issue: 4"}
+]
+```
 
 #### `repository`
 
@@ -20,6 +29,16 @@ Attempts to fix issues with Copilot.
 
 ### Outputs
 
-#### `fixings`
+#### `fixings_file`
 
-List of pull requests filed (and their associated issues), as stringified JSON. For example: `'[{"issue":{"id":1,"nodeId":"SXNzdWU6MQ==","url":"https://github.com/github/docs/issues/123","title":"Accessibility issue: 1"},"pullRequest":{"url":"https://github.com/github/docs/pulls/124"}}]'`
+Absolute path to a JSON file containing the list of pull requests filed (and their associated issues). The action writes this file to a temporary directory and returns the absolute path. For example: `$RUNNER_TEMP/fixings-<uuid>.json`.
+
+The file will contain a JSON array of fixing objects. For example:
+```json
+[
+  {
+    "issue": {"id":1,"nodeId":"SXNzdWU6MQ==","url":"https://github.com/github/docs/issues/123","title":"Accessibility issue: 1"},
+    "pullRequest": {"url":"https://github.com/github/docs/pulls/124"}
+  }
+]
+```
