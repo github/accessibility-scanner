@@ -43,8 +43,9 @@ configuration option.
 
 #### `findings_file`
 
-List of potential accessibility gaps, output as a JSON file. For example:
+Path to a JSON file containing the list of potential accessibility gaps. For example: `findings.json`.
 
-```JS
-'[]'
+The file will contain a JSON array of finding objects. For example:
+```json
+[]
 ```
