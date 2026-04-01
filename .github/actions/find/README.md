@@ -41,9 +41,9 @@ configuration option.
 
 ### Outputs
 
-#### `findings`
+#### `findings_file`
 
-List of potential accessibility gaps, as stringified JSON. For example:
+List of potential accessibility gaps, output as a JSON file. For example:
 
 ```JS
 '[]'
