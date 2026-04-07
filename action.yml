@@ -56,6 +56,9 @@ outputs:
   results:
     description: 'List of issues and pull requests filed (and their associated finding(s)), as stringified JSON'
     value: ${{ steps.results.outputs.results }}
+  results_file:
+    description: 'Path to a JSON file containing the results (use for large datasets to avoid output size limits)'
+    value: ${{ steps.results.outputs.results_file }}
 
 runs:
   using: 'composite'
@@ -90,7 +93,9 @@ runs:
         # If cached data is a list of Finding objects, each with 'issueUrl' keys (i.e. v1),
         # convert to a list of (partial) Result objects, each with 'findings' and 'issue' keys (i.e. v2).
         # Otherwise, re-output as-is.
-        printf '%s' "value=$(printf '%s' '${{ steps.restore.outputs.value }}' | jq -c 'if (type == "array" and length > 0 and (.[0] | has("issueUrl"))) then map({findings: [del(.issueUrl)], issue: {url: .issueUrl}}) else . end' )" >> $GITHUB_OUTPUT
+        # Read directly from the cache file to avoid shell interpolation of large JSON.
+        jq -c 'if (type == "array" and length > 0 and (.[0] | has("issueUrl"))) then map({findings: [del(.issueUrl)], issue: {url: .issueUrl}}) else . end' "${{ inputs.cache_key }}" > "$RUNNER_TEMP/cached_filings.json"
+        echo "cached_filings_file=$RUNNER_TEMP/cached_filings.json" >> $GITHUB_OUTPUT
     - if: ${{ inputs.login_url && inputs.username && inputs.password && !inputs.auth_context }}
       name: Authenticate
       id: auth
@@ -113,62 +118,85 @@ runs:
       id: file
       uses: ./../../_actions/github/accessibility-scanner/current/.github/actions/file
       with:
-        findings: ${{ steps.find.outputs.findings }}
+        findings_file: ${{ steps.find.outputs.findings_file }}
         repository: ${{ inputs.repository }}
         token: ${{ inputs.token }}
         base_url: ${{ inputs.base_url }}
-        cached_filings: ${{ steps.normalize_cache.outputs.value }}
+        cached_filings_file: ${{ steps.normalize_cache.outputs.cached_filings_file }}
         screenshot_repository: ${{ github.repository }}
         open_grouped_issues: ${{ inputs.open_grouped_issues }}
-    - if: ${{ steps.file.outputs.filings }}
+    - if: ${{ steps.file.outputs.filings_file }}
       name: Get issues from filings
       id: get_issues_from_filings
       shell: bash
       run: |
-        # Extract open issues from Filing objects and output as a single-line JSON array
-        issues=$(jq -c '[.[] | select(.issue.state == "open") | .issue]' <<< '${{ steps.file.outputs.filings }}')
-        echo "issues=$issues" >> "$GITHUB_OUTPUT"
+        # Extract open issues from Filing objects and write to a file
+        jq -c '[.[] | select(.issue.state == "open") | .issue]' "${{ steps.file.outputs.filings_file }}" > "$RUNNER_TEMP/issues.json"
+        echo "issues_file=$RUNNER_TEMP/issues.json" >> "$GITHUB_OUTPUT"
     - if: ${{ inputs.skip_copilot_assignment != 'true' }}
       name: Fix
       id: fix
       uses: ./../../_actions/github/accessibility-scanner/current/.github/actions/fix
       with:
-        issues: ${{ steps.get_issues_from_filings.outputs.issues }}
+        issues_file: ${{ steps.get_issues_from_filings.outputs.issues_file }}
         repository: ${{ inputs.repository }}
         token: ${{ inputs.token }}
         base_url: ${{ inputs.base_url }}
     - name: Set results output
       id: results
-      uses: actions/github-script@v8
-      with:
-        script: |
-          const filings = ${{ steps.file.outputs.filings || '""' }} || [];
-          const fixings = ${{ steps.fix.outputs.fixings || '""' }} || [];
-          const fixingsByIssueUrl = fixings.reduce((acc, fixing) => {
-            if (fixing.issue && fixing.issue.url) {
-              acc[fixing.issue.url] = fixing;
-            }
-            return acc;
-          }, {});
-          const results = filings;
-          for (const result of results) {
-            if (result.issue && result.issue.url && fixingsByIssueUrl[result.issue.url]) {
-              result.pullRequest = fixingsByIssueUrl[result.issue.url].pullRequest;
-            }
+      shell: bash
+      env:
+        FILINGS_FILE: ${{ steps.file.outputs.filings_file }}
+        FIXINGS_FILE: ${{ steps.fix.outputs.fixings_file }}
+      run: |
+        node << 'NODE_SCRIPT'
+        const fs = require('fs');
+        const path = require('path');
+        const filingsFile = process.env.FILINGS_FILE;
+        const fixingsFile = process.env.FIXINGS_FILE;
+        const filings = filingsFile && fs.existsSync(filingsFile) ? JSON.parse(fs.readFileSync(filingsFile, 'utf8')) : [];
+        const fixings = fixingsFile && fs.existsSync(fixingsFile) ? JSON.parse(fs.readFileSync(fixingsFile, 'utf8')) : [];
+        const fixingsByIssueUrl = fixings.reduce((acc, fixing) => {
+          if (fixing.issue && fixing.issue.url) acc[fixing.issue.url] = fixing;
+          return acc;
+        }, {});
+        for (const result of filings) {
+          if (result.issue && result.issue.url && fixingsByIssueUrl[result.issue.url]) {
+            result.pullRequest = fixingsByIssueUrl[result.issue.url].pullRequest;
           }
-          core.setOutput('results', JSON.stringify(results));
-          core.debug(`Results: ${JSON.stringify(results)}`);
+        }
+        const resultsPath = path.join(process.env.GITHUB_WORKSPACE, 'scanner-results.json');
+        fs.writeFileSync(resultsPath, JSON.stringify(filings));
+        NODE_SCRIPT
+
+        RESULTS_FILE="$GITHUB_WORKSPACE/scanner-results.json"
+
+        # Set results output (backward compat)
+        {
+          echo 'results<<__RESULTS_OUTPUT_DELIMITER__'
+          cat "$RESULTS_FILE"
+          echo
+          echo '__RESULTS_OUTPUT_DELIMITER__'
+        } >> "$GITHUB_OUTPUT"
+
+        # Set results_file output
+        echo "results_file=$RESULTS_FILE" >> "$GITHUB_OUTPUT"
     - if: ${{ inputs.include_screenshots == 'true' }}
       name: Save screenshots
       uses: ./../../_actions/github/accessibility-scanner/current/.github/actions/gh-cache/save
       with:
         path: .screenshots
         token: ${{ inputs.token }}
+    - name: Copy results to cache path
+      shell: bash
+      run: |
+        mkdir -p "$(dirname '${{ inputs.cache_key }}')"
+        cp "$GITHUB_WORKSPACE/scanner-results.json" "${{ inputs.cache_key }}"
+
     - name: Save cached results
-      uses: ./../../_actions/github/accessibility-scanner/current/.github/actions/gh-cache/cache
+      uses: ./../../_actions/github/accessibility-scanner/current/.github/actions/gh-cache/save
       with:
-        key: ${{ inputs.cache_key }}
-        value: ${{ steps.results.outputs.results }}
+        path: ${{ inputs.cache_key }}
         token: ${{ inputs.token }}
 
 branding:

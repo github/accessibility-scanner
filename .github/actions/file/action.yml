@@ -2,8 +2,8 @@ name: "File"
 description: "Files GitHub issues to track potential accessibility gaps."
 
 inputs:
-  findings:
-    description: "List of potential accessibility gaps, as stringified JSON"
+  findings_file:
+    description: "Path to a JSON file containing the list of potential accessibility gaps"
     required: true
   repository:
     description: "Repository (with owner) to file issues in"
@@ -14,8 +14,8 @@ inputs:
   base_url:
     description: "Optional base URL to pass into Octokit for the GitHub API (for example, `https://YOUR_HOSTNAME/api/v3` for GitHub Enterprise Server)"
     required: false
-  cached_filings:
-    description: "Cached filings from previous runs, as stringified JSON. Without this, duplicate issues may be filed."
+  cached_filings_file:
+    description: "Path to a JSON file containing cached filings from previous runs. Without this, duplicate issues may be filed."
     required: false
   screenshot_repository:
     description: "Repository (with owner) where screenshots are stored on the gh-cache branch. Defaults to the 'repository' input if not set. Required if issues are open in a different repo to construct proper screenshot URLs."
@@ -26,8 +26,8 @@ inputs:
     default: "false"
 
 outputs:
-  filings:
-    description: "List of issues filed (and their associated finding(s)), as stringified JSON"
+  filings_file:
+    description: "Path to a JSON file containing the list of issues filed (and their associated finding(s))"
 
 runs:
   using: "node24"
