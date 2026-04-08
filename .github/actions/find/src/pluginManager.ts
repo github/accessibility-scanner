@@ -1,6 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import {fileURLToPath} from 'url'
+import * as esbuild from 'esbuild'
 import {dynamicImport} from './dynamicImport.js'
 import type {Finding} from './types.d.js'
 import playwright from 'playwright'
@@ -96,7 +97,14 @@ export async function loadPluginsFromPath({
       const pluginFolderPath = path.join(pluginsPath, pluginFolder)
 
       if (fs.existsSync(pluginFolderPath) && fs.lstatSync(pluginFolderPath).isDirectory()) {
-        const plugin = await dynamicImport(path.join(pluginsPath, pluginFolder, 'index.js'))
+        const pluginEntryPath = resolvePluginEntryPath(pluginFolderPath)
+
+        if (!pluginEntryPath) {
+          core.info(`Skipping plugin folder without index.ts or index.js: ${pluginFolder}`)
+          continue
+        }
+
+        const plugin = await loadPluginModule(pluginEntryPath)
 
         if (skipBuiltInPlugins?.includes(plugin.name)) {
           core.info(`Skipping built-in plugin: ${plugin.name}`)
@@ -114,6 +122,44 @@ export async function loadPluginsFromPath({
     // - throw error to handle aborting the plugin scans
     throw e
   }
+}
+
+function resolvePluginEntryPath(pluginFolderPath: string) {
+  const typescriptPluginPath = path.join(pluginFolderPath, 'index.ts')
+  if (fs.existsSync(typescriptPluginPath)) {
+    return typescriptPluginPath
+  }
+
+  const javascriptPluginPath = path.join(pluginFolderPath, 'index.js')
+  if (fs.existsSync(javascriptPluginPath)) {
+    return javascriptPluginPath
+  }
+
+  return null
+}
+
+async function loadPluginModule(pluginEntryPath: string) {
+  if (pluginEntryPath.endsWith('.js')) {
+    return dynamicImport(pluginEntryPath)
+  }
+
+  const esbuildResult = await esbuild.build({
+    entryPoints: [pluginEntryPath],
+    write: false,
+    bundle: true,
+    format: 'esm',
+    platform: 'node',
+    target: 'node24',
+    sourcemap: 'inline',
+  })
+
+  const outputFileContents = esbuildResult.outputFiles[0]?.text
+  if (!outputFileContents) {
+    throw new Error(`failed to compile plugin: ${pluginEntryPath}`)
+  }
+
+  const base64CompiledPlugin = Buffer.from(outputFileContents).toString('base64')
+  return dynamicImport(`data:text/javascript;base64,${base64CompiledPlugin}`)
 }
 
 type InvokePluginParams = PluginDefaultParams & {

@@ -19,5 +19,9 @@ import {pathToFileURL} from 'url'
 //
 // - so this looks like a reasonable approach
 export function dynamicImport(path: string) {
+  if (path.startsWith('data:') || path.startsWith('file:')) {
+    return import(path)
+  }
+
   return import(pathToFileURL(path).href)
 }
