@@ -155,7 +155,7 @@ async function loadPluginModule(pluginEntryPath: string) {
 
   const outputFileContents = esbuildResult.outputFiles[0]?.text
   if (!outputFileContents) {
-    throw new Error(`failed to compile plugin: ${pluginEntryPath}`)
+    throw new Error(`esbuild produced no output for plugin: ${pluginEntryPath}`)
   }
 
   const base64CompiledPlugin = Buffer.from(outputFileContents).toString('base64')
