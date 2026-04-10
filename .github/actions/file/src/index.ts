@@ -22,6 +22,7 @@ export default async function () {
   const findings: Finding[] = JSON.parse(fs.readFileSync(findingsFile, 'utf8'))
   const repoWithOwner = core.getInput('repository', {required: true})
   const token = core.getInput('token', {required: true})
+  const baseUrl = core.getInput('base_url', {required: false})
   const screenshotRepo = core.getInput('screenshot_repository', {required: false}) || repoWithOwner
   const cachedFilingsFile = core.getInput('cached_filings_file', {required: false})
   const cachedFilings: (ResolvedFiling | RepeatedFiling)[] = cachedFilingsFile
@@ -30,12 +31,14 @@ export default async function () {
   const shouldOpenGroupedIssues = core.getBooleanInput('open_grouped_issues')
   core.debug(`Input: 'findings_file: ${findingsFile}'`)
   core.debug(`Input: 'repository: ${repoWithOwner}'`)
+  core.debug(`Input: 'base_url: ${baseUrl ?? '(default)'}'`)
   core.debug(`Input: 'screenshot_repository: ${screenshotRepo}'`)
   core.debug(`Input: 'cached_filings_file: ${cachedFilingsFile}'`)
   core.debug(`Input: 'open_grouped_issues: ${shouldOpenGroupedIssues}'`)
 
   const octokit = new OctokitWithThrottling({
     auth: token,
+    baseUrl,
     throttle: {
       onRateLimit: (retryAfter, options, octokit, retryCount) => {
         octokit.log.warn(`Request quota exhausted for request ${options.method} ${options.url}`)
