@@ -1,9 +1,9 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import { fileURLToPath } from 'url'
+import {fileURLToPath} from 'url'
 import * as esbuild from 'esbuild'
-import { dynamicImport } from './dynamicImport.js'
-import type { Finding } from './types.d.js'
+import {dynamicImport} from './dynamicImport.js'
+import type {Finding} from './types.d.js'
 import playwright from 'playwright'
 import * as core from '@actions/core'
 
@@ -60,7 +60,7 @@ export async function loadBuiltInPlugins() {
   core.info('Loading built-in plugins')
 
   const pluginsPath = path.join(__dirname, '../../../scanner-plugins/')
-  await loadPluginsFromPath({ pluginsPath })
+  await loadPluginsFromPath({pluginsPath})
 }
 
 // exported for mocking/testing. not for actual use
@@ -80,7 +80,7 @@ export async function loadCustomPlugins() {
     return
   }
 
-  await loadPluginsFromPath({ pluginsPath, skipBuiltInPlugins: BUILT_IN_PLUGINS })
+  await loadPluginsFromPath({pluginsPath, skipBuiltInPlugins: BUILT_IN_PLUGINS})
 }
 
 // exported for mocking/testing. not for actual use
@@ -166,6 +166,6 @@ async function loadPluginViaJsFile(pluginFolderPath: string) {
 type InvokePluginParams = PluginDefaultParams & {
   plugin: Plugin
 }
-export function invokePlugin({ plugin, page, addFinding }: InvokePluginParams) {
-  return plugin.default({ page, addFinding })
+export function invokePlugin({plugin, page, addFinding}: InvokePluginParams) {
+  return plugin.default({page, addFinding})
 }
