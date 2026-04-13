@@ -1,9 +1,9 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import {fileURLToPath} from 'url'
+import { fileURLToPath } from 'url'
 import * as esbuild from 'esbuild'
-import {dynamicImport} from './dynamicImport.js'
-import type {Finding} from './types.d.js'
+import { dynamicImport } from './dynamicImport.js'
+import type { Finding } from './types.d.js'
 import playwright from 'playwright'
 import * as core from '@actions/core'
 
@@ -60,7 +60,7 @@ export async function loadBuiltInPlugins() {
   core.info('Loading built-in plugins')
 
   const pluginsPath = path.join(__dirname, '../../../scanner-plugins/')
-  await loadPluginsFromPath({pluginsPath})
+  await loadPluginsFromPath({ pluginsPath })
 }
 
 // exported for mocking/testing. not for actual use
@@ -80,7 +80,7 @@ export async function loadCustomPlugins() {
     return
   }
 
-  await loadPluginsFromPath({pluginsPath, skipBuiltInPlugins: BUILT_IN_PLUGINS})
+  await loadPluginsFromPath({ pluginsPath, skipBuiltInPlugins: BUILT_IN_PLUGINS })
 }
 
 // exported for mocking/testing. not for actual use
@@ -97,14 +97,16 @@ export async function loadPluginsFromPath({
       const pluginFolderPath = path.join(pluginsPath, pluginFolder)
 
       if (fs.existsSync(pluginFolderPath) && fs.lstatSync(pluginFolderPath).isDirectory()) {
-        const pluginEntryPath = resolvePluginEntryPath(pluginFolderPath)
+        let plugin = await loadPluginViaTsFile(pluginFolderPath)
 
-        if (!pluginEntryPath) {
+        if (!plugin) {
+          plugin = await loadPluginViaJsFile(pluginFolderPath)
+        }
+
+        if (!plugin) {
           core.info(`Skipping plugin folder without index.ts or index.js: ${pluginFolder}`)
           continue
         }
-
-        const plugin = await loadPluginModule(pluginEntryPath)
 
         if (skipBuiltInPlugins?.includes(plugin.name)) {
           core.info(`Skipping built-in plugin: ${plugin.name}`)
@@ -124,23 +126,11 @@ export async function loadPluginsFromPath({
   }
 }
 
-function resolvePluginEntryPath(pluginFolderPath: string) {
-  const typescriptPluginPath = path.join(pluginFolderPath, 'index.ts')
-  if (fs.existsSync(typescriptPluginPath)) {
-    return typescriptPluginPath
-  }
-
-  const javascriptPluginPath = path.join(pluginFolderPath, 'index.js')
-  if (fs.existsSync(javascriptPluginPath)) {
-    return javascriptPluginPath
-  }
-
-  return null
-}
-
-async function loadPluginModule(pluginEntryPath: string) {
-  if (pluginEntryPath.endsWith('.js')) {
-    return dynamicImport(pluginEntryPath)
+async function loadPluginViaTsFile(pluginFolderPath: string) {
+  const pluginEntryPath = path.join(pluginFolderPath, 'index.ts')
+  if (!fs.existsSync(pluginEntryPath)) {
+    core.info(`No index.ts found for plugin at path: ${pluginFolderPath}`)
+    return
   }
 
   const esbuildResult = await esbuild.build({
@@ -155,16 +145,27 @@ async function loadPluginModule(pluginEntryPath: string) {
 
   const outputFileContents = esbuildResult.outputFiles[0]?.text
   if (!outputFileContents) {
-    throw new Error(`esbuild produced no output for plugin: ${pluginEntryPath}`)
+    core.info(`esbuild produced no output for plugin: ${pluginEntryPath}`)
+    return
   }
 
   const base64CompiledPlugin = Buffer.from(outputFileContents).toString('base64')
   return dynamicImport(`data:text/javascript;base64,${base64CompiledPlugin}`)
 }
 
+async function loadPluginViaJsFile(pluginFolderPath: string) {
+  const pluginEntryPath = path.join(pluginFolderPath, 'index.js')
+  if (!fs.existsSync(pluginEntryPath)) {
+    core.info(`No index.js found for plugin at path: ${pluginFolderPath}`)
+    return
+  }
+
+  return dynamicImport(pluginEntryPath)
+}
+
 type InvokePluginParams = PluginDefaultParams & {
   plugin: Plugin
 }
-export function invokePlugin({plugin, page, addFinding}: InvokePluginParams) {
-  return plugin.default({page, addFinding})
+export function invokePlugin({ plugin, page, addFinding }: InvokePluginParams) {
+  return plugin.default({ page, addFinding })
 }
