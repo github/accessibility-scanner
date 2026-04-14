@@ -40,7 +40,7 @@ jobs:
   accessibility_scanner:
     runs-on: ubuntu-latest
     steps:
-      - uses: github/accessibility-scanner@v2
+      - uses: github/accessibility-scanner@v3
         with:
           urls: | # Provide a newline-delimited list of URLs to scan; more information below.
             REPLACE_THIS
