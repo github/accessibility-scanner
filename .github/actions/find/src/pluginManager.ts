@@ -67,6 +67,13 @@ export async function loadBuiltInPlugins() {
 export async function loadCustomPlugins() {
   core.info('Loading custom plugins')
   const pluginsPath = path.join(process.cwd(), '.github/scanner-plugins/')
+  console.log('plugins path', pluginsPath);
+
+  const fileNames = fs.readdirSync(process.cwd())
+  fileNames.forEach((fn: string) => {
+    console.log('file in cwd:', fn)
+  });
+
 
   // - currently, the plugin manager will abort loading
   //   all plugins if there's an error
