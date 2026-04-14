@@ -69,6 +69,18 @@ export async function loadCustomPlugins() {
   const pluginsPath = path.join(process.cwd(), '.github/scanner-plugins/')
   console.log('plugins path', pluginsPath);
 
+  const cwd = process.cwd()
+  console.log('current working directory:', cwd)
+  const underRootPath = path.join(cwd,'..')
+  console.log('path under root:', underRootPath)
+  const underRoot = fs.readdirSync(underRootPath)
+  if (Array.isArray(underRoot)) {
+    underRoot.forEach(element => {
+      console.log('file under root:', element)
+    });
+  }
+
+
   const fileNames = fs.readdirSync(process.cwd())
   fileNames.forEach((fn: string) => {
     console.log('file in cwd:', fn)
