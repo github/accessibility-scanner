@@ -67,25 +67,6 @@ export async function loadBuiltInPlugins() {
 export async function loadCustomPlugins() {
   core.info('Loading custom plugins')
   const pluginsPath = path.join(process.cwd(), '.github/scanner-plugins/')
-  console.log('plugins path', pluginsPath);
-
-  const cwd = process.cwd()
-  console.log('current working directory:', cwd)
-  const underRootPath = path.join(cwd,'..')
-  console.log('path under root:', underRootPath)
-  const underRoot = fs.readdirSync(underRootPath)
-  if (Array.isArray(underRoot)) {
-    underRoot.forEach(element => {
-      console.log('file under root:', element)
-    });
-  }
-
-
-  const fileNames = fs.readdirSync(process.cwd())
-  fileNames.forEach((fn: string) => {
-    console.log('file in cwd:', fn)
-  });
-
 
   // - currently, the plugin manager will abort loading
   //   all plugins if there's an error
@@ -123,7 +104,7 @@ export async function loadPluginsFromPath({
         }
 
         if (!plugin) {
-          core.info(`Skipping plugin folder without index.ts or index.js: ${pluginFolder}`)
+          core.info(`Skipping plugin without index.ts or index.js file: ${pluginFolder}`)
           continue
         }
 
@@ -152,6 +133,7 @@ async function loadPluginViaTsFile(pluginFolderPath: string) {
     return
   }
 
+  core.info(`index.ts found for plugin at path: ${pluginFolderPath}`)
   const esbuildResult = await esbuild.build({
     entryPoints: [pluginEntryPath],
     write: false,
@@ -179,6 +161,7 @@ async function loadPluginViaJsFile(pluginFolderPath: string) {
     return
   }
 
+  core.info(`index.js found for plugin at path: ${pluginFolderPath}`)
   return dynamicImport(pluginEntryPath)
 }
 
