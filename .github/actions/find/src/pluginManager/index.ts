@@ -1,31 +1,33 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import {fileURLToPath} from 'url'
-import * as esbuild from 'esbuild'
-import {dynamicImport} from './dynamicImport.js'
-import type {Finding} from './types.d.js'
-import playwright from 'playwright'
 import * as core from '@actions/core'
+import {
+  loadPluginViaJsFile,
+  loadPluginViaTsFile,
+} from './pluginFileLoaders.js'
+import {
+  Plugin,
+  PluginDefaultParams
+} from './types.d.js'
+
 
 // Helper to get __dirname equivalent in ES Modules
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-type PluginDefaultParams = {
-  page: playwright.Page
-  addFinding: (findingData: Finding) => Promise<void>
-}
-
-type Plugin = {
-  name: string
-  default: (options: PluginDefaultParams) => Promise<void>
-}
 
 // Built-in plugin names shipped with the scanner.
 // Used to skip duplicates when loading custom plugins.
 const BUILT_IN_PLUGINS = ['reflow-scan']
 
-const plugins: Plugin[] = []
+export const plugins: Plugin[] = []
+// - for unit tests.
+// - I (Abdul) am hesitant about exporting the plugins
+//   variable directly because it introduces coupling.
+export function getPlugins() {
+  return plugins
+}
 let pluginsLoaded = false
 
 export async function loadPlugins() {
@@ -92,8 +94,8 @@ export async function loadPluginsFromPath({
   skipBuiltInPlugins?: string[]
 }) {
   try {
-    const res = fs.readdirSync(pluginsPath)
-    for (const pluginFolder of res) {
+    const folders = fs.readdirSync(pluginsPath)
+    for (const pluginFolder of folders) {
       const pluginFolderPath = path.join(pluginsPath, pluginFolder)
 
       if (fs.existsSync(pluginFolderPath) && fs.lstatSync(pluginFolderPath).isDirectory()) {
@@ -124,45 +126,6 @@ export async function loadPluginsFromPath({
     // - throw error to handle aborting the plugin scans
     throw e
   }
-}
-
-async function loadPluginViaTsFile(pluginFolderPath: string) {
-  const pluginEntryPath = path.join(pluginFolderPath, 'index.ts')
-  if (!fs.existsSync(pluginEntryPath)) {
-    core.info(`No index.ts found for plugin at path: ${pluginFolderPath}`)
-    return
-  }
-
-  core.info(`index.ts found for plugin at path: ${pluginFolderPath}`)
-  const esbuildResult = await esbuild.build({
-    entryPoints: [pluginEntryPath],
-    write: false,
-    bundle: true,
-    format: 'esm',
-    platform: 'node',
-    target: 'node24',
-    sourcemap: 'inline',
-  })
-
-  const outputFileContents = esbuildResult.outputFiles[0]?.text
-  if (!outputFileContents) {
-    core.info(`esbuild produced no output for plugin: ${pluginEntryPath}`)
-    return
-  }
-
-  const base64CompiledPlugin = Buffer.from(outputFileContents).toString('base64')
-  return dynamicImport(`data:text/javascript;base64,${base64CompiledPlugin}`)
-}
-
-async function loadPluginViaJsFile(pluginFolderPath: string) {
-  const pluginEntryPath = path.join(pluginFolderPath, 'index.js')
-  if (!fs.existsSync(pluginEntryPath)) {
-    core.info(`No index.js found for plugin at path: ${pluginFolderPath}`)
-    return
-  }
-
-  core.info(`index.js found for plugin at path: ${pluginFolderPath}`)
-  return dynamicImport(pluginEntryPath)
 }
 
 type InvokePluginParams = PluginDefaultParams & {
