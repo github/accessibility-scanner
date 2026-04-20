@@ -36,7 +36,7 @@ export async function loadPluginViaTsFile(pluginFolderPath: string): Promise<Plu
 
     const base64CompiledPlugin = Buffer.from(outputFileContents).toString('base64')
     return dynamicImport(`data:text/javascript;base64,${base64CompiledPlugin}`)
-  } catch (e) {
+  } catch {
     core.warning(`Error loading plugin at path: ${pluginEntryPath}`)
   }
 }
