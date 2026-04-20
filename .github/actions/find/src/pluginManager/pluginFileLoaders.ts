@@ -3,7 +3,7 @@ import * as path from 'path'
 import * as esbuild from 'esbuild'
 import {dynamicImport} from '../dynamicImport.js'
 import * as core from '@actions/core'
-import { Plugin } from './types.js'
+import type { Plugin } from './types.js'
 
 // - these functions had to be moved into a separate file
 //   because vitest will not mock the implementation of functions
@@ -16,25 +16,29 @@ export async function loadPluginViaTsFile(pluginFolderPath: string): Promise<Plu
     return
   }
 
-  core.info(`index.ts found for plugin at path: ${pluginFolderPath}`)
-  const esbuildResult = await esbuild.build({
-    entryPoints: [pluginEntryPath],
-    write: false,
-    bundle: true,
-    format: 'esm',
-    platform: 'node',
-    target: 'node24',
-    sourcemap: 'inline',
-  })
+  try {
+    core.info(`index.ts found for plugin at path: ${pluginFolderPath}`)
+    const esbuildResult = await esbuild.build({
+      entryPoints: [pluginEntryPath],
+      write: false,
+      bundle: true,
+      format: 'esm',
+      platform: 'node',
+      target: 'node24',
+      sourcemap: 'inline',
+    })
 
-  const outputFileContents = esbuildResult.outputFiles[0]?.text
-  if (!outputFileContents) {
-    core.info(`esbuild produced no output for plugin: ${pluginEntryPath}`)
-    return
+    const outputFileContents = esbuildResult.outputFiles[0]?.text
+    if (!outputFileContents) {
+      core.info(`esbuild produced no output for plugin: ${pluginEntryPath}`)
+      return
+    }
+
+    const base64CompiledPlugin = Buffer.from(outputFileContents).toString('base64')
+    return dynamicImport(`data:text/javascript;base64,${base64CompiledPlugin}`)
+  } catch (e) {
+    core.warning(`Error loading plugin at path: ${pluginEntryPath}`)
   }
-
-  const base64CompiledPlugin = Buffer.from(outputFileContents).toString('base64')
-  return dynamicImport(`data:text/javascript;base64,${base64CompiledPlugin}`)
 }
 
 export async function loadPluginViaJsFile(pluginFolderPath: string): Promise<Plugin | undefined> {

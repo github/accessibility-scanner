@@ -3,7 +3,7 @@ import {describe, it, expect, vi, beforeEach} from 'vitest'
 import * as fs from 'fs'
 import * as esbuild from 'esbuild'
 import * as dynamicImportModule from '../src/dynamicImport.js'
-import * as pluginManager from '../src/pluginManager'
+import * as pluginManager from '../src/pluginManager/index.js'
 import * as core from '@actions/core'
 import * as pluginLoaders from '../src/pluginManager/pluginFileLoaders.js'
 
@@ -11,7 +11,7 @@ import * as pluginLoaders from '../src/pluginManager/pluginFileLoaders.js'
 // https://vitest.dev/guide/browser/#limitations
 vi.mock('fs', {spy: true})
 vi.mock('esbuild', {spy: true})
-vi.mock('../src/pluginManager', {spy: true})
+vi.mock('../src/pluginManager/index.js', {spy: true})
 vi.mock('@actions/core', {spy: true})
 
 describe('pluginManager', () => {

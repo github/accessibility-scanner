@@ -6,7 +6,7 @@ import {
   loadPluginViaJsFile,
   loadPluginViaTsFile,
 } from './pluginFileLoaders.js'
-import {
+import type {
   Plugin,
   PluginDefaultParams
 } from './types.d.js'
