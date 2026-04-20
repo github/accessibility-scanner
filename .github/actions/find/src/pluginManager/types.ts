@@ -1,4 +1,4 @@
-import type {Finding} from './types.d.js'
+import type {Finding} from '../types.d.js'
 import playwright from 'playwright'
 
 export type PluginDefaultParams = {
