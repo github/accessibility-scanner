@@ -14,9 +14,7 @@ const __dirname = path.dirname(__filename)
 const BUILT_IN_PLUGINS = ['reflow-scan']
 
 export const plugins: Plugin[] = []
-// - for unit tests.
-// - I (Abdul) am hesitant about exporting the plugins
-//   variable directly because it introduces coupling.
+// Required for unit tests.
 export function getPlugins() {
   return plugins
 }
