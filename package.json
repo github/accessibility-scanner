@@ -26,11 +26,11 @@
     "@octokit/core": "^7.0.6",
     "@octokit/plugin-throttling": "^11.0.3",
     "@octokit/types": "^16.0.0",
-    "@types/node": "^25.4.0",
-    "eslint": "^10.0.3",
+    "@types/node": "^25.6.0",
+    "eslint": "^10.2.0",
     "eslint-config-prettier": "^10.1.8",
-    "prettier": "^3.8.1",
-    "typescript-eslint": "^8.57.0",
-    "vitest": "^4.0.18"
+    "prettier": "^3.8.3",
+    "typescript-eslint": "^8.58.2",
+    "vitest": "^4.1.4"
   }
 }

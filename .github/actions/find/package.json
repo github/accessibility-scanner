@@ -16,10 +16,10 @@
     "@actions/core": "^3.0.0",
     "@axe-core/playwright": "^4.11.1",
     "esbuild": "^0.28.0",
-    "playwright": "^1.58.2"
+    "playwright": "^1.59.1"
   },
   "devDependencies": {
-    "@types/node": "^25.4.0",
-    "typescript": "^5.9.3"
+    "@types/node": "^25.6.0",
+    "typescript": "^6.0.2"
   }
 }
