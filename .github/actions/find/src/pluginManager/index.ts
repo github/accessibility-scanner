@@ -11,7 +11,7 @@ const __dirname = path.dirname(__filename)
 
 // Built-in plugin names shipped with the scanner.
 // Used to skip duplicates when loading custom plugins.
-const BUILT_IN_PLUGINS = ['reflow-scan']
+const BUILT_IN_PLUGINS = ['reflow-scan', 'test-js-file-plugin-load']
 
 export const plugins: Plugin[] = []
 // Required for unit tests.
