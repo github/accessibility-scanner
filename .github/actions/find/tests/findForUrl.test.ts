@@ -4,7 +4,7 @@ import {findForUrl} from '../src/findForUrl.js'
 import {AxeBuilder} from '@axe-core/playwright'
 import axe from 'axe-core'
 import * as pluginManager from '../src/pluginManager/index.js'
-import type { Plugin } from '../src/pluginManager/types.js'
+import type {Plugin} from '../src/pluginManager/types.js'
 import {clearCache} from '../src/scansContextProvider.js'
 
 vi.mock('@actions/core', {spy: true})

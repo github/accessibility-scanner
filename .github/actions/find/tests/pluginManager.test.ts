@@ -119,11 +119,11 @@ describe('pluginManager', () => {
         vi.spyOn(pluginLoaders, 'loadPluginViaJsFile').mockImplementation(() => Promise.resolve(undefined))
 
         pluginManager.clearCache()
-        await pluginManager.loadPluginsFromPath({ pluginsPath: 'fake-path' })
+        await pluginManager.loadPluginsFromPath({pluginsPath: 'fake-path'})
 
         expect(pluginManager.getPlugins().length).toBe(0)
-        expect(pluginLoaders.loadPluginViaJsFile).toHaveBeenCalledOnce();
-        expect(pluginLoaders.loadPluginViaTsFile).toHaveBeenCalledOnce();
+        expect(pluginLoaders.loadPluginViaJsFile).toHaveBeenCalledOnce()
+        expect(pluginLoaders.loadPluginViaTsFile).toHaveBeenCalledOnce()
         expect(core.info.mock.calls[0][0]).toBe('Skipping plugin without index.ts or index.js file: folder-a')
       })
     })
@@ -133,14 +133,16 @@ describe('pluginManager', () => {
         sharedSetup()
         pluginManager.clearCache()
 
-        vi.spyOn(pluginLoaders, 'loadPluginViaTsFile').mockImplementation(() => Promise.resolve({name: 'test-plugin', default: vi.fn()}))
+        vi.spyOn(pluginLoaders, 'loadPluginViaTsFile').mockImplementation(() =>
+          Promise.resolve({name: 'test-plugin', default: vi.fn()}),
+        )
         vi.spyOn(pluginLoaders, 'loadPluginViaJsFile').mockImplementation(() => Promise.resolve(undefined))
 
-        await pluginManager.loadPluginsFromPath({ pluginsPath: 'fake-path' })
+        await pluginManager.loadPluginsFromPath({pluginsPath: 'fake-path'})
 
         expect(pluginManager.getPlugins().length).toBe(1)
-        expect(pluginLoaders.loadPluginViaJsFile).not.toHaveBeenCalled();
-        expect(pluginLoaders.loadPluginViaTsFile).toHaveBeenCalledOnce();
+        expect(pluginLoaders.loadPluginViaJsFile).not.toHaveBeenCalled()
+        expect(pluginLoaders.loadPluginViaTsFile).toHaveBeenCalledOnce()
         expect(core.info.mock.calls[0][0]).toBe('Found plugin: test-plugin')
       })
     })
@@ -151,16 +153,17 @@ describe('pluginManager', () => {
         pluginManager.clearCache()
 
         vi.spyOn(pluginLoaders, 'loadPluginViaTsFile').mockImplementation(() => Promise.resolve(undefined))
-        vi.spyOn(pluginLoaders, 'loadPluginViaJsFile').mockImplementation(() => Promise.resolve({name: 'test-plugin', default: vi.fn()}))
+        vi.spyOn(pluginLoaders, 'loadPluginViaJsFile').mockImplementation(() =>
+          Promise.resolve({name: 'test-plugin', default: vi.fn()}),
+        )
 
-        await pluginManager.loadPluginsFromPath({ pluginsPath: 'fake-path' })
+        await pluginManager.loadPluginsFromPath({pluginsPath: 'fake-path'})
 
         expect(pluginManager.getPlugins().length).toBe(1)
-        expect(pluginLoaders.loadPluginViaJsFile).toHaveBeenCalledOnce();
-        expect(pluginLoaders.loadPluginViaTsFile).toHaveBeenCalledOnce();
+        expect(pluginLoaders.loadPluginViaJsFile).toHaveBeenCalledOnce()
+        expect(pluginLoaders.loadPluginViaTsFile).toHaveBeenCalledOnce()
         expect(core.info.mock.calls[0][0]).toBe('Found plugin: test-plugin')
       })
     })
   })
-
 })

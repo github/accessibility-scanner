@@ -2,20 +2,12 @@ import * as fs from 'fs'
 import * as path from 'path'
 import {fileURLToPath} from 'url'
 import * as core from '@actions/core'
-import {
-  loadPluginViaJsFile,
-  loadPluginViaTsFile,
-} from './pluginFileLoaders.js'
-import type {
-  Plugin,
-  PluginDefaultParams
-} from './types.js'
-
+import {loadPluginViaJsFile, loadPluginViaTsFile} from './pluginFileLoaders.js'
+import type {Plugin, PluginDefaultParams} from './types.js'
 
 // Helper to get __dirname equivalent in ES Modules
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-
 
 // Built-in plugin names shipped with the scanner.
 // Used to skip duplicates when loading custom plugins.

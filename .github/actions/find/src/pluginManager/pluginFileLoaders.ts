@@ -3,7 +3,7 @@ import * as path from 'path'
 import * as esbuild from 'esbuild'
 import {dynamicImport} from '../dynamicImport.js'
 import * as core from '@actions/core'
-import type { Plugin } from './types.js'
+import type {Plugin} from './types.js'
 
 // - these functions had to be moved into a separate file
 //   because vitest will not mock the implementation of functions
