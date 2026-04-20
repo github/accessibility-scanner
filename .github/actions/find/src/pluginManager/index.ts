@@ -9,7 +9,7 @@ import {
 import type {
   Plugin,
   PluginDefaultParams
-} from './types.d.js'
+} from './types.js'
 
 
 // Helper to get __dirname equivalent in ES Modules

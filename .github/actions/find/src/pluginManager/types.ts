@@ -1,7 +1,7 @@
 import type {Finding} from './types.d.js'
 import playwright from 'playwright'
 
-type PluginDefaultParams = {
+export type PluginDefaultParams = {
   page: playwright.Page
   addFinding: (findingData: Finding) => Promise<void>
 }
