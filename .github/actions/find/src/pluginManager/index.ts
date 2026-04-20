@@ -1,30 +1,23 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import {fileURLToPath} from 'url'
-import {dynamicImport} from './dynamicImport.js'
-import type {Finding} from './types.d.js'
-import playwright from 'playwright'
 import * as core from '@actions/core'
+import {loadPluginViaJsFile, loadPluginViaTsFile} from './pluginFileLoaders.js'
+import type {Plugin, PluginDefaultParams} from './types.js'
 
 // Helper to get __dirname equivalent in ES Modules
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-type PluginDefaultParams = {
-  page: playwright.Page
-  addFinding: (findingData: Finding) => Promise<void>
-}
-
-type Plugin = {
-  name: string
-  default: (options: PluginDefaultParams) => Promise<void>
-}
-
 // Built-in plugin names shipped with the scanner.
 // Used to skip duplicates when loading custom plugins.
-const BUILT_IN_PLUGINS = ['reflow-scan']
+const BUILT_IN_PLUGINS = ['reflow-scan', 'test-js-file-plugin-load']
 
-const plugins: Plugin[] = []
+export const plugins: Plugin[] = []
+// Required for unit tests.
+export function getPlugins() {
+  return plugins
+}
 let pluginsLoaded = false
 
 export async function loadPlugins() {
@@ -58,7 +51,7 @@ export function clearCache() {
 export async function loadBuiltInPlugins() {
   core.info('Loading built-in plugins')
 
-  const pluginsPath = path.join(__dirname, '../../../scanner-plugins/')
+  const pluginsPath = path.join(__dirname, '../../../../scanner-plugins/')
   await loadPluginsFromPath({pluginsPath})
 }
 
@@ -91,12 +84,21 @@ export async function loadPluginsFromPath({
   skipBuiltInPlugins?: string[]
 }) {
   try {
-    const res = fs.readdirSync(pluginsPath)
-    for (const pluginFolder of res) {
+    const folders = fs.readdirSync(pluginsPath)
+    for (const pluginFolder of folders) {
       const pluginFolderPath = path.join(pluginsPath, pluginFolder)
 
       if (fs.existsSync(pluginFolderPath) && fs.lstatSync(pluginFolderPath).isDirectory()) {
-        const plugin = await dynamicImport(path.join(pluginsPath, pluginFolder, 'index.js'))
+        let plugin = await loadPluginViaTsFile(pluginFolderPath)
+
+        if (!plugin) {
+          plugin = await loadPluginViaJsFile(pluginFolderPath)
+        }
+
+        if (!plugin) {
+          core.info(`Skipping plugin without index.ts or index.js file: ${pluginFolder}`)
+          continue
+        }
 
         if (skipBuiltInPlugins?.includes(plugin.name)) {
           core.info(`Skipping built-in plugin: ${plugin.name}`)

@@ -19,5 +19,12 @@ import {pathToFileURL} from 'url'
 //
 // - so this looks like a reasonable approach
 export function dynamicImport(path: string) {
+  // - this if condition is for non-file imports.
+  // - this can be encountered when using esbuild to compile TS plugin files
+  //   at run-time.
+  if (path.startsWith('data:') || path.startsWith('file:')) {
+    return import(path)
+  }
+
   return import(pathToFileURL(path).href)
 }

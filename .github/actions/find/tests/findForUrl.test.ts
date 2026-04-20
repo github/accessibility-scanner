@@ -3,7 +3,8 @@ import * as core from '@actions/core'
 import {findForUrl} from '../src/findForUrl.js'
 import {AxeBuilder} from '@axe-core/playwright'
 import axe from 'axe-core'
-import * as pluginManager from '../src/pluginManager.js'
+import * as pluginManager from '../src/pluginManager/index.js'
+import type {Plugin} from '../src/pluginManager/types.js'
 import {clearCache} from '../src/scansContextProvider.js'
 
 vi.mock('@actions/core', {spy: true})
@@ -33,7 +34,7 @@ vi.mock('@axe-core/playwright', () => {
 })
 
 let actionInput: string = ''
-let loadedPlugins: pluginManager.Plugin[] = []
+let loadedPlugins: Plugin[] = []
 
 function clearAll() {
   clearCache()

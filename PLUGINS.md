@@ -6,7 +6,7 @@ Some plugins come built-in with the scanner and can be enabled via [actions inpu
 
 ## How plugins work
 
-Plugins are dynamically loaded by the scanner when it runs. The scanner will look into the `./.github` folder in your repo (where you run the workflow from) and search for a `scanner-plugins` folder. If it finds it, it will assume each folder under that is a plugin, and attempt to load the `index.js` file inside it. Once loaded, the scanner will invoke the exported default function from the `index.js` file.
+Plugins are dynamically loaded by the scanner when it runs. The scanner will look into the `./.github` folder in your repo (where you run the workflow from) and search for a `scanner-plugins` folder. If it finds it, it will assume each folder under that is a plugin, and attempt to load the `index.ts` (first) or `index.js` (second) file inside it. Once loaded, the scanner will invoke the exported default function from the `index.js/index.ts` file.
 
 ### Default function API
 
@@ -27,9 +27,9 @@ A async function (you must use `await` or `.then` when invoking this function) t
 As mentioned above, plugins need to exist under `./.github/scanner-plugins`. For a plugin to work, it needs to meet the following criteria:
 
 - Each separate plugin should be contained in it's own directory in `./.github/scanner-plugins`. For example, `./.github/scanner-plugins/plugin-1` would be 1 plugin loaded by the scanner.
-- Each plugin should have one `index.js` file inside its folder.
-- The `index.js` file must export a `name` field. This is the name used to pass to the `scans` input. So if the plugin exports a name value of `my-custom-plugin` and we pass the following to the scanner action inputs: `scans: ['my-custom-plugin']`, it would cause the scanner to only run that plugin.
-- The `index.js` file must export a default function. This is the function that the scanner uses to run the plugin. This can be an async function.
+- Each plugin should have one `index.ts` OR `index.js` file inside its folder.
+- The `index.ts/index.js` file must export a `name` field. This is the name used to pass to the `scans` input. So if the plugin exports a name value of `my-custom-plugin` and we pass the following to the scanner action inputs: `scans: ['my-custom-plugin']`, it would cause the scanner to only run that plugin.
+- The `index.ts/index.js` file must export a default function. This is the function that the scanner uses to run the plugin. This can be an async function.
 
 ## Things to look out for
 
