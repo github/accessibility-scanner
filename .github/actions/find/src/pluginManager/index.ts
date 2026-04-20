@@ -51,7 +51,7 @@ export function clearCache() {
 export async function loadBuiltInPlugins() {
   core.info('Loading built-in plugins')
 
-  const pluginsPath = path.join(__dirname, '../../../scanner-plugins/')
+  const pluginsPath = path.join(__dirname, '../../../../scanner-plugins/')
   await loadPluginsFromPath({pluginsPath})
 }
 
