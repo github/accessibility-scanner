@@ -28,15 +28,15 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     strategy:
       matrix:
-        site: ["sites/site-with-errors"]
+        site: ['sites/site-with-errors']
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@e65c17d16e57e481586a6a5a0282698790062f92
+        uses: ruby/setup-ruby@7372622e62b60b3cb750dcd2b9e32c247ffec26a
         with:
-          ruby-version: "3.4"
+          ruby-version: '3.4'
           bundler-cache: true
           working-directory: ${{ matrix.site }}
 
@@ -87,6 +87,13 @@ jobs:
         with:
           path: ${{ steps.cache_key.outputs.cache_key }}
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      # - if we need to do the same to file/fix in the future
+      #   we can add separate steps
+      - name: Install 'find' dependencies
+        shell: bash
+        working-directory: .github/actions/find
+        run: npm ci
 
       - name: Validate scan results (${{ matrix.site }})
         run: |

@@ -3,7 +3,7 @@ import {AxeBuilder} from '@axe-core/playwright'
 import playwright from 'playwright'
 import {AuthContext} from './AuthContext.js'
 import {generateScreenshots} from './generateScreenshots.js'
-import {loadPlugins, invokePlugin} from './pluginManager.js'
+import {loadPlugins, invokePlugin} from './pluginManager/index.js'
 import {getScansContext} from './scansContextProvider.js'
 import * as core from '@actions/core'
 
