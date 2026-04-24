@@ -60,7 +60,31 @@ describe('openIssue', () => {
     expect(octokit.request).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({
-        labels: ['axe-scanning-issue', 'axe rule: color-contrast'],
+        labels: ['axe-scanning-issue', 'wcag-violation', 'axe rule: color-contrast'],
+      }),
+    )
+  })
+
+  it('labels best-practice findings correctly', async () => {
+    const octokit = mockOctokit()
+    await openIssue(octokit, 'org/repo', {...baseFinding, ruleType: 'best-practice'})
+
+    expect(octokit.request).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        labels: ['axe-scanning-issue', 'best-practice', 'axe rule: color-contrast'],
+      }),
+    )
+  })
+
+  it('labels experimental findings correctly', async () => {
+    const octokit = mockOctokit()
+    await openIssue(octokit, 'org/repo', {...baseFinding, ruleType: 'experimental'})
+
+    expect(octokit.request).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        labels: ['axe-scanning-issue', 'experimental', 'axe rule: color-contrast'],
       }),
     )
   })

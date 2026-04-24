@@ -8,6 +8,8 @@ export type Finding = {
   solutionLong?: string
   screenshotId?: string
   ruleId?: string
+  /** Distinguishes WCAG violations from best practices. One of: "wcag", "best-practice", "experimental" */
+  ruleType?: string
 }
 
 export type Cookie = {
