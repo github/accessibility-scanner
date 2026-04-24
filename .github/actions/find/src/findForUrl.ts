@@ -79,6 +79,17 @@ async function runAxeScan({
 
   if (rawFindings) {
     for (const violation of rawFindings.violations) {
+      // Determine rule type from axe-core tags
+      const tags = violation.tags ?? []
+      let ruleType: string | undefined
+      if (tags.some((tag: string) => tag.startsWith('wcag'))) {
+        ruleType = 'wcag'
+      } else if (tags.includes('best-practice')) {
+        ruleType = 'best-practice'
+      } else if (tags.includes('experimental')) {
+        ruleType = 'experimental'
+      }
+
       await addFinding({
         scannerType: 'axe',
         url,
@@ -86,6 +97,7 @@ async function runAxeScan({
         problemShort: violation.help.toLowerCase().replace(/'/g, '&apos;'),
         problemUrl: violation.helpUrl.replace(/'/g, '&apos;'),
         ruleId: violation.id,
+        ruleType,
         solutionShort: violation.description.toLowerCase().replace(/'/g, '&apos;'),
         solutionLong: violation.nodes[0].failureSummary?.replace(/'/g, '&apos;'),
       })

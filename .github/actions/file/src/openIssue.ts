@@ -22,6 +22,17 @@ export async function openIssue(octokit: Octokit, repoWithOwner: string, finding
   const repo = repoWithOwner.split('/')[1]
 
   const labels = [`${finding.scannerType}-scanning-issue`]
+
+  // Add rule type label to distinguish WCAG violations from best practices
+  if (finding.ruleType === 'best-practice') {
+    labels.push('best-practice')
+  } else if (finding.ruleType === 'experimental') {
+    labels.push('experimental')
+  } else {
+    // Default to wcag for any WCAG-tagged rule
+    labels.push('wcag-violation')
+  }
+
   // Only include a ruleId label when it's defined
   if (finding.ruleId) {
     labels.push(`${finding.scannerType} rule: ${finding.ruleId}`)
