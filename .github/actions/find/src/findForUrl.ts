@@ -16,7 +16,7 @@ export async function findForUrl(
 ): Promise<Finding[]> {
   const browser = await playwright.chromium.launch({
     headless: true,
-    executablePath: process.env.CI ? '/usr/bin/google-chrome' : undefined,
+    executablePath: process.env.CI && process.platform === 'linux' ? '/usr/bin/google-chrome' : undefined,
   })
   const contextOptions = {
     ...(authContext?.toPlaywrightBrowserContextOptions() ?? {}),

@@ -19,7 +19,7 @@ export default async function () {
     // Launch a headless browser
     browser = await playwright.chromium.launch({
       headless: true,
-      executablePath: process.env.CI ? '/usr/bin/google-chrome' : undefined,
+      executablePath: process.env.CI && process.platform === 'linux' ? '/usr/bin/google-chrome' : undefined,
     })
     context = await browser.newContext({
       // Try HTTP Basic authentication
