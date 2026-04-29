@@ -42,6 +42,19 @@ await (async () => {
       console.error(`npm ci failed: ${error}`)
       process.exit(1)
     }
+
+    // On non-Linux runners, install Playwright's bundled Chromium since the
+    // system Chrome (/usr/bin/google-chrome) is not available.
+    if (process.platform !== 'linux') {
+      try {
+        await spawnPromisified('npx', ['playwright', 'install', 'chromium'], {
+          cwd: url.fileURLToPath(new URL('.', import.meta.url)),
+        })
+      } catch (error) {
+        console.error(`playwright install chromium failed: ${error}`)
+        process.exit(1)
+      }
+    }
   } finally {
     const core = await import('@actions/core')
     // Compile TypeScript.
