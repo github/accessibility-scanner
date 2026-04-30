@@ -30,6 +30,18 @@ As mentioned above, plugins need to exist under `./.github/scanner-plugins`. For
 - Each plugin should have one `index.ts` OR `index.js` file inside its folder.
 - The `index.ts/index.js` file must export a `name` field. This is the name used to pass to the `scans` input. So if the plugin exports a name value of `my-custom-plugin` and we pass the following to the scanner action inputs: `scans: ['my-custom-plugin']`, it would cause the scanner to only run that plugin.
 - The `index.ts/index.js` file must export a default function. This is the function that the scanner uses to run the plugin. This can be an async function.
+- To your workflow file, before the scanner step, add `- uses: actions/checkout@v6` (or whatever the current version is), like so:
+
+```
+jobs:
+  accessibility_scanner:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: github/accessibility-scanner@v3
+        with:
+          ... the rest of the workflow setup
+```
 
 ## Things to look out for
 
