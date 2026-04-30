@@ -32,7 +32,7 @@ As mentioned above, plugins need to exist under `./.github/scanner-plugins`. For
 - The `index.ts/index.js` file must export a default function. This is the function that the scanner uses to run the plugin. This can be an async function.
 - To your workflow file, before the scanner step, add `- uses: actions/checkout@v6` (or whatever the current version is), like so:
 
-```
+```yaml
 jobs:
   accessibility_scanner:
     runs-on: ubuntu-latest
