@@ -1,6 +1,8 @@
 export type Finding = {
   scannerType: string
   ruleId?: string
+  /** Distinguishes WCAG violations from best practices. One of: "wcag", "best-practice", "experimental" */
+  ruleType?: string
   url: string
   html?: string
   problemShort: string

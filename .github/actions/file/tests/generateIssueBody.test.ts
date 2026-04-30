@@ -23,9 +23,10 @@ describe('generateIssueBody', () => {
   it('includes acceptance criteria and omits the Specifically section when solutionLong is missing', () => {
     const body = generateIssueBody(baseFinding, 'github/accessibility-scanner')
 
-    expect(body).toContain('## What')
+    expect(body).toContain('## WCAG Violation')
+    expect(body).toContain('\U0001F6A8 WCAG Violation')
     expect(body).toContain('## Acceptance Criteria')
-    expect(body).toContain('The specific violation reported in this issue is no longer reproducible.')
+    expect(body).toContain('The specific issue reported in this issue is no longer reproducible.')
     expect(body).not.toContain('Specifically:')
   })
 
