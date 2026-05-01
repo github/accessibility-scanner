@@ -58,6 +58,7 @@ jobs:
           # reduced_motion: no-preference # Optional: Playwright reduced motion configuration option
           # color_scheme: light # Optional: Playwright color scheme configuration option
           # scans: '["axe","reflow-scan"]' # Optional: An array of scans (or plugins) to be performed. If not provided, only Axe will be performed.
+          # exclude: '["iframe","#third-party-widget"]' # Optional: A JSON array of CSS selectors to exclude from the Axe scan.
 ```
 
 > 👉 Update all `REPLACE_THIS` placeholders with your actual values. See [Action Inputs](#action-inputs) for details.
@@ -130,6 +131,7 @@ Trigger the workflow manually or automatically based on your configuration. The 
 | `reduced_motion`          | No       | Playwright `reducedMotion` setting for scan contexts. Allowed values: `reduce`, `no-preference`                                                                                                     | `reduce`                                                    |
 | `color_scheme`            | No       | Playwright `colorScheme` setting for scan contexts. Allowed values: `light`, `dark`, `no-preference`                                                                                                | `dark`                                                      |
 | `scans`                   | No       | An array of scans (or plugins) to be performed. If not provided, only Axe will be performed.                                                                        | `'["axe", "reflow-scan", ...other plugins]'`                                 |
+| `exclude`                 | No       | A stringified JSON array of CSS selectors to exclude from the Axe scan. Useful for iframes, third-party widgets, or user-generated content.                         | `'["iframe","#third-party-widget"]'`                         |
 
 ---
 

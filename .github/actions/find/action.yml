@@ -22,6 +22,9 @@ inputs:
   color_scheme:
     description: 'Playwright colorScheme setting: https://playwright.dev/docs/api/class-browser#browser-new-context-option-color-scheme'
     required: false
+  exclude:
+    description: 'Stringified JSON array of CSS selectors to exclude from the Axe scan'
+    required: false
 
 outputs:
   findings_file:

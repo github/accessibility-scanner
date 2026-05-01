@@ -34,10 +34,20 @@ export default async function () {
     colorScheme = colorSchemeInput as ColorSchemePreference
   }
 
+  const excludeInput = core.getInput('exclude', {required: false})
+  let exclude: string[] | undefined
+  if (excludeInput) {
+    try {
+      exclude = JSON.parse(excludeInput) as string[]
+    } catch {
+      throw new Error(`Input 'exclude' must be a valid JSON array of CSS selectors. Received: ${excludeInput}`)
+    }
+  }
+
   const findings = []
   for (const url of urls) {
     core.info(`Preparing to scan ${url}`)
-    const findingsForUrl = await findForUrl(url, authContext, includeScreenshots, reducedMotion, colorScheme)
+    const findingsForUrl = await findForUrl(url, authContext, includeScreenshots, reducedMotion, colorScheme, exclude)
     if (findingsForUrl.length === 0) {
       core.info(`No accessibility gaps were found on ${url}`)
       continue

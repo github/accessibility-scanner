@@ -13,6 +13,7 @@ export async function findForUrl(
   includeScreenshots: boolean = false,
   reducedMotion?: ReducedMotionPreference,
   colorScheme?: ColorSchemePreference,
+  exclude?: string[],
 ): Promise<Finding[]> {
   const browser = await playwright.chromium.launch({
     headless: true,
@@ -56,7 +57,7 @@ export async function findForUrl(
     }
 
     if (scansContext.shouldPerformAxeScan) {
-      await runAxeScan({page, addFinding})
+      await runAxeScan({page, addFinding, exclude})
     }
   } catch (e) {
     core.error(`Error during accessibility scan: ${e}`)
@@ -69,13 +70,18 @@ export async function findForUrl(
 async function runAxeScan({
   page,
   addFinding,
+  exclude,
 }: {
   page: playwright.Page
   addFinding: (findingData: Finding, options?: {includeScreenshots?: boolean}) => Promise<void>
+  exclude?: string[]
 }) {
   const url = page.url()
   core.info(`Scanning ${url}`)
-  const rawFindings = await new AxeBuilder({page}).analyze()
+  const axeBuilder = exclude && exclude.length > 0
+    ? exclude.reduce((builder, selector) => builder.exclude(selector), new AxeBuilder({page}))
+    : new AxeBuilder({page})
+  const rawFindings = await axeBuilder.analyze()
 
   if (rawFindings) {
     for (const violation of rawFindings.violations) {
