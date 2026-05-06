@@ -1,4 +1,4 @@
-import type {AuthContextInput, ColorSchemePreference, ReducedMotionPreference} from './types.js'
+import type {AuthContextInput, ColorSchemePreference, ReducedMotionPreference, UrlConfig} from './types.js'
 import fs from 'node:fs'
 import path from 'node:path'
 import * as core from '@actions/core'
@@ -7,8 +7,37 @@ import {findForUrl} from './findForUrl.js'
 
 export default async function () {
   core.info("Starting 'find' action")
-  const urls = core.getMultilineInput('urls', {required: true})
-  core.debug(`Input: 'urls: ${JSON.stringify(urls)}'`)
+  const urlConfigInput = core.getInput('url_config', {required: false})
+  let urlConfigs: UrlConfig[] | undefined
+  if (urlConfigInput) {
+    try {
+      const parsed = JSON.parse(urlConfigInput)
+      if (!Array.isArray(parsed)) {
+        throw new Error("Input 'url_config' must be a JSON array.")
+      }
+      for (const item of parsed) {
+        if (typeof item !== 'object' || item === null || typeof item.url !== 'string') {
+          throw new Error("Each entry in 'url_config' must be an object with a 'url' string field.")
+        }
+      }
+      urlConfigs = parsed as UrlConfig[]
+    } catch (e) {
+      throw new Error(`Invalid 'url_config' input: ${(e as Error).message}`)
+    }
+  }
+
+  let urls: string[]
+  if (urlConfigs) {
+    core.debug(`Input: 'url_config: ${JSON.stringify(urlConfigs)}'`)
+    urls = urlConfigs.map(c => c.url)
+  } else {
+    urls = core.getMultilineInput('urls', {required: false})
+    core.debug(`Input: 'urls: ${JSON.stringify(urls)}'`)
+    if (urls.length === 0) {
+      throw new Error("Either 'urls' or 'url_config' input must be provided.")
+    }
+  }
+
   const authContextInput: AuthContextInput = JSON.parse(core.getInput('auth_context', {required: false}) || '{}')
   const authContext = new AuthContext(authContextInput)
 
@@ -34,20 +63,11 @@ export default async function () {
     colorScheme = colorSchemeInput as ColorSchemePreference
   }
 
-  const excludeInput = core.getInput('exclude', {required: false})
-  let exclude: string[] | undefined
-  if (excludeInput) {
-    try {
-      exclude = JSON.parse(excludeInput) as string[]
-    } catch {
-      throw new Error(`Input 'exclude' must be a valid JSON array of CSS selectors. Received: ${excludeInput}`)
-    }
-  }
-
   const findings = []
   for (const url of urls) {
     core.info(`Preparing to scan ${url}`)
-    const findingsForUrl = await findForUrl(url, authContext, includeScreenshots, reducedMotion, colorScheme, exclude)
+    const excludeSelectors = urlConfigs?.find(c => c.url === url)?.excludeSelectors
+    const findingsForUrl = await findForUrl(url, authContext, includeScreenshots, reducedMotion, colorScheme, excludeSelectors)
     if (findingsForUrl.length === 0) {
       core.info(`No accessibility gaps were found on ${url}`)
       continue

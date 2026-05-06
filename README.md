@@ -58,7 +58,7 @@ jobs:
           # reduced_motion: no-preference # Optional: Playwright reduced motion configuration option
           # color_scheme: light # Optional: Playwright color scheme configuration option
           # scans: '["axe","reflow-scan"]' # Optional: An array of scans (or plugins) to be performed. If not provided, only Axe will be performed.
-          # exclude: '["iframe","#third-party-widget"]' # Optional: A JSON array of CSS selectors to exclude from the Axe scan.
+          # url_config: '[{"url":"https://example.com","excludeSelectors":["iframe","#widget"]}]' # Optional: Per-URL config with CSS selectors to exclude from the Axe scan. When provided, takes precedence over 'urls'.
 ```
 
 > 👉 Update all `REPLACE_THIS` placeholders with your actual values. See [Action Inputs](#action-inputs) for details.
@@ -116,7 +116,7 @@ Trigger the workflow manually or automatically based on your configuration. The 
 
 | Input                     | Required | Description                                                                                                                                                                                         | Example                                                     |
 | ------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| `urls`                    | Yes      | Newline-delimited list of URLs to scan                                                                                                                                                              | `https://primer.style`<br>`https://primer.style/octicons`   |
+| `urls`                    | No*      | Newline-delimited list of URLs to scan. Required unless `url_config` is provided.                                                                                                                   | `https://primer.style`<br>`https://primer.style/octicons`   |
 | `repository`              | Yes      | Repository (with owner) for issues and PRs                                                                                                                                                          | `primer/primer-docs`                                        |
 | `token`                   | Yes      | PAT with write permissions (see above)                                                                                                                                                              | `${{ secrets.GH_TOKEN }}`                                   |
 | `cache_key`               | Yes      | Key for caching results across runs<br>Allowed: `A-Za-z0-9._/-`                                                                                                                                     | `cached_results-primer.style-main.json`                     |
@@ -131,7 +131,7 @@ Trigger the workflow manually or automatically based on your configuration. The 
 | `reduced_motion`          | No       | Playwright `reducedMotion` setting for scan contexts. Allowed values: `reduce`, `no-preference`                                                                                                     | `reduce`                                                    |
 | `color_scheme`            | No       | Playwright `colorScheme` setting for scan contexts. Allowed values: `light`, `dark`, `no-preference`                                                                                                | `dark`                                                      |
 | `scans`                   | No       | An array of scans (or plugins) to be performed. If not provided, only Axe will be performed.                                                                        | `'["axe", "reflow-scan", ...other plugins]'`                                 |
-| `exclude`                 | No       | A stringified JSON array of CSS selectors to exclude from the Axe scan. Useful for iframes, third-party widgets, or user-generated content.                         | `'["iframe","#third-party-widget"]'`                         |
+| `url_config`              | No       | A stringified JSON array of URL config objects. Each object must have a `url` field and may have an optional `excludeSelectors` field (array of CSS selectors to exclude from the Axe scan for that URL). When provided, takes precedence over the `urls` input. | `'[{"url":"https://example.com","excludeSelectors":["iframe","#widget"]}]'` |
 
 ---
 

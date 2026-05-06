@@ -37,3 +37,8 @@ export type AuthContextInput = {
 export type ReducedMotionPreference = 'reduce' | 'no-preference' | null
 
 export type ColorSchemePreference = 'light' | 'dark' | 'no-preference' | null
+
+export type UrlConfig = {
+  url: string
+  excludeSelectors?: string[]
+}
