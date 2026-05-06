@@ -7,10 +7,10 @@ import {findForUrl} from './findForUrl.js'
 
 export default async function () {
   core.info("Starting 'find' action")
-  let urlConfigs = loadUrlConfigs()
-  let urls = loadUrls({urlConfigs})
-  let reducedMotion = loadReducedMotion()
-  let colorScheme = loadColorScheme()
+  const urlConfigs = loadUrlConfigs()
+  const urls = loadUrls({urlConfigs})
+  const reducedMotion = loadReducedMotion()
+  const colorScheme = loadColorScheme()
 
   const actualUrls = urlConfigs || urls || []
 
@@ -42,7 +42,6 @@ export default async function () {
 
 function loadUrlConfigs() {
   const urlConfigInput = core.getInput('url_configs', {required: false})
-
   if (!urlConfigInput) return
 
   try {
@@ -68,8 +67,7 @@ function loadUrls({urlConfigs}: {urlConfigs?: UrlConfig[]} = {}) {
   // - no need to process this input if url_configs is provided
   if (urlConfigs) return
 
-  let urls: string[]
-  urls = core.getMultilineInput('urls', {required: false})
+  const urls: string[] = core.getMultilineInput('urls', {required: false})
   core.debug(`Input: 'urls: ${JSON.stringify(urls)}'`)
 
   if (urls.length === 0) {
