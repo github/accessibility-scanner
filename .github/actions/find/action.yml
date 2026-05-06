@@ -6,7 +6,7 @@ inputs:
     description: 'Newline-delimited list of URLs to check for accessibility issues'
     required: false
     multiline: true
-  url_config:
+  url_configs:
     description: "Stringified JSON array of URL config objects, each with a 'url' field and an optional 'excludeSelectors' field (array of CSS selectors to exclude from the Axe scan for that URL). When provided, takes precedence over the 'urls' input."
     required: false
   auth_context:

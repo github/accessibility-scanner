@@ -1,4 +1,4 @@
-import type {ColorSchemePreference, Finding, ReducedMotionPreference} from './types.d.js'
+import type {ColorSchemePreference, Finding, ReducedMotionPreference, UrlConfig} from './types.d.js'
 import {AxeBuilder} from '@axe-core/playwright'
 import playwright from 'playwright'
 import {AuthContext} from './AuthContext.js'
@@ -8,13 +8,13 @@ import {getScansContext} from './scansContextProvider.js'
 import * as core from '@actions/core'
 
 export async function findForUrl(
-  url: string,
+  urlConfig: UrlConfig,
   authContext?: AuthContext,
   includeScreenshots: boolean = false,
   reducedMotion?: ReducedMotionPreference,
   colorScheme?: ColorSchemePreference,
-  exclude?: string[],
 ): Promise<Finding[]> {
+  const {url, excludeSelectors} = urlConfig
   const browser = await playwright.chromium.launch({
     headless: true,
     executablePath: process.env.CI ? '/usr/bin/google-chrome' : undefined,
@@ -57,7 +57,7 @@ export async function findForUrl(
     }
 
     if (scansContext.shouldPerformAxeScan) {
-      await runAxeScan({page, addFinding, exclude})
+      await runAxeScan({page, addFinding, excludeSelectors})
     }
   } catch (e) {
     core.error(`Error during accessibility scan: ${e}`)
@@ -70,17 +70,17 @@ export async function findForUrl(
 async function runAxeScan({
   page,
   addFinding,
-  exclude,
+  excludeSelectors,
 }: {
   page: playwright.Page
   addFinding: (findingData: Finding, options?: {includeScreenshots?: boolean}) => Promise<void>
-  exclude?: string[]
+  excludeSelectors?: string[]
 }) {
   const url = page.url()
   core.info(`Scanning ${url}`)
-  const axeBuilder = exclude && exclude.length > 0
-    ? exclude.reduce((builder, selector) => builder.exclude(selector), new AxeBuilder({page}))
-    : new AxeBuilder({page})
+  const axeBuilder = new AxeBuilder({page})
+  excludeSelectors?.forEach(selector => axeBuilder.exclude(selector))
+
   const rawFindings = await axeBuilder.analyze()
 
   if (rawFindings) {
