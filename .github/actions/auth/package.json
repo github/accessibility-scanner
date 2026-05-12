@@ -14,10 +14,10 @@
   "type": "module",
   "dependencies": {
     "@actions/core": "^3.0.1",
-    "playwright": "^1.59.1"
+    "playwright": "^1.60.0"
   },
   "devDependencies": {
-    "@types/node": "^25.6.0",
+    "@types/node": "^25.7.0",
     "typescript": "^6.0.3"
   }
 }
