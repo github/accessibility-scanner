@@ -99,7 +99,7 @@ GEM
     pathutil (0.16.2)
       forwardable-extended (~> 2.6)
     public_suffix (7.0.5)
-    puma (8.0.0)
+    puma (8.0.1)
       nio4r (~> 2.0)
     rack (3.2.6)
     rake (13.3.0)

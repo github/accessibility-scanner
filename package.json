@@ -21,16 +21,16 @@
   "type": "module",
   "prettier": "@github/prettier-config",
   "devDependencies": {
-    "@actions/core": "^3.0.0",
+    "@actions/core": "^3.0.1",
     "@github/prettier-config": "^0.0.6",
     "@octokit/core": "^7.0.6",
     "@octokit/plugin-throttling": "^11.0.3",
     "@octokit/types": "^16.0.0",
-    "@types/node": "^25.6.0",
-    "eslint": "^10.2.1",
+    "@types/node": "^25.7.0",
+    "eslint": "^10.3.0",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.8.3",
-    "typescript-eslint": "^8.59.0",
-    "vitest": "^4.1.4"
+    "typescript-eslint": "^8.59.3",
+    "vitest": "^4.1.6"
   }
 }
