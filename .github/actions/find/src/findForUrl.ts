@@ -27,6 +27,11 @@ export async function findForUrl(
   const context = await browser.newContext(contextOptions)
   const page = await context.newPage()
   await page.goto(url)
+  try {
+    await page.waitForLoadState('networkidle', {timeout: 30000})
+  } catch (e) {
+    core.warning(`Unable to wait for ${url} to reach network idle before scanning: ${e}`)
+  }
 
   const findings: Finding[] = []
   const addFinding = async (findingData: Finding) => {
