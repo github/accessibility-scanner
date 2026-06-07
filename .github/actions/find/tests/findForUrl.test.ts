@@ -7,21 +7,29 @@ import * as pluginManager from '../src/pluginManager/index.js'
 import type {Plugin} from '../src/pluginManager/types.js'
 import {clearCache} from '../src/scansContextProvider.js'
 
+const playwrightMocks = vi.hoisted(() => {
+  const page = {
+    pageUrl: '',
+    goto: vi.fn(),
+    url: vi.fn(),
+  }
+  const context = {
+    newPage: vi.fn(() => page),
+    close: vi.fn(),
+  }
+  const browser = {
+    newContext: vi.fn(() => context),
+    close: vi.fn(),
+  }
+
+  return {browser, context, page}
+})
+
 vi.mock('@actions/core', {spy: true})
 vi.mock('playwright', () => ({
   default: {
     chromium: {
-      launch: () => ({
-        newContext: () => ({
-          newPage: () => ({
-            pageUrl: '',
-            goto: () => {},
-            url: () => {},
-          }),
-          close: () => {},
-        }),
-        close: () => {},
-      }),
+      launch: vi.fn(() => playwrightMocks.browser),
     },
   },
 }))
@@ -49,7 +57,7 @@ describe('findForUrl', () => {
   async function axeOnlyTest() {
     clearAll()
 
-    await findForUrl('test.com')
+    await findForUrl({url: 'test.com'})
     expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(1)
     expect(pluginManager.loadPlugins).toHaveBeenCalledTimes(0)
     expect(pluginManager.invokePlugin).toHaveBeenCalledTimes(0)
@@ -80,7 +88,7 @@ describe('findForUrl', () => {
         actionInput = JSON.stringify(['axe', 'custom-scan-1'])
         clearAll()
 
-        await findForUrl('test.com')
+        await findForUrl({url: 'test.com'})
         expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(1)
         expect(pluginManager.loadPlugins).toHaveBeenCalledTimes(1)
         expect(pluginManager.invokePlugin).toHaveBeenCalledTimes(1)
@@ -97,7 +105,7 @@ describe('findForUrl', () => {
         actionInput = JSON.stringify(['custom-scan-1', 'custom-scan-2'])
         clearAll()
 
-        await findForUrl('test.com')
+        await findForUrl({url: 'test.com'})
         expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(0)
         expect(pluginManager.loadPlugins).toHaveBeenCalledTimes(1)
         expect(pluginManager.invokePlugin).toHaveBeenCalledTimes(2)
@@ -112,9 +120,40 @@ describe('findForUrl', () => {
       actionInput = JSON.stringify(['custom-scan-1'])
       clearAll()
 
-      await findForUrl('test.com')
+      await findForUrl({url: 'test.com'})
       expect(loadedPlugins[0].default).toHaveBeenCalledTimes(1)
       expect(loadedPlugins[1].default).toHaveBeenCalledTimes(0)
+    })
+  })
+
+  describe('when ignoreHttpsErrors is enabled', () => {
+    it('forwards ignoreHTTPSErrors to the browser context', async () => {
+      actionInput = ''
+      clearAll()
+
+      await findForUrl({url: 'test.com'}, undefined, false, undefined, undefined, true)
+
+      expect(playwrightMocks.browser.newContext).toHaveBeenCalledWith({ignoreHTTPSErrors: true})
+    })
+  })
+
+  describe('when ignoreHttpsErrors is not enabled', () => {
+    it('does not forward ignoreHTTPSErrors by default', async () => {
+      actionInput = ''
+      clearAll()
+
+      await findForUrl({url: 'test.com'})
+
+      expect(playwrightMocks.browser.newContext).toHaveBeenCalledWith({})
+    })
+
+    it('does not forward ignoreHTTPSErrors when explicitly disabled', async () => {
+      actionInput = ''
+      clearAll()
+
+      await findForUrl({url: 'test.com'}, undefined, false, undefined, undefined, false)
+
+      expect(playwrightMocks.browser.newContext).toHaveBeenCalledWith({})
     })
   })
 })
