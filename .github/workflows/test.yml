@@ -33,6 +33,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
+          persist-credentials: false
           token: ${{ secrets.GH_TOKEN }}
 
       - name: Setup Ruby
