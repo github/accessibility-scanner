@@ -51,6 +51,10 @@ inputs:
   color_scheme:
     description: 'Playwright colorScheme setting: https://playwright.dev/docs/api/class-browser#browser-new-context-option-color-scheme'
     required: false
+  ignore_https_errors:
+    description: 'Whether to ignore HTTPS errors when scanning URLs with self-signed certificates'
+    required: false
+    default: 'false'
   scans:
     description: 'Stringified JSON array of scans to perform. If not provided, only Axe will be performed'
     required: false
@@ -117,6 +121,7 @@ runs:
         include_screenshots: ${{ inputs.include_screenshots }}
         reduced_motion: ${{ inputs.reduced_motion }}
         color_scheme: ${{ inputs.color_scheme }}
+        ignore_https_errors: ${{ inputs.ignore_https_errors }}
         scans: ${{ inputs.scans }}
     - name: File
       id: file

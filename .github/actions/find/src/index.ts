@@ -11,6 +11,7 @@ export default async function () {
   const urls = loadUrls({urlConfigs})
   const reducedMotion = loadReducedMotion()
   const colorScheme = loadColorScheme()
+  const ignoreHttpsErrors = loadIgnoreHttpsErrors()
 
   const actualUrls = urlConfigs || urls || []
 
@@ -22,7 +23,14 @@ export default async function () {
   for (const urlConfig of actualUrls) {
     const {url} = urlConfig
     core.info(`Preparing to scan ${url}`)
-    const findingsForUrl = await findForUrl(urlConfig, authContext, includeScreenshots, reducedMotion, colorScheme)
+    const findingsForUrl = await findForUrl(
+      urlConfig,
+      authContext,
+      includeScreenshots,
+      reducedMotion,
+      colorScheme,
+      ignoreHttpsErrors,
+    )
     if (findingsForUrl.length === 0) {
       core.info(`No accessibility gaps were found on ${url}`)
       continue
@@ -100,4 +108,8 @@ function loadColorScheme() {
   }
 
   return colorSchemeInput as ColorSchemePreference
+}
+
+function loadIgnoreHttpsErrors() {
+  return core.getInput('ignore_https_errors', {required: false}).toLowerCase() === 'true'
 }
