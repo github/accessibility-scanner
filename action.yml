@@ -54,6 +54,10 @@ inputs:
   scans:
     description: 'Stringified JSON array of scans to perform. If not provided, only Axe will be performed'
     required: false
+  dry_run:
+    description: 'When true, scan and log the issues that would be filed without opening, closing, reopening, or assigning any issues, and without writing to the cache.'
+    required: false
+    default: 'false'
 
 outputs:
   results:
@@ -129,6 +133,7 @@ runs:
         cached_filings_file: ${{ steps.normalize_cache.outputs.cached_filings_file }}
         screenshot_repository: ${{ github.repository }}
         open_grouped_issues: ${{ inputs.open_grouped_issues }}
+        dry_run: ${{ inputs.dry_run }}
     - if: ${{ steps.file.outputs.filings_file }}
       name: Get issues from filings
       id: get_issues_from_filings
@@ -137,7 +142,7 @@ runs:
         # Extract open issues from Filing objects and write to a file
         jq -c '[.[] | select(.issue.state == "open") | .issue]' "${{ steps.file.outputs.filings_file }}" > "$RUNNER_TEMP/issues.json"
         echo "issues_file=$RUNNER_TEMP/issues.json" >> "$GITHUB_OUTPUT"
-    - if: ${{ inputs.skip_copilot_assignment != 'true' }}
+    - if: ${{ inputs.skip_copilot_assignment != 'true' && inputs.dry_run != 'true' }}
       name: Fix
       id: fix
       uses: ./../../_actions/github/accessibility-scanner/current/.github/actions/fix
@@ -185,19 +190,20 @@ runs:
 
         # Set results_file output
         echo "results_file=$RESULTS_FILE" >> "$GITHUB_OUTPUT"
-    - if: ${{ inputs.include_screenshots == 'true' }}
+    - if: ${{ inputs.include_screenshots == 'true' && inputs.dry_run != 'true' }}
       name: Save screenshots
       uses: ./../../_actions/github/accessibility-scanner/current/.github/actions/gh-cache/save
       with:
         path: .screenshots
         token: ${{ inputs.token }}
     - name: Copy results to cache path
+      if: ${{ inputs.dry_run != 'true' }}
       shell: bash
       run: |
         mkdir -p "$(dirname '${{ inputs.cache_key }}')"
         cp "$GITHUB_WORKSPACE/scanner-results.json" "${{ inputs.cache_key }}"
-
     - name: Save cached results
+      if: ${{ inputs.dry_run != 'true' }}
       uses: ./../../_actions/github/accessibility-scanner/current/.github/actions/gh-cache/save
       with:
         path: ${{ inputs.cache_key }}
