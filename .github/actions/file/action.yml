@@ -24,6 +24,10 @@ inputs:
     description: "In the 'file' step, also open grouped issues which link to all issues with the same root cause"
     required: false
     default: "false"
+  dry_run:
+    description: "When true, log the issues that would be filed without opening, closing, or reopening any issues."
+    required: false
+    default: "false"
 
 outputs:
   filings_file:
