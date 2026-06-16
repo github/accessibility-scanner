@@ -60,6 +60,17 @@ Just keep in mind that resetting the cache means the Action will "forget" what
 it's already seen, so it may reopen issues that were previously tracked or
 closed.
 
+### How can I preview what the scanner would do without filing issues?
+
+Set the `dry_run` input to `true`. The scanner will run a normal scan and log the
+issues it _would_ open, reopen, or close — but it won't create, close, reopen, or
+assign any issues, and it won't write to the `gh-cache` branch.
+
+This is handy for trying out a new configuration or seeing how many issues a scan
+would file, without making any changes to your repository. Because dry runs don't
+update the cache, your next real run behaves exactly as if the dry run never
+happened.
+
 ### Does this work with private repositories?
 
 Yes! The Action works with both public and private repositories. Since it runs

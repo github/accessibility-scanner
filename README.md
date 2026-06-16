@@ -55,6 +55,7 @@ jobs:
           # skip_copilot_assignment: false # Optional: Set to true to skip assigning issues to GitHub Copilot (or if you don't have GitHub Copilot)
           # include_screenshots: false # Optional: Set to true to capture screenshots and include links to them in filed issues
           # open_grouped_issues: false # Optional: Set to true to open an issue grouping individual issues per violation
+          # dry_run: false # Optional: Set to true to scan and log what would be filed without creating/closing issues or writing the cache
           # reduced_motion: no-preference # Optional: Playwright reduced motion configuration option
           # color_scheme: light # Optional: Playwright color scheme configuration option
           # scans: '["axe","reflow-scan"]' # Optional: An array of scans (or plugins) to be performed. If not provided, only Axe will be performed.
@@ -131,6 +132,7 @@ Trigger the workflow manually or automatically based on your configuration. The 
 | `reduced_motion`          | No       | Playwright `reducedMotion` setting for scan contexts. Allowed values: `reduce`, `no-preference`                                                                                                                                                                  | `reduce`                                                                    |
 | `color_scheme`            | No       | Playwright `colorScheme` setting for scan contexts. Allowed values: `light`, `dark`, `no-preference`                                                                                                                                                             | `dark`                                                                      |
 | `scans`                   | No       | An array of scans (or plugins) to be performed. If not provided, only Axe will be performed.                                                                                                                                                                     | `'["axe", "reflow-scan", ...other plugins]'`                                |
+| `dry_run`                 | No       | When `true`, scan and log the issues that _would_ be filed without opening, closing, reopening, or assigning any issues — and without writing to the `gh-cache` branch. Useful for safely previewing results. Default: `false`                                   | `true`                                                                      |
 | `url_configs`             | No       | A stringified JSON array of URL config objects. Each object must have a `url` field and may have an optional `excludeSelectors` field (array of CSS selectors to exclude from the Axe scan for that URL). When provided, takes precedence over the `urls` input. | `'[{"url":"https://example.com","excludeSelectors":["iframe","#widget"]}]'` |
 
 ---
