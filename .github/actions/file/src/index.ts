@@ -29,12 +29,14 @@ export default async function () {
     ? JSON.parse(fs.readFileSync(cachedFilingsFile, 'utf8'))
     : []
   const shouldOpenGroupedIssues = core.getBooleanInput('open_grouped_issues')
+  const dryRun = core.getBooleanInput('dry_run')
   core.debug(`Input: 'findings_file: ${findingsFile}'`)
   core.debug(`Input: 'repository: ${repoWithOwner}'`)
   core.debug(`Input: 'base_url: ${baseUrl ?? '(default)'}'`)
   core.debug(`Input: 'screenshot_repository: ${screenshotRepo}'`)
   core.debug(`Input: 'cached_filings_file: ${cachedFilingsFile}'`)
   core.debug(`Input: 'open_grouped_issues: ${shouldOpenGroupedIssues}'`)
+  core.debug(`Input: 'dry_run: ${dryRun}'`)
 
   const octokit = new OctokitWithThrottling({
     auth: token,
@@ -61,10 +63,26 @@ export default async function () {
   // Track new issues for grouping
   const newIssuesByProblemShort: Record<string, FindingGroupIssue[]> = {}
   const trackingIssueUrls: Record<string, string> = {}
+  const dryRunCounts = {open: 0, reopen: 0, close: 0}
 
   for (const filing of filings) {
     let response: OctokitResponse<IssueResponse> | undefined
     try {
+      if (dryRun) {
+        if (isResolvedFiling(filing)) {
+          dryRunCounts.close++
+          core.info(`[dry run] Would CLOSE issue: ${filing.issue.url}`)
+        } else if (isNewFiling(filing)) {
+          dryRunCounts.open++
+          core.info(
+            `[dry run] Would OPEN a new issue for: ${filing.findings[0].problemShort} (${filing.findings[0].url})`,
+          )
+        } else if (isRepeatedFiling(filing)) {
+          dryRunCounts.reopen++
+          core.info(`[dry run] Would REOPEN issue: ${filing.issue.url}`)
+        }
+        continue
+      }
       if (isResolvedFiling(filing)) {
         // Close the filing’s issue (if necessary)
         response = await closeIssue(octokit, new Issue(filing.issue))
@@ -114,7 +132,7 @@ export default async function () {
 
   // Open tracking issues for groups with >1 new issue and link back from each
   // new issue
-  if (shouldOpenGroupedIssues) {
+  if (shouldOpenGroupedIssues && !dryRun) {
     for (const [problemShort, issues] of Object.entries(newIssuesByProblemShort)) {
       if (issues.length > 1) {
         const capitalizedProblemShort = problemShort[0].toUpperCase() + problemShort.slice(1)
@@ -136,6 +154,12 @@ export default async function () {
         }
       }
     }
+  }
+
+  if (dryRun) {
+    core.info(
+      `[dry run] ${filings.length} findings: ${dryRunCounts.open} would open, ${dryRunCounts.reopen} would reopen, ${dryRunCounts.close} would close.`,
+    )
   }
 
   const filingsPath = path.join(process.env.RUNNER_TEMP || '/tmp', `filings-${crypto.randomUUID()}.json`)
