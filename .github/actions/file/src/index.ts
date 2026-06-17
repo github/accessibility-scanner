@@ -157,9 +157,13 @@ export default async function () {
   }
 
   if (dryRun) {
-    core.info(
-      `[dry run] ${filings.length} findings: ${dryRunCounts.open} would open, ${dryRunCounts.reopen} would reopen, ${dryRunCounts.close} would close.`,
-    )
+    core.info('[dry run] Summary of actions that would be taken:')
+    console.table({
+      open: dryRunCounts.open,
+      reopen: dryRunCounts.reopen,
+      close: dryRunCounts.close,
+      total: dryRunCounts.open + dryRunCounts.reopen + dryRunCounts.close,
+    })
   }
 
   const filingsPath = path.join(process.env.RUNNER_TEMP || '/tmp', `filings-${crypto.randomUUID()}.json`)

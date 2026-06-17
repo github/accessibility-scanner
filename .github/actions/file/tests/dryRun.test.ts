@@ -93,6 +93,7 @@ describe('file action — dry_run', () => {
     infoLines.length = 0
     for (const k of Object.keys(inputs)) delete inputs[k]
     for (const k of Object.keys(outputs)) delete outputs[k]
+    vi.spyOn(console, 'table').mockImplementation(() => {})
   })
   afterEach(() => {
     vi.restoreAllMocks()
@@ -117,18 +118,22 @@ describe('file action — dry_run', () => {
     await runFileAction()
 
     const log = infoLines.join('\n')
-    expect(log).toMatch(/\[dry run] Would OPEN a new issue for: .*heading-order|Skipped|elements must meet/)
+    expect(log).toContain(
+      '[dry run] Would OPEN a new issue for: elements must meet minimum color contrast ratio thresholds (https://example.com/page)',
+    )
     expect(log).toContain('[dry run] Would REOPEN issue: https://github.com/org/repo/issues/1')
     expect(log).toContain('[dry run] Would CLOSE issue: https://github.com/org/repo/issues/2')
   })
 
-  it('logs a summary line with counts', async () => {
+  it('logs a summary table with counts', async () => {
     setup()
     inputs.dry_run = 'true'
 
     await runFileAction()
 
-    expect(infoLines.join('\n')).toMatch(/\[dry run] \d+ findings: 1 would open, 1 would reopen, 1 would close\./)
+    expect(vi.mocked(console.table)).toHaveBeenCalledWith(
+      expect.objectContaining({open: 1, reopen: 1, close: 1, total: 3}),
+    )
   })
 
   it('still writes the filings_file output in dry run', async () => {
