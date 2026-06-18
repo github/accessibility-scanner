@@ -112,8 +112,9 @@ describe('site-with-errors', () => {
       {
         scannerType: 'reflow-scan',
         url: 'http://127.0.0.1:4000/404.html',
-        problemShort: 'page requires horizontal scrolling at 320x256 viewport',
-        solutionShort: 'ensure content is responsive and does not require horizontal scrolling at small viewport sizes',
+        problemShort: 'needs review: page presents a horizontal scrollbar at a 320px wide viewport',
+        solutionShort:
+          'verify if sections of content can be viewed within the 320px wide viewport without needing to scroll in two dimensions to read the content of an individual section',
       },
     ]
     // Check that:
@@ -161,7 +162,7 @@ describe('site-with-errors', () => {
         'Accessibility issue: Headings should not be empty on /404.html',
         'Accessibility issue: Elements must meet minimum color contrast ratio thresholds on /about/',
         'Accessibility issue: Elements must meet minimum color contrast ratio thresholds on /jekyll/update/2025/07/30/welcome-to-jekyll.html',
-        'Accessibility issue: Page requires horizontal scrolling at 320x256 viewport on /404.html',
+        'Accessibility issue: Needs review: page presents a horizontal scrollbar at a 320px wide viewport on /404.html',
       ]
       expect(actualTitles).toHaveLength(expectedTitles.length)
       expect(actualTitles).toEqual(expect.arrayContaining(expectedTitles))
