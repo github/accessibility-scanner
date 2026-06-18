@@ -114,7 +114,7 @@ describe('site-with-errors', () => {
         url: 'http://127.0.0.1:4000/404.html',
         problemShort: 'needs review: page presents a horizontal scrollbar at a 320px wide viewport',
         solutionShort:
-          'verify if sections of content can be viewed within the 320px wide viewport without needing to scroll in two-dimensions to read the content of an individual section',
+          'verify if sections of content can be viewed within the 320px wide viewport without needing to scroll in two dimensions to read the content of an individual section',
       },
     ]
     // Check that:
