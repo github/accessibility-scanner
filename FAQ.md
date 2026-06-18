@@ -63,7 +63,7 @@ closed.
 ### How can I preview what the scanner would do without filing issues?
 
 Set the `dry_run` input to `true`. The scanner will run a normal scan and log the
-issues it _would_ open, reopen, or close — but it won't create, close, reopen, or
+issues it _would_ open, reopen, or close — but it won't actually mutate any data or write to the `gh-cache` branch
 assign any issues, and it won't write to the `gh-cache` branch.
 
 This is handy for trying out a new configuration or seeing how many issues a scan
