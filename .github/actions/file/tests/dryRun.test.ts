@@ -145,6 +145,38 @@ describe('file action — dry_run', () => {
     expect(outputs.filings_file).toBeDefined()
   })
 
+  it('updates in-memory issue state for an accurate preview without mutating remotely', async () => {
+    setup()
+    inputs.dry_run = 'true'
+
+    await runFileAction()
+
+    // The path written is `${RUNNER_TEMP||'/tmp'}/filings-<uuid>.json`; grab it from the output.
+    const writtenPath = outputs.filings_file
+    const writtenFilings = JSON.parse(files[writtenPath])
+
+    // Resolved cached filing (issues/2) -> would be CLOSED
+    const resolved = writtenFilings.find(
+      (f: {issue?: {url?: string}}) => f.issue?.url === 'https://github.com/org/repo/issues/2',
+    )
+    expect(resolved?.issue.state).toBe('closed')
+
+    // Repeated cached filing (issues/1) -> would be REOPENED
+    const repeated = writtenFilings.find(
+      (f: {issue?: {url?: string}}) => f.issue?.url === 'https://github.com/org/repo/issues/1',
+    )
+    expect(repeated?.issue.state).toBe('reopened')
+
+    // New filing -> issue object created with state 'open'
+    const opened = writtenFilings.find((f: {issue?: {state?: string}}) => f.issue?.state === 'open')
+    expect(opened).toBeDefined()
+
+    // And confirm we still didn't actually mutate anything remotely
+    expect(openIssue).not.toHaveBeenCalled()
+    expect(reopenIssue).not.toHaveBeenCalled()
+    expect(closeIssue).not.toHaveBeenCalled()
+  })
+
   it('does call the mutating helpers when dry_run is false (regression guard)', async () => {
     setup()
     inputs.dry_run = 'false'
