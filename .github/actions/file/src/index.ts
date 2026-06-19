@@ -29,12 +29,14 @@ export default async function () {
     ? JSON.parse(fs.readFileSync(cachedFilingsFile, 'utf8'))
     : []
   const shouldOpenGroupedIssues = core.getBooleanInput('open_grouped_issues')
+  const dryRun = core.getBooleanInput('dry_run')
   core.debug(`Input: 'findings_file: ${findingsFile}'`)
   core.debug(`Input: 'repository: ${repoWithOwner}'`)
   core.debug(`Input: 'base_url: ${baseUrl ?? '(default)'}'`)
   core.debug(`Input: 'screenshot_repository: ${screenshotRepo}'`)
   core.debug(`Input: 'cached_filings_file: ${cachedFilingsFile}'`)
   core.debug(`Input: 'open_grouped_issues: ${shouldOpenGroupedIssues}'`)
+  core.debug(`Input: 'dry_run: ${dryRun}'`)
 
   const octokit = new OctokitWithThrottling({
     auth: token,
@@ -61,50 +63,69 @@ export default async function () {
   // Track new issues for grouping
   const newIssuesByProblemShort: Record<string, FindingGroupIssue[]> = {}
   const trackingIssueUrls: Record<string, string> = {}
+  const dryRunCounts = {open: 0, reopen: 0, close: 0}
 
   for (const filing of filings) {
     let response: OctokitResponse<IssueResponse> | undefined
     try {
-      if (isResolvedFiling(filing)) {
-        // Close the filing’s issue (if necessary)
-        response = await closeIssue(octokit, new Issue(filing.issue))
-        filing.issue.state = 'closed'
-      } else if (isNewFiling(filing)) {
-        // Open a new issue for the filing
-        response = await openIssue(octokit, repoWithOwner, filing.findings[0], screenshotRepo)
-        ;(filing as Filing).issue = {state: 'open'} as Issue
-
-        // Track for grouping
-        if (shouldOpenGroupedIssues) {
-          const problemShort: string = filing.findings[0].problemShort
-          if (!newIssuesByProblemShort[problemShort]) {
-            newIssuesByProblemShort[problemShort] = []
-          }
-          newIssuesByProblemShort[problemShort].push({
-            url: response.data.html_url,
-            id: response.data.number,
-          })
+      if (dryRun) {
+        if (isResolvedFiling(filing)) {
+          dryRunCounts.close++
+          filing.issue.state = 'closed'
+          core.info(`[dry run] Would CLOSE issue: ${filing.issue.url}`)
+        } else if (isNewFiling(filing)) {
+          dryRunCounts.open++
+          ;(filing as Filing).issue = {state: 'open'} as Issue
+          core.info(
+            `[dry run] Would OPEN a new issue for: ${filing.findings[0].problemShort} (${filing.findings[0].url})`,
+          )
+        } else if (isRepeatedFiling(filing)) {
+          dryRunCounts.reopen++
+          filing.issue.state = 'reopened'
+          core.info(`[dry run] Would REOPEN issue: ${filing.issue.url}`)
         }
-      } else if (isRepeatedFiling(filing)) {
-        // Reopen the filing's issue (if necessary) and update the body with the latest finding
-        response = await reopenIssue(
-          octokit,
-          new Issue(filing.issue),
-          filing.findings[0],
-          repoWithOwner,
-          screenshotRepo,
-        )
-        filing.issue.state = 'reopened'
-      }
-      if (response?.data && filing.issue) {
-        // Update the filing with the latest issue data
-        filing.issue.id = response.data.id
-        filing.issue.nodeId = response.data.node_id
-        filing.issue.url = response.data.html_url
-        filing.issue.title = response.data.title
-        core.info(
-          `Set issue ${response.data.title} (${repoWithOwner}#${response.data.number}) state to ${filing.issue.state}`,
-        )
+      } else {
+        if (isResolvedFiling(filing)) {
+          // Close the filing's issue (if necessary)
+          response = await closeIssue(octokit, new Issue(filing.issue))
+          filing.issue.state = 'closed'
+        } else if (isNewFiling(filing)) {
+          // Open a new issue for the filing
+          response = await openIssue(octokit, repoWithOwner, filing.findings[0], screenshotRepo)
+          ;(filing as Filing).issue = {state: 'open'} as Issue
+
+          // Track for grouping
+          if (shouldOpenGroupedIssues) {
+            const problemShort: string = filing.findings[0].problemShort
+            if (!newIssuesByProblemShort[problemShort]) {
+              newIssuesByProblemShort[problemShort] = []
+            }
+            newIssuesByProblemShort[problemShort].push({
+              url: response.data.html_url,
+              id: response.data.number,
+            })
+          }
+        } else if (isRepeatedFiling(filing)) {
+          // Reopen the filing's issue (if necessary) and update the body with the latest finding
+          response = await reopenIssue(
+            octokit,
+            new Issue(filing.issue),
+            filing.findings[0],
+            repoWithOwner,
+            screenshotRepo,
+          )
+          filing.issue.state = 'reopened'
+        }
+        if (response?.data && filing.issue) {
+          // Update the filing with the latest issue data
+          filing.issue.id = response.data.id
+          filing.issue.nodeId = response.data.node_id
+          filing.issue.url = response.data.html_url
+          filing.issue.title = response.data.title
+          core.info(
+            `Set issue ${response.data.title} (${repoWithOwner}#${response.data.number}) state to ${filing.issue.state}`,
+          )
+        }
       }
     } catch (error) {
       core.setFailed(`Failed on filing: ${JSON.stringify(filing, null, 2)}\n${error}`)
@@ -114,7 +135,7 @@ export default async function () {
 
   // Open tracking issues for groups with >1 new issue and link back from each
   // new issue
-  if (shouldOpenGroupedIssues) {
+  if (shouldOpenGroupedIssues && !dryRun) {
     for (const [problemShort, issues] of Object.entries(newIssuesByProblemShort)) {
       if (issues.length > 1) {
         const capitalizedProblemShort = problemShort[0].toUpperCase() + problemShort.slice(1)
@@ -136,6 +157,16 @@ export default async function () {
         }
       }
     }
+  }
+
+  if (dryRun) {
+    core.info('[dry run] Summary of actions that would be taken:')
+    console.table({
+      open: dryRunCounts.open,
+      reopen: dryRunCounts.reopen,
+      close: dryRunCounts.close,
+      total: dryRunCounts.open + dryRunCounts.reopen + dryRunCounts.close,
+    })
   }
 
   const filingsPath = path.join(process.env.RUNNER_TEMP || '/tmp', `filings-${crypto.randomUUID()}.json`)
