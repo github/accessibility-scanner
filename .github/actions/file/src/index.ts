@@ -16,7 +16,7 @@ import {updateFilingsWithNewFindings} from './updateFilingsWithNewFindings.js'
 import {OctokitResponse} from '@octokit/types'
 const OctokitWithThrottling = Octokit.plugin(throttling)
 
-// core.getBooleanInput throws when an input is unset, so this defaults unset
+// Throws when an input is unset, so this defaults unset
 // switches while still rejecting values that aren't a valid boolean.
 function getBooleanInputWithDefault(name: string, defaultValue: boolean): boolean {
   const raw = core.getInput(name)
@@ -75,8 +75,7 @@ export default async function () {
   })
   const filings = updateFilingsWithNewFindings(cachedFilings, findings)
 
-  // Suppressed new filings are kept out of the cache so they aren't seen as
-  // resolved (and auto-closed) on the next run.
+  // Suppressed new filings are kept out of the cache
   const suppressedFilings = new Set<Filing>()
 
   // Track new issues for grouping
@@ -87,7 +86,7 @@ export default async function () {
   for (const filing of filings) {
     let response: OctokitResponse<IssueResponse> | undefined
     try {
-      // Category switches gate only NEW issues; existing ones are reconciled normally.
+      // Category switches gate only new issues
       if (isNewFiling(filing)) {
         const category = filing.findings[0].category ?? 'wcag'
         if (
