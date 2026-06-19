@@ -16,6 +16,13 @@ import {updateFilingsWithNewFindings} from './updateFilingsWithNewFindings.js'
 import {OctokitResponse} from '@octokit/types'
 const OctokitWithThrottling = Octokit.plugin(throttling)
 
+// core.getBooleanInput throws when an input is missing, so default unset switches.
+function getBooleanInputWithDefault(name: string, defaultValue: boolean): boolean {
+  const raw = core.getInput(name)
+  if (!raw) return defaultValue
+  return raw.toLowerCase() === 'true'
+}
+
 export default async function () {
   core.info("Started 'file' action")
   const findingsFile = core.getInput('findings_file', {required: true})
@@ -30,6 +37,8 @@ export default async function () {
     : []
   const shouldOpenGroupedIssues = core.getBooleanInput('open_grouped_issues')
   const dryRun = core.getBooleanInput('dry_run')
+  const fileBestPracticeIssues = getBooleanInputWithDefault('file_best_practice_issues', true)
+  const fileExperimentalIssues = getBooleanInputWithDefault('file_experimental_issues', true)
   core.debug(`Input: 'findings_file: ${findingsFile}'`)
   core.debug(`Input: 'repository: ${repoWithOwner}'`)
   core.debug(`Input: 'base_url: ${baseUrl ?? '(default)'}'`)
@@ -37,6 +46,8 @@ export default async function () {
   core.debug(`Input: 'cached_filings_file: ${cachedFilingsFile}'`)
   core.debug(`Input: 'open_grouped_issues: ${shouldOpenGroupedIssues}'`)
   core.debug(`Input: 'dry_run: ${dryRun}'`)
+  core.debug(`Input: 'file_best_practice_issues: ${fileBestPracticeIssues}'`)
+  core.debug(`Input: 'file_experimental_issues: ${fileExperimentalIssues}'`)
 
   const octokit = new OctokitWithThrottling({
     auth: token,
@@ -60,6 +71,10 @@ export default async function () {
   })
   const filings = updateFilingsWithNewFindings(cachedFilings, findings)
 
+  // Suppressed new filings are kept out of the cache so they aren't seen as
+  // resolved (and auto-closed) on the next run.
+  const suppressedFilings = new Set<Filing>()
+
   // Track new issues for grouping
   const newIssuesByProblemShort: Record<string, FindingGroupIssue[]> = {}
   const trackingIssueUrls: Record<string, string> = {}
@@ -68,6 +83,21 @@ export default async function () {
   for (const filing of filings) {
     let response: OctokitResponse<IssueResponse> | undefined
     try {
+      // Category switches gate only NEW issues; existing ones are reconciled normally.
+      if (isNewFiling(filing)) {
+        const category = filing.findings[0].category ?? 'wcag'
+        if (
+          (category === 'best-practice' && !fileBestPracticeIssues) ||
+          (category === 'experimental' && !fileExperimentalIssues)
+        ) {
+          core.info(
+            `Skipping new ${category} issue (filing disabled for this category): ${filing.findings[0].problemShort}`,
+          )
+          suppressedFilings.add(filing)
+          continue
+        }
+      }
+
       if (dryRun) {
         if (isResolvedFiling(filing)) {
           dryRunCounts.close++
@@ -170,7 +200,8 @@ export default async function () {
   }
 
   const filingsPath = path.join(process.env.RUNNER_TEMP || '/tmp', `filings-${crypto.randomUUID()}.json`)
-  fs.writeFileSync(filingsPath, JSON.stringify(filings))
+  const outputFilings = suppressedFilings.size > 0 ? filings.filter(f => !suppressedFilings.has(f)) : filings
+  fs.writeFileSync(filingsPath, JSON.stringify(outputFilings))
   core.setOutput('filings_file', filingsPath)
 
   core.debug(`Output: 'filings_file: ${filingsPath}'`)
