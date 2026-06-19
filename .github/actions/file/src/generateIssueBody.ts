@@ -25,9 +25,14 @@ export function generateIssueBody(finding: Finding, screenshotRepo: string): str
         }, not a hard WCAG failure.\n\n`
       : ''
 
+  const standardsLine =
+    finding.category && finding.category !== 'wcag'
+      ? '- [ ] The fix MUST meet the accessibility standards specified by the repository or organization (WCAG 2.1 if applicable).'
+      : '- [ ] The fix MUST meet WCAG 2.1 guidelines OR the accessibility standards specified by the repository or organization.'
+
   const acceptanceCriteria = `## Acceptance Criteria
 - [ ] The specific violation reported in this issue is no longer reproducible.
-- [ ] The fix MUST meet WCAG 2.1 guidelines OR the accessibility standards specified by the repository or organization.
+${standardsLine}
 - [ ] A test SHOULD be added to ensure this specific violation does not regress.
 - [ ] This PR MUST NOT introduce any new accessibility issues or regressions.`
 

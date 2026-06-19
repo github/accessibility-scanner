@@ -26,6 +26,7 @@ describe('generateIssueBody', () => {
     expect(body).toContain('## What')
     expect(body).toContain('## Acceptance Criteria')
     expect(body).toContain('The specific violation reported in this issue is no longer reproducible.')
+    expect(body).toContain('The fix MUST meet WCAG 2.1 guidelines OR')
     expect(body).not.toContain('Specifically:')
   })
 
@@ -90,6 +91,8 @@ describe('generateIssueBody', () => {
     expect(body).toContain('**Note:**')
     expect(body).toContain('best-practice recommendation')
     expect(body).toContain('not a hard WCAG failure')
+    expect(body).toContain('WCAG 2.1 if applicable')
+    expect(body).not.toContain('The fix MUST meet WCAG 2.1 guidelines OR')
   })
 
   it('includes an experimental notice for experimental findings', () => {
@@ -98,5 +101,7 @@ describe('generateIssueBody', () => {
     expect(body).toContain('**Note:**')
     expect(body).toContain('an experimental check')
     expect(body).toContain('not a hard WCAG failure')
+    expect(body).toContain('WCAG 2.1 if applicable')
+    expect(body).not.toContain('The fix MUST meet WCAG 2.1 guidelines OR')
   })
 })

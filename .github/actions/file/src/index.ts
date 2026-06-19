@@ -16,11 +16,15 @@ import {updateFilingsWithNewFindings} from './updateFilingsWithNewFindings.js'
 import {OctokitResponse} from '@octokit/types'
 const OctokitWithThrottling = Octokit.plugin(throttling)
 
-// core.getBooleanInput throws when an input is missing, so default unset switches.
+// core.getBooleanInput throws when an input is unset, so this defaults unset
+// switches while still rejecting values that aren't a valid boolean.
 function getBooleanInputWithDefault(name: string, defaultValue: boolean): boolean {
   const raw = core.getInput(name)
   if (!raw) return defaultValue
-  return raw.toLowerCase() === 'true'
+  const normalized = raw.trim().toLowerCase()
+  if (normalized === 'true') return true
+  if (normalized === 'false') return false
+  throw new TypeError(`Invalid boolean input '${name}': '${raw}'. Expected 'true' or 'false'.`)
 }
 
 export default async function () {
