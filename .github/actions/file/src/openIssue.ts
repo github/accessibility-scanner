@@ -26,6 +26,10 @@ export async function openIssue(octokit: Octokit, repoWithOwner: string, finding
   if (finding.ruleId) {
     labels.push(`${finding.scannerType} rule: ${finding.ruleId}`)
   }
+  // Flag non-WCAG findings so they can be filtered or triaged separately
+  if (finding.category && finding.category !== 'wcag') {
+    labels.push(finding.category)
+  }
 
   const title = truncateWithEllipsis(
     `Accessibility issue: ${finding.problemShort[0].toUpperCase() + finding.problemShort.slice(1)} on ${new URL(finding.url).pathname}`,

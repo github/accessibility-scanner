@@ -76,4 +76,27 @@ describe('generateIssueBody', () => {
     expect(body).toContain(`found an issue on ${findingWithEmptyOptionalFields.url}`)
     expect(body).not.toContain('flagged the element')
   })
+
+  it('omits the category notice for WCAG findings', () => {
+    expect(generateIssueBody(baseFinding, 'github/accessibility-scanner')).not.toContain('**Note:**')
+    expect(generateIssueBody({...baseFinding, category: 'wcag'}, 'github/accessibility-scanner')).not.toContain(
+      '**Note:**',
+    )
+  })
+
+  it('includes a best-practice notice for best-practice findings', () => {
+    const body = generateIssueBody({...baseFinding, category: 'best-practice'}, 'github/accessibility-scanner')
+
+    expect(body).toContain('**Note:**')
+    expect(body).toContain('best-practice recommendation')
+    expect(body).toContain('not a hard WCAG failure')
+  })
+
+  it('includes an experimental notice for experimental findings', () => {
+    const body = generateIssueBody({...baseFinding, category: 'experimental'}, 'github/accessibility-scanner')
+
+    expect(body).toContain('**Note:**')
+    expect(body).toContain('an experimental check')
+    expect(body).toContain('not a hard WCAG failure')
+  })
 })
