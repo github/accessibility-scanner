@@ -10,6 +10,7 @@ import {closeIssue} from './closeIssue.js'
 import {isNewFiling} from './isNewFiling.js'
 import {isRepeatedFiling} from './isRepeatedFiling.js'
 import {isResolvedFiling} from './isResolvedFiling.js'
+import {isWontfixIssue, WONTFIX_LABEL} from './isWontfixIssue.js'
 import {openIssue} from './openIssue.js'
 import {reopenIssue} from './reopenIssue.js'
 import {updateFilingsWithNewFindings} from './updateFilingsWithNewFindings.js'
@@ -106,15 +107,16 @@ export default async function () {
             })
           }
         } else if (isRepeatedFiling(filing)) {
-          // Reopen the filing's issue (if necessary) and update the body with the latest finding
-          response = await reopenIssue(
-            octokit,
-            new Issue(filing.issue),
-            filing.findings[0],
-            repoWithOwner,
-            screenshotRepo,
-          )
-          filing.issue.state = 'reopened'
+          const issue = new Issue(filing.issue)
+          if (await isWontfixIssue(octokit, issue)) {
+            // The developer intentionally closed this issue and labeled it
+            // wontfix, so leave it closed instead of reopening it.
+            core.info(`Skipping reopen of issue labeled '${WONTFIX_LABEL}': ${filing.issue.url}`)
+          } else {
+            // Reopen the filing's issue (if necessary) and update the body with the latest finding
+            response = await reopenIssue(octokit, issue, filing.findings[0], repoWithOwner, screenshotRepo)
+            filing.issue.state = 'reopened'
+          }
         }
         if (response?.data && filing.issue) {
           // Update the filing with the latest issue data
