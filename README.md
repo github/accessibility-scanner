@@ -148,6 +148,17 @@ If your login flow is more complex—if it requires two-factor authentication, s
 
 ---
 
+## Keeping an issue closed with `wontfix`
+
+When the scanner files an issue for an accessibility finding and that same finding turns up again on a later run, it reopens the issue (if you'd closed it) so the barrier doesn't get lost. Sometimes, though, you may want a closed issue to _stay_ closed—for example, if you've decided not to act on a particular finding, or you're tracking the work somewhere else.
+
+To stop the scanner from reopening a closed issue, add the **`wontfix`** label to it. On its next run, the scanner sees the label and skips reopening the issue, leaving it closed.
+
+> [!NOTE]
+> The `wontfix` label only affects _reopening_. If you remove the label later, the scanner resumes its normal behavior and will reopen the issue on the next run if the finding is still present.
+
+---
+
 ## Configuring GitHub Copilot
 
 The a11y scanner leverages GitHub Copilot coding agent, which can be configured with custom instructions:
