@@ -109,11 +109,10 @@ export default async function () {
         } else if (isRepeatedFiling(filing)) {
           const issue = new Issue(filing.issue)
           if (await isWontfixIssue(octokit, issue)) {
-            // The developer intentionally closed this issue and labeled it
-            // wontfix, so leave it closed instead of reopening it.
+            // The developer intentionally closed this issue and labeled it 'wontfix', so leave it closed
             core.info(`Skipping reopen of issue labeled '${WONTFIX_LABEL}': ${filing.issue.url}`)
           } else {
-            // Reopen the filing's issue (if necessary) and update the body with the latest finding
+            // Reopen the filing's issue and update the body with the latest finding
             response = await reopenIssue(octokit, issue, filing.findings[0], repoWithOwner, screenshotRepo)
             filing.issue.state = 'reopened'
           }

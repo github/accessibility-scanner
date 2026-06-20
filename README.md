@@ -154,9 +154,6 @@ When the scanner files an issue for an accessibility finding and that same findi
 
 To stop the scanner from reopening a closed issue, add the **`wontfix`** label to it. On its next run, the scanner sees the label and skips reopening the issue, leaving it closed.
 
-> [!NOTE]
-> The `wontfix` label only affects _reopening_. If you remove the label later, the scanner resumes its normal behavior and will reopen the issue on the next run if the finding is still present.
-
 ---
 
 ## Configuring GitHub Copilot
