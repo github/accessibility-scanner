@@ -9,6 +9,7 @@ vi.mock('../src/closeIssue.js', () => ({closeIssue: (...args: unknown[]) => clos
 
 const inputs: Record<string, string> = {}
 const infoLines: string[] = []
+const warnLines: string[] = []
 const outputs: Record<string, string> = {}
 vi.mock('@actions/core', () => ({
   getInput: (name: string) => inputs[name] ?? '',
@@ -20,7 +21,9 @@ vi.mock('@actions/core', () => ({
     infoLines.push(msg)
   },
   debug: () => {},
-  warning: () => {},
+  warning: (msg: string) => {
+    warnLines.push(msg)
+  },
   setFailed: () => {},
 }))
 
@@ -89,6 +92,7 @@ describe('file action — wontfix label', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     infoLines.length = 0
+    warnLines.length = 0
     for (const k of Object.keys(inputs)) delete inputs[k]
     for (const k of Object.keys(outputs)) delete outputs[k]
   })
@@ -116,5 +120,17 @@ describe('file action — wontfix label', () => {
     expect(infoLines.join('\n')).toContain(
       "Skipping reopen of issue labeled 'wontfix': https://github.com/org/repo/issues/1",
     )
+  })
+
+  it('reopens as usual (and warns) when the label check fails', async () => {
+    setup()
+    // The label-check GET fails for every issue (e.g. transient API error)
+    octokitRequest.mockRejectedValue(new Error('boom'))
+
+    await runFileAction()
+
+    // Both repeated filings should still be reopened rather than aborting the run
+    expect(reopenIssue).toHaveBeenCalledTimes(2)
+    expect(warnLines.join('\n')).toContain('Could not check labels for')
   })
 })

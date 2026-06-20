@@ -108,7 +108,14 @@ export default async function () {
           }
         } else if (isRepeatedFiling(filing)) {
           const issue = new Issue(filing.issue)
-          if (await isWontfixIssue(octokit, issue)) {
+          let isWontfix = false
+          try {
+            isWontfix = await isWontfixIssue(octokit, issue)
+          } catch (error) {
+            // A failed label check shouldn't abort the run, so reopen as usual
+            core.warning(`Could not check labels for ${filing.issue.url}; proceeding with reopen: ${error}`)
+          }
+          if (isWontfix) {
             // The developer intentionally closed this issue and labeled it 'wontfix', so leave it closed
             core.info(`Skipping reopen of issue labeled '${WONTFIX_LABEL}': ${filing.issue.url}`)
           } else {
