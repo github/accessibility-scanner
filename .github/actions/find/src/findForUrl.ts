@@ -85,10 +85,17 @@ async function runAxeScan({
 
   if (rawFindings) {
     for (const violation of rawFindings.violations) {
+      // Axe groups every element that fails a rule into one violation. Capture
+      // all of them so a single issue can report the rule's full scope on the
+      // page, and so matching keys on the rule rather than one element's markup.
       await addFinding({
         scannerType: 'axe',
         url,
         html: violation.nodes[0].html.replace(/'/g, '&apos;'),
+        nodes: violation.nodes.map(node => ({
+          html: node.html.replace(/'/g, '&apos;'),
+          target: node.target.map(part => (Array.isArray(part) ? part.join(' ') : part)).join(' '),
+        })),
         problemShort: violation.help.toLowerCase().replace(/'/g, '&apos;'),
         problemUrl: violation.helpUrl.replace(/'/g, '&apos;'),
         ruleId: violation.id,

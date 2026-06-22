@@ -1,7 +1,13 @@
+export type FindingNode = {
+  html: string
+  target?: string
+}
+
 export type Finding = {
   scannerType: string
   url: string
   html?: string
+  nodes?: FindingNode[]
   problemShort: string
   problemUrl: string
   solutionShort: string

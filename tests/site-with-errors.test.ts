@@ -39,13 +39,16 @@ describe('site-with-errors', () => {
 
   it('cache has expected results', () => {
     const actual = results.map(({issue: {url: issueUrl}, findings}) => {
-      const {problemUrl, solutionLong, screenshotId, ...finding} = findings[0]
+      const {problemUrl, solutionLong, screenshotId, nodes, ...finding} = findings[0]
       // Check volatile fields for existence only
       expect(issueUrl).toBeDefined()
       expect(problemUrl).toBeDefined()
       // Axe-specific assertions
       if (finding.scannerType === 'axe') {
         expect(solutionLong).toBeDefined()
+        expect(nodes).toBeDefined()
+        expect(nodes!.length).toBeGreaterThan(0)
+        expect(nodes![0].html).toBe(finding.html)
         expect(problemUrl.startsWith('https://dequeuniversity.com/rules/axe/')).toBe(true)
         expect(problemUrl.endsWith(`/${finding.ruleId}?application=playwright`)).toBe(true)
       }

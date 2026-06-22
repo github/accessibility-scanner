@@ -5,6 +5,13 @@ function getFilingKey(filing: ResolvedFiling | RepeatedFiling): string {
 }
 
 function getFindingKey(finding: Finding): string {
+  // Axe reports every element failing a rule under a single rule-level finding,
+  // so the rule itself is the stable identity. Keying on one element's exact
+  // markup was fragile: any DOM shift produced a new key and re-filed an issue
+  // that was already tracked. Axe findings therefore key on the rule, not HTML.
+  if (finding.scannerType === 'axe' && finding.ruleId) {
+    return `${finding.url};axe;${finding.ruleId}`
+  }
   if (finding.ruleId && finding.html) {
     return `${finding.url};${finding.ruleId};${finding.html}`
   }
