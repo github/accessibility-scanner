@@ -45,6 +45,10 @@ inputs:
     description: "In the 'file' step, also open grouped issues which link to all issues with the same problem"
     required: false
     default: 'false'
+  group_by:
+    description: "How to group findings into issues: 'finding' (one issue per violation, default), 'rule' (one issue per rule), or 'rule+url' (one issue per rule per scanned URL)."
+    required: false
+    default: 'finding'
   reduced_motion:
     description: 'Playwright reducedMotion setting: https://playwright.dev/docs/api/class-browser#browser-new-page-option-reduced-motion'
     required: false
@@ -133,6 +137,7 @@ runs:
         cached_filings_file: ${{ steps.normalize_cache.outputs.cached_filings_file }}
         screenshot_repository: ${{ github.repository }}
         open_grouped_issues: ${{ inputs.open_grouped_issues }}
+        group_by: ${{ inputs.group_by }}
         dry_run: ${{ inputs.dry_run }}
     - if: ${{ steps.file.outputs.filings_file }}
       name: Get issues from filings

@@ -1,4 +1,12 @@
-import type {Finding, ResolvedFiling, RepeatedFiling, FindingGroupIssue, Filing, IssueResponse} from './types.d.js'
+import type {
+  Finding,
+  ResolvedFiling,
+  RepeatedFiling,
+  FindingGroupIssue,
+  Filing,
+  IssueResponse,
+  GroupBy,
+} from './types.d.js'
 import fs from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
@@ -29,6 +37,13 @@ export default async function () {
     ? JSON.parse(fs.readFileSync(cachedFilingsFile, 'utf8'))
     : []
   const shouldOpenGroupedIssues = core.getBooleanInput('open_grouped_issues')
+  const groupByInput = core.getInput('group_by') || 'finding'
+  const validGroupByValues: GroupBy[] = ['finding', 'rule', 'rule+url']
+  if (!validGroupByValues.includes(groupByInput as GroupBy)) {
+    core.setFailed(`Invalid 'group_by' value: '${groupByInput}'. Must be one of: ${validGroupByValues.join(', ')}.`)
+    return
+  }
+  const groupBy = groupByInput as GroupBy
   const dryRun = core.getBooleanInput('dry_run')
   core.debug(`Input: 'findings_file: ${findingsFile}'`)
   core.debug(`Input: 'repository: ${repoWithOwner}'`)
@@ -36,6 +51,7 @@ export default async function () {
   core.debug(`Input: 'screenshot_repository: ${screenshotRepo}'`)
   core.debug(`Input: 'cached_filings_file: ${cachedFilingsFile}'`)
   core.debug(`Input: 'open_grouped_issues: ${shouldOpenGroupedIssues}'`)
+  core.debug(`Input: 'group_by: ${groupBy}'`)
   core.debug(`Input: 'dry_run: ${dryRun}'`)
 
   const octokit = new OctokitWithThrottling({
@@ -58,7 +74,7 @@ export default async function () {
       },
     },
   })
-  const filings = updateFilingsWithNewFindings(cachedFilings, findings)
+  const filings = updateFilingsWithNewFindings(cachedFilings, findings, groupBy)
 
   // Track new issues for grouping
   const newIssuesByProblemShort: Record<string, FindingGroupIssue[]> = {}
@@ -91,7 +107,7 @@ export default async function () {
           filing.issue.state = 'closed'
         } else if (isNewFiling(filing)) {
           // Open a new issue for the filing
-          response = await openIssue(octokit, repoWithOwner, filing.findings[0], screenshotRepo)
+          response = await openIssue(octokit, repoWithOwner, filing.findings, screenshotRepo)
           ;(filing as Filing).issue = {state: 'open'} as Issue
 
           // Track for grouping
@@ -107,13 +123,7 @@ export default async function () {
           }
         } else if (isRepeatedFiling(filing)) {
           // Reopen the filing's issue (if necessary) and update the body with the latest finding
-          response = await reopenIssue(
-            octokit,
-            new Issue(filing.issue),
-            filing.findings[0],
-            repoWithOwner,
-            screenshotRepo,
-          )
+          response = await reopenIssue(octokit, new Issue(filing.issue), filing.findings, repoWithOwner, screenshotRepo)
           filing.issue.state = 'reopened'
         }
         if (response?.data && filing.issue) {

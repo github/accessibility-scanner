@@ -1,6 +1,9 @@
 import type {Finding} from './types.d.js'
 
-export function generateIssueBody(finding: Finding, screenshotRepo: string): string {
+export function generateIssueBody(findingOrFindings: Finding | Finding[], screenshotRepo: string): string {
+  const findings = Array.isArray(findingOrFindings) ? findingOrFindings : [findingOrFindings]
+  const finding = findings[0]
+
   const solutionLong = finding.solutionLong
     ?.split('\n')
     .map((line: string) =>
@@ -18,6 +21,17 @@ export function generateIssueBody(finding: Finding, screenshotRepo: string): str
 `
   }
 
+  // When this issue groups multiple findings, list each occurrence as a checklist item.
+  let occurrencesSection = ''
+  if (findings.length > 1) {
+    const items = findings.map(f => `- [ ] ${f.html ? `\`${f.html}\` on ${f.url}` : f.url}`).join('\n')
+    occurrencesSection = `
+## Occurrences (${findings.length})
+
+${items}
+`
+  }
+
   const acceptanceCriteria = `## Acceptance Criteria
 - [ ] The specific violation reported in this issue is no longer reproducible.
 - [ ] The fix MUST meet WCAG 2.1 guidelines OR the accessibility standards specified by the repository or organization.
@@ -30,7 +44,7 @@ An accessibility scan ${finding.html ? `flagged the element \`${finding.html}\``
 ${screenshotSection ?? ''}
 To fix this, ${finding.solutionShort}.
 ${solutionLong ? `\nSpecifically:\n\n${solutionLong}` : ''}
-
+${occurrencesSection}
 ${acceptanceCriteria}
 `
 
