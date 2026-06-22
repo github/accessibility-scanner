@@ -4,12 +4,6 @@ function getFilingKey(filing: ResolvedFiling | RepeatedFiling): string {
   return filing.issue.url
 }
 
-/**
- * Computes the dedup key for a finding based on the grouping mode.
- * - 'finding' (default): one filing per individual violation (URL + rule + element).
- * - 'rule': one filing per rule, aggregating every occurrence across all URLs.
- * - 'rule+url': one filing per rule per scanned URL.
- */
 function getFindingKey(finding: Finding, groupBy: GroupBy): string {
   const rule = finding.ruleId ?? `${finding.scannerType};${finding.problemUrl}`
 
@@ -54,13 +48,11 @@ export function updateFilingsWithNewFindings(
     const key = getFindingKey(finding, groupBy)
     const filingKey = findingKeys[key]
     if (filingKey) {
-      // This finding already maps to an existing issue; append it to that filing
+      // This finding already has an associated filing; add it to that filing's findings
       ;(filingKeys[filingKey] as RepeatedFiling).findings.push(finding)
     } else if (newFilingKeys[key]) {
-      // A new filing for this group already exists this run; append to it
       newFilingKeys[key].findings.push(finding)
     } else {
-      // First occurrence of this group with no existing issue; start a new filing
       newFilingKeys[key] = {findings: [finding]}
     }
   }

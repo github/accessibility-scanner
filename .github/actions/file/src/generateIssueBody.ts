@@ -21,7 +21,6 @@ export function generateIssueBody(findingOrFindings: Finding | Finding[], screen
 `
   }
 
-  // When this issue groups multiple findings, list each occurrence as a checklist item.
   let occurrencesSection = ''
   if (findings.length > 1) {
     const items = findings.map(f => `- [ ] ${f.html ? `\`${f.html}\` on ${f.url}` : f.url}`).join('\n')
