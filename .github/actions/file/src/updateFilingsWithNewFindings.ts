@@ -5,7 +5,7 @@ function getFilingKey(filing: ResolvedFiling | RepeatedFiling): string {
 }
 
 function getFindingKey(finding: Finding, groupBy: GroupBy): string {
-  const rule = finding.ruleId ?? `${finding.scannerType};${finding.problemUrl}`
+  const rule = finding.ruleId ? `${finding.scannerType};${finding.ruleId}` : `${finding.scannerType};${finding.problemUrl}`
 
   switch (groupBy) {
     case 'rule':

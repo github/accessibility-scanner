@@ -25,7 +25,7 @@ export function generateIssueBody(findingOrFindings: Finding | Finding[], screen
   if (findings.length > 1) {
     const items = findings.map(f => `- [ ] ${f.html ? `\`${f.html}\` on ${f.url}` : f.url}`).join('\n')
     occurrencesSection = `
-## Occurrences (${findings.length})
+## ${findings.length} Other Occurrences:
 
 ${items}
 `
