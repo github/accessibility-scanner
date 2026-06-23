@@ -25,9 +25,7 @@ const cachedFiling: RepeatedFiling = {
 
 describe('updateFilingsWithNewFindings', () => {
   it('re-matches an axe finding to its existing issue after the element HTML shifts', () => {
-    // The same rule fails on the same page, but a layout change altered the
-    // element's surrounding markup. The finding should still map to issue #1
-    // rather than being treated as a brand new violation.
+    // Same rule and page, but the element's markup shifted; should still map to issue #1.
     const shiftedFinding: Finding = {
       ...cachedFinding,
       html: '<span class="post-meta">old markup wrapped in a new container</span>',

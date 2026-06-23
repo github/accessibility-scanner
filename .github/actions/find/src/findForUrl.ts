@@ -85,9 +85,7 @@ async function runAxeScan({
 
   if (rawFindings) {
     for (const violation of rawFindings.violations) {
-      // Axe groups every element that fails a rule into one violation. Capture
-      // all of them so a single issue can report the rule's full scope on the
-      // page, and so matching keys on the rule rather than one element's markup.
+      // Capture every failing element, not just the first, so one issue covers the rule.
       await addFinding({
         scannerType: 'axe',
         url,
