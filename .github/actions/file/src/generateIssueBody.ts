@@ -1,7 +1,7 @@
 import type {Finding} from './types.d.js'
 
-export function generateIssueBody(findingOrFindings: Finding | Finding[], screenshotRepo: string): string {
-  const findings = Array.isArray(findingOrFindings) ? findingOrFindings : [findingOrFindings]
+export function generateIssueBody(occurrences: Finding | Finding[], screenshotRepo: string): string {
+  const findings = Array.isArray(occurrences) ? occurrences : [occurrences]
   const finding = findings[0]
 
   const solutionLong = finding.solutionLong

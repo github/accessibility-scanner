@@ -1,12 +1,4 @@
-import type {
-  Finding,
-  ResolvedFiling,
-  RepeatedFiling,
-  FindingGroupIssue,
-  Filing,
-  IssueResponse,
-  GroupBy,
-} from './types.d.js'
+import type {Finding, ResolvedFiling, RepeatedFiling, FindingGroupIssue, Filing, IssueResponse} from './types.d.js'
 import fs from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
@@ -21,6 +13,7 @@ import {isResolvedFiling} from './isResolvedFiling.js'
 import {openIssue} from './openIssue.js'
 import {reopenIssue} from './reopenIssue.js'
 import {updateFilingsWithNewFindings} from './updateFilingsWithNewFindings.js'
+import {GROUP_BY_VALUES, isGroupBy} from './groupBy.js'
 import {OctokitResponse} from '@octokit/types'
 const OctokitWithThrottling = Octokit.plugin(throttling)
 
@@ -38,12 +31,11 @@ export default async function () {
     : []
   const shouldOpenGroupedIssues = core.getBooleanInput('open_grouped_issues')
   const groupByInput = core.getInput('group_by') || 'finding'
-  const validGroupByValues: GroupBy[] = ['finding', 'rule', 'rule+url']
-  if (!validGroupByValues.includes(groupByInput as GroupBy)) {
-    core.setFailed(`Invalid 'group_by' value: '${groupByInput}'. Must be one of: ${validGroupByValues.join(', ')}.`)
+  if (!isGroupBy(groupByInput)) {
+    core.setFailed(`Invalid 'group_by' value: '${groupByInput}'. Must be one of: ${GROUP_BY_VALUES.join(', ')}.`)
     return
   }
-  const groupBy = groupByInput as GroupBy
+  const groupBy = groupByInput
   const dryRun = core.getBooleanInput('dry_run')
   core.debug(`Input: 'findings_file: ${findingsFile}'`)
   core.debug(`Input: 'repository: ${repoWithOwner}'`)

@@ -1,7 +1,7 @@
 import {describe, it, expect} from 'vitest'
 import {updateFilingsWithNewFindings} from '../src/updateFilingsWithNewFindings.ts'
 
-const cc = (url: string, html: string) => ({
+const colorContrastFinding = (url: string, html: string) => ({
   scannerType: 'axe',
   ruleId: 'color-contrast',
   url,
@@ -13,9 +13,9 @@ const cc = (url: string, html: string) => ({
 
 describe('updateFilingsWithNewFindings — group_by', () => {
   const findings = [
-    cc('https://example.com/a', '<span>1</span>'),
-    cc('https://example.com/a', '<span>2</span>'),
-    cc('https://example.com/b', '<span>3</span>'),
+    colorContrastFinding('https://example.com/a', '<span>1</span>'),
+    colorContrastFinding('https://example.com/a', '<span>2</span>'),
+    colorContrastFinding('https://example.com/b', '<span>3</span>'),
   ]
 
   it("defaults to 'finding': one filing per individual violation", () => {
@@ -46,7 +46,7 @@ describe('updateFilingsWithNewFindings — group_by', () => {
           url: 'https://github.com/org/repo/issues/1',
           title: 'color-contrast',
         },
-        findings: [cc('https://example.com/a', '<span>1</span>')],
+        findings: [colorContrastFinding('https://example.com/a', '<span>1</span>')],
       },
     ]
     const result = updateFilingsWithNewFindings(cached, findings, 'rule')
@@ -58,10 +58,25 @@ describe('updateFilingsWithNewFindings — group_by', () => {
 
   it("keeps distinct rules separate under 'rule'", () => {
     const mixed = [
-      cc('https://example.com/a', '<span>1</span>'),
-      {...cc('https://example.com/a', '<h3>x</h3>'), ruleId: 'heading-order'},
+      colorContrastFinding('https://example.com/a', '<span>1</span>'),
+      {...colorContrastFinding('https://example.com/a', '<h3>x</h3>'), ruleId: 'heading-order'},
     ]
     const result = updateFilingsWithNewFindings([], mixed, 'rule')
+    expect(result).toHaveLength(2)
+  })
+
+  it("'rule': does not merge findings from different scanners that share a ruleId", () => {
+    const a = {
+      ...colorContrastFinding('https://example.com/a', '<span>1</span>'),
+      scannerType: 'axe',
+      ruleId: 'duplicate-id',
+    }
+    const b = {
+      ...colorContrastFinding('https://example.com/a', '<span>2</span>'),
+      scannerType: 'reflow',
+      ruleId: 'duplicate-id',
+    }
+    const result = updateFilingsWithNewFindings([], [a, b], 'rule')
     expect(result).toHaveLength(2)
   })
 
@@ -74,7 +89,7 @@ describe('updateFilingsWithNewFindings — group_by', () => {
           url: 'https://github.com/org/repo/issues/1',
           title: 'color-contrast',
         },
-        findings: [cc('https://example.com/a', '<span>1</span>')],
+        findings: [colorContrastFinding('https://example.com/a', '<span>1</span>')],
       },
     ]
     const result = updateFilingsWithNewFindings(cached, findings)

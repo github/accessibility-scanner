@@ -1,11 +1,14 @@
-import type {Finding, ResolvedFiling, NewFiling, RepeatedFiling, Filing, GroupBy} from './types.d.js'
+import type {Finding, ResolvedFiling, NewFiling, RepeatedFiling, Filing} from './types.d.js'
+import type {GroupBy} from './groupBy.js'
 
 function getFilingKey(filing: ResolvedFiling | RepeatedFiling): string {
   return filing.issue.url
 }
 
 function getFindingKey(finding: Finding, groupBy: GroupBy): string {
-  const rule = finding.ruleId ? `${finding.scannerType};${finding.ruleId}` : `${finding.scannerType};${finding.problemUrl}`
+  const rule = finding.ruleId
+    ? `${finding.scannerType};${finding.ruleId}`
+    : `${finding.scannerType};${finding.problemUrl}`
 
   switch (groupBy) {
     case 'rule':

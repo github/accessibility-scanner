@@ -80,14 +80,14 @@ describe('generateIssueBody', () => {
   it('omits the Occurrences section for a single finding', () => {
     const body = generateIssueBody(baseFinding, 'github/accessibility-scanner')
 
-    expect(body).not.toContain('## Occurrences')
+    expect(body).not.toContain('Other Occurrences')
   })
 
   it('renders an Occurrences checklist when given multiple findings', () => {
     const second = {...baseFinding, url: 'https://example.com/other', html: '<a>Link</a>'}
     const body = generateIssueBody([baseFinding, second], 'github/accessibility-scanner')
 
-    expect(body).toContain('## Occurrences (2)')
+    expect(body).toContain('## 2 Other Occurrences:')
     expect(body).toContain(`- [ ] \`${baseFinding.html}\` on ${baseFinding.url}`)
     expect(body).toContain(`- [ ] \`${second.html}\` on ${second.url}`)
   })

@@ -11,7 +11,7 @@ export async function reopenIssue(
   screenshotRepo?: string,
 ) {
   let body: string | undefined
-  if (findings && findings.length > 0 && repoWithOwner) {
+  if (findings?.length && repoWithOwner) {
     body = generateIssueBody(findings, screenshotRepo ?? repoWithOwner)
   }
 

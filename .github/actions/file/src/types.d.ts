@@ -1,5 +1,3 @@
-export type GroupBy = 'finding' | 'rule' | 'rule+url'
-
 export type Finding = {
   scannerType: string
   ruleId?: string
