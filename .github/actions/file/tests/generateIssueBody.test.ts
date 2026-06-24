@@ -26,7 +26,7 @@ describe('generateIssueBody', () => {
     expect(body).toContain('## What')
     expect(body).toContain('## Acceptance Criteria')
     expect(body).toContain('The specific violation reported in this issue is no longer reproducible.')
-    expect(body).toContain('The fix MUST meet WCAG 2.1 guidelines OR')
+    expect(body).toContain('The fix MUST meet WCAG 2.2 guidelines OR')
     expect(body).not.toContain('Specifically:')
   })
 
@@ -79,29 +79,29 @@ describe('generateIssueBody', () => {
   })
 
   it('omits the category notice for WCAG findings', () => {
-    expect(generateIssueBody(baseFinding, 'github/accessibility-scanner')).not.toContain('**Note:**')
+    expect(generateIssueBody(baseFinding, 'github/accessibility-scanner')).not.toContain('> [!NOTE]')
     expect(generateIssueBody({...baseFinding, category: 'wcag'}, 'github/accessibility-scanner')).not.toContain(
-      '**Note:**',
+      '> [!NOTE]',
     )
   })
 
   it('includes a best-practice notice for best-practice findings', () => {
     const body = generateIssueBody({...baseFinding, category: 'best-practice'}, 'github/accessibility-scanner')
 
-    expect(body).toContain('**Note:**')
+    expect(body).toContain('> [!NOTE]')
     expect(body).toContain('best-practice recommendation')
-    expect(body).toContain('not a hard WCAG failure')
-    expect(body).toContain('WCAG 2.1 if applicable')
-    expect(body).not.toContain('The fix MUST meet WCAG 2.1 guidelines OR')
+    expect(body).toContain('not a definite WCAG failure')
+    expect(body).toContain('WCAG 2.2 if applicable')
+    expect(body).not.toContain('The fix MUST meet WCAG 2.2 guidelines OR')
   })
 
   it('includes an experimental notice for experimental findings', () => {
     const body = generateIssueBody({...baseFinding, category: 'experimental'}, 'github/accessibility-scanner')
 
-    expect(body).toContain('**Note:**')
+    expect(body).toContain('> [!NOTE]')
     expect(body).toContain('an experimental check')
-    expect(body).toContain('not a hard WCAG failure')
-    expect(body).toContain('WCAG 2.1 if applicable')
-    expect(body).not.toContain('The fix MUST meet WCAG 2.1 guidelines OR')
+    expect(body).toContain('not a definite WCAG failure')
+    expect(body).toContain('WCAG 2.2 if applicable')
+    expect(body).not.toContain('The fix MUST meet WCAG 2.2 guidelines OR')
   })
 })
