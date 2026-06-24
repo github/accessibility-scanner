@@ -22,7 +22,7 @@ export function generateIssueBody(finding: Finding, screenshotRepo: string): str
     finding.category && finding.category !== 'wcag'
       ? `**Note:** This is ${
           finding.category === 'experimental' ? 'an experimental check' : 'a best-practice recommendation'
-        }, not a hard WCAG failure.\n\n`
+        }, not a definite WCAG failure.\n\n`
       : ''
 
   const standardsLine =
