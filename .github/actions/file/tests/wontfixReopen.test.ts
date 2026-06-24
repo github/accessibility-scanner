@@ -38,7 +38,8 @@ vi.mock('node:fs', () => ({
   },
 }))
 
-// Stub Octokit: `request` serves the GET that isWontfixIssue makes
+// Stub Octokit: `request` serves the list of closed `wontfix` issues that
+// getWontfixIssueNumbers fetches once up front.
 const octokitRequest = vi.fn()
 vi.mock('@octokit/core', () => ({
   Octokit: {
@@ -80,11 +81,9 @@ function setup() {
   inputs.cached_filings_file = '/tmp/cached.json'
   inputs.repository = 'org/repo'
   inputs.token = 'fake-token'
-  // GET issue: issue 1 is labeled wontfix, issue 3 is not
+  // Single up-front fetch: only issue 1 is closed and labeled wontfix
   octokitRequest.mockImplementation((route: string) =>
-    route.includes('/issues/1')
-      ? Promise.resolve({data: {labels: [{name: 'wontfix'}]}})
-      : Promise.resolve({data: {labels: []}}),
+    route.includes('GET /repos/org/repo/issues') ? Promise.resolve({data: [{number: 1}]}) : Promise.resolve({data: {}}),
   )
 }
 
@@ -124,13 +123,13 @@ describe('file action — wontfix label', () => {
 
   it('reopens as usual (and warns) when the label check fails', async () => {
     setup()
-    // The label-check GET fails for every issue (e.g. transient API error)
+    // The up-front wontfix fetch fails (e.g. transient API error)
     octokitRequest.mockRejectedValue(new Error('boom'))
 
     await runFileAction()
 
     // Both repeated filings should still be reopened rather than aborting the run
     expect(reopenIssue).toHaveBeenCalledTimes(2)
-    expect(warnLines.join('\n')).toContain('Could not check labels for')
+    expect(warnLines.join('\n')).toContain("Could not fetch 'wontfix' issues")
   })
 })

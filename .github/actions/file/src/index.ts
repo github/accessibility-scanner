@@ -10,7 +10,7 @@ import {closeIssue} from './closeIssue.js'
 import {isNewFiling} from './isNewFiling.js'
 import {isRepeatedFiling} from './isRepeatedFiling.js'
 import {isResolvedFiling} from './isResolvedFiling.js'
-import {isWontfixIssue, WONTFIX_LABEL} from './isWontfixIssue.js'
+import {getWontfixIssueNumbers, shouldReopenIssue, WONTFIX_LABEL} from './shouldReopenIssue.js'
 import {openIssue} from './openIssue.js'
 import {reopenIssue} from './reopenIssue.js'
 import {updateFilingsWithNewFindings} from './updateFilingsWithNewFindings.js'
@@ -61,6 +61,17 @@ export default async function () {
   })
   const filings = updateFilingsWithNewFindings(cachedFilings, findings)
 
+  // Fetch closed wontfix issues once up front; a failed fetch reopens as usual
+  let wontfixIssueNumbers = new Set<number>()
+  if (!dryRun) {
+    try {
+      const [owner, repository] = repoWithOwner.split('/')
+      wontfixIssueNumbers = await getWontfixIssueNumbers(octokit, {owner, repository})
+    } catch (error) {
+      core.warning(`Could not fetch '${WONTFIX_LABEL}' issues; proceeding with reopen as usual: ${error}`)
+    }
+  }
+
   // Track new issues for grouping
   const newIssuesByProblemShort: Record<string, FindingGroupIssue[]> = {}
   const trackingIssueUrls: Record<string, string> = {}
@@ -108,14 +119,7 @@ export default async function () {
           }
         } else if (isRepeatedFiling(filing)) {
           const issue = new Issue(filing.issue)
-          let isWontfix = false
-          try {
-            isWontfix = await isWontfixIssue(octokit, issue)
-          } catch (error) {
-            // A failed label check shouldn't abort the run, so reopen as usual
-            core.warning(`Could not check labels for ${filing.issue.url}; proceeding with reopen: ${error}`)
-          }
-          if (isWontfix) {
+          if (!shouldReopenIssue(issue, wontfixIssueNumbers)) {
             // The developer intentionally closed this issue and labeled it 'wontfix', so leave it closed
             core.info(`Skipping reopen of issue labeled '${WONTFIX_LABEL}': ${filing.issue.url}`)
           } else {
