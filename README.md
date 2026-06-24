@@ -150,7 +150,7 @@ If your login flow is more complex—if it requires two-factor authentication, s
 
 ## Keeping an issue closed with `wontfix`
 
-When the scanner files an issue for an accessibility finding and that same finding turns up again on a later run, it reopens the issue (if you'd closed it) so the barrier doesn't get lost. Sometimes, though, you may want a closed issue to _stay_ closed—for example, if you've decided not to act on a particular finding, or you're tracking the work somewhere else.
+When the scanner files an issue for an accessibility finding and that same finding turns up again on a later run, it reopens closed issues so the problem doesn't get lost. Sometimes, though, you may want a closed issue to _stay_ closed -- for example, if you've decided not to act on a particular finding, or if you're already tracking the work outside of GitHub issues.
 
 To stop the scanner from reopening a closed issue, add the **`wontfix`** label to it. On its next run, the scanner sees the label and skips reopening the issue, leaving it closed.
 
