@@ -124,7 +124,7 @@ async function runAccesslintScan({
       problemShort: violation.message.toLowerCase().replace(/'/g, '&apos;'),
       problemUrl: 'https://github.com/AccessLint/accesslint/blob/main/core/README.md#rules-1',
       ruleId: violation.ruleId,
-      solutionShort: `resolve the ${violation.ruleId} violation that accesslint flagged on \`${violation.selector}\``,
+      solutionShort: `resolve the ${violation.ruleId} violation that accesslint flagged on \`${violation.selector}\``.replace(/'/g, '&apos;'),
     })
   }
 }

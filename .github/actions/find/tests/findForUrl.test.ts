@@ -115,7 +115,7 @@ describe('findForUrl', () => {
         actionInput = JSON.stringify(['accesslint'])
         clearAll()
 
-        await findForUrl('test.com')
+        await findForUrl({url: 'test.com'})
         expect(accesslintAudit).toHaveBeenCalledTimes(1)
         expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(0)
         expect(pluginManager.loadPlugins).toHaveBeenCalledTimes(0)
@@ -125,7 +125,7 @@ describe('findForUrl', () => {
         actionInput = JSON.stringify(['axe', 'accesslint'])
         clearAll()
 
-        await findForUrl('test.com')
+        await findForUrl({url: 'test.com'})
         expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(1)
         expect(accesslintAudit).toHaveBeenCalledTimes(1)
         expect(pluginManager.loadPlugins).toHaveBeenCalledTimes(0)
@@ -140,7 +140,7 @@ describe('findForUrl', () => {
         actionInput = JSON.stringify(['accesslint', 'custom-scan-1'])
         clearAll()
 
-        await findForUrl('test.com')
+        await findForUrl({url: 'test.com'})
         expect(accesslintAudit).toHaveBeenCalledTimes(1)
         expect(pluginManager.invokePlugin).toHaveBeenCalledTimes(1)
         expect(loadedPlugins[0].default).toHaveBeenCalledTimes(1)
