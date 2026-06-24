@@ -31,6 +31,10 @@ configuration option.
 [`colorScheme`](https://playwright.dev/docs/api/class-browser#browser-new-context-option-color-scheme)
 configuration option.
 
+#### `ignore_https_errors`
+
+**Optional** Bool - whether to ignore HTTPS errors when scanning URLs with self-signed certificates.
+
 #### `include_screenshots`
 
 **Optional** Bool - whether to capture screenshots of scanned pages and include links to them in the issue
