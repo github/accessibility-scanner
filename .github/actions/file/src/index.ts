@@ -10,6 +10,7 @@ import {closeIssue} from './closeIssue.js'
 import {isNewFiling} from './isNewFiling.js'
 import {isRepeatedFiling} from './isRepeatedFiling.js'
 import {isResolvedFiling} from './isResolvedFiling.js'
+import {getWontfixIssueNumbers, shouldReopenIssue, WONTFIX_LABEL} from './shouldReopenIssue.js'
 import {openIssue} from './openIssue.js'
 import {reopenIssue} from './reopenIssue.js'
 import {updateFilingsWithNewFindings} from './updateFilingsWithNewFindings.js'
@@ -60,6 +61,17 @@ export default async function () {
   })
   const filings = updateFilingsWithNewFindings(cachedFilings, findings)
 
+  // Fetch closed wontfix issues once up front; a failed fetch reopens as usual
+  let wontfixIssueNumbers = new Set<number>()
+  if (!dryRun) {
+    try {
+      const [owner, repository] = repoWithOwner.split('/')
+      wontfixIssueNumbers = await getWontfixIssueNumbers(octokit, {owner, repository})
+    } catch (error) {
+      core.warning(`Could not fetch '${WONTFIX_LABEL}' issues; proceeding with reopen as usual: ${error}`)
+    }
+  }
+
   // Track new issues for grouping
   const newIssuesByProblemShort: Record<string, FindingGroupIssue[]> = {}
   const trackingIssueUrls: Record<string, string> = {}
@@ -106,15 +118,15 @@ export default async function () {
             })
           }
         } else if (isRepeatedFiling(filing)) {
-          // Reopen the filing's issue (if necessary) and update the body with the latest finding
-          response = await reopenIssue(
-            octokit,
-            new Issue(filing.issue),
-            filing.findings[0],
-            repoWithOwner,
-            screenshotRepo,
-          )
-          filing.issue.state = 'reopened'
+          const issue = new Issue(filing.issue)
+          if (!shouldReopenIssue(issue, wontfixIssueNumbers)) {
+            // The developer intentionally closed this issue and labeled it 'wontfix', so leave it closed
+            core.info(`Skipping reopen of issue labeled '${WONTFIX_LABEL}': ${filing.issue.url}`)
+          } else {
+            // Reopen the filing's issue and update the body with the latest finding
+            response = await reopenIssue(octokit, issue, filing.findings[0], repoWithOwner, screenshotRepo)
+            filing.issue.state = 'reopened'
+          }
         }
         if (response?.data && filing.issue) {
           // Update the filing with the latest issue data
