@@ -3,7 +3,8 @@ import * as path from 'path'
 import {fileURLToPath} from 'url'
 import * as core from '@actions/core'
 import {loadPluginViaJsFile, loadPluginViaTsFile} from './pluginFileLoaders.js'
-import type {Plugin, PluginDefaultParams} from './types.js'
+import {loadPluginViaNpm} from './npmPluginLoader.js'
+import type {NpmPluginRequest, Plugin, PluginDefaultParams} from './types.js'
 
 // Helper to get __dirname equivalent in ES Modules
 const __filename = fileURLToPath(import.meta.url)
@@ -20,12 +21,13 @@ export function getPlugins() {
 }
 let pluginsLoaded = false
 
-export async function loadPlugins() {
+export async function loadPlugins(npmPlugins: NpmPluginRequest[] = []) {
   try {
     if (!pluginsLoaded) {
       core.info('loading plugins')
       await loadBuiltInPlugins()
       await loadCustomPlugins()
+      await loadNpmPlugins(npmPlugins)
     }
   } catch {
     plugins.length = 0
@@ -55,7 +57,7 @@ export async function loadBuiltInPlugins() {
   await loadPluginsFromPath({pluginsPath})
 }
 
-// exported for mocking/testing. not for actual use
+// export to be used for mocking/testing. not for actual use
 export async function loadCustomPlugins() {
   core.info('Loading custom plugins')
   const pluginsPath = path.join(process.cwd(), '.github/scanner-plugins/')
@@ -73,6 +75,46 @@ export async function loadCustomPlugins() {
   }
 
   await loadPluginsFromPath({pluginsPath, skipBuiltInPlugins: BUILT_IN_PLUGINS})
+}
+
+// Curated first-party packages allowed to be installed and loaded from NPM.
+// Kept intentionally small while the plugin system is being prototyped.
+const FIRST_PARTY_NPM_PLUGINS = ['@github/accessibility-scanner-alt-text-plugin']
+
+// exported for mocking/testing. not for actual use
+export async function loadNpmPlugins(npmPlugins: NpmPluginRequest[]) {
+  if (npmPlugins.length === 0) {
+    return
+  }
+  core.info('Loading NPM plugins')
+
+  for (const request of npmPlugins) {
+    // Only install curated first-party packages.
+    if (!FIRST_PARTY_NPM_PLUGINS.includes(request.package)) {
+      core.warning(`Skipping NPM plugin '${request.package}' because it is not a first-party package`)
+      continue
+    }
+
+    const plugin = await loadPluginViaNpm(request)
+    if (!plugin) {
+      continue
+    }
+
+    // Validate the package actually exports a usable plugin.
+    if (typeof plugin.name !== 'string' || typeof plugin.default !== 'function') {
+      core.warning(`Skipping NPM plugin '${request.package}' because it does not export a valid plugin`)
+      continue
+    }
+
+    // Built-in and local plugins take precedence over NPM ones of the same name.
+    if (plugins.some(existing => existing.name === plugin.name)) {
+      core.info(`Skipping NPM plugin '${plugin.name}' because a plugin with that name is already loaded`)
+      continue
+    }
+
+    core.info(`Found NPM plugin: ${plugin.name}`)
+    plugins.push(plugin)
+  }
 }
 
 // exported for mocking/testing. not for actual use
