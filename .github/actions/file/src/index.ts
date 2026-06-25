@@ -18,6 +18,12 @@ import {GROUP_BY_VALUES, isGroupBy} from './groupBy.js'
 import {OctokitResponse} from '@octokit/types'
 const OctokitWithThrottling = Octokit.plugin(throttling)
 
+// core.getBooleanInput throws on unset inputs, so apply the default first.
+function getBooleanInputWithDefault(name: string, defaultValue: boolean): boolean {
+  if (!core.getInput(name)) return defaultValue
+  return core.getBooleanInput(name)
+}
+
 export default async function () {
   core.info("Started 'file' action")
   const findingsFile = core.getInput('findings_file', {required: true})
@@ -38,6 +44,8 @@ export default async function () {
   }
   const groupBy = groupByInput
   const dryRun = core.getBooleanInput('dry_run')
+  const fileBestPracticeIssues = getBooleanInputWithDefault('file_best_practice_issues', true)
+  const fileExperimentalIssues = getBooleanInputWithDefault('file_experimental_issues', true)
   core.debug(`Input: 'findings_file: ${findingsFile}'`)
   core.debug(`Input: 'repository: ${repoWithOwner}'`)
   core.debug(`Input: 'base_url: ${baseUrl ?? '(default)'}'`)
@@ -46,6 +54,8 @@ export default async function () {
   core.debug(`Input: 'open_grouped_issues: ${shouldOpenGroupedIssues}'`)
   core.debug(`Input: 'group_by: ${groupBy}'`)
   core.debug(`Input: 'dry_run: ${dryRun}'`)
+  core.debug(`Input: 'file_best_practice_issues: ${fileBestPracticeIssues}'`)
+  core.debug(`Input: 'file_experimental_issues: ${fileExperimentalIssues}'`)
 
   const octokit = new OctokitWithThrottling({
     auth: token,
@@ -69,6 +79,9 @@ export default async function () {
   })
   const filings = updateFilingsWithNewFindings(cachedFilings, findings, groupBy)
 
+  // Suppressed new filings are kept out of the cache
+  const suppressedFilings = new Set<Filing>()
+
   // Fetch closed wontfix issues once up front; a failed fetch reopens as usual
   let wontfixIssueNumbers = new Set<number>()
   if (!dryRun) {
@@ -88,6 +101,21 @@ export default async function () {
   for (const filing of filings) {
     let response: OctokitResponse<IssueResponse> | undefined
     try {
+      // Category switches gate only new issues
+      if (isNewFiling(filing)) {
+        const category = filing.findings[0].category ?? 'wcag'
+        if (
+          (category === 'best-practice' && !fileBestPracticeIssues) ||
+          (category === 'experimental' && !fileExperimentalIssues)
+        ) {
+          core.info(
+            `Skipping new ${category} issue (filing disabled for this category): ${filing.findings[0].problemShort}`,
+          )
+          suppressedFilings.add(filing)
+          continue
+        }
+      }
+
       if (dryRun) {
         if (isResolvedFiling(filing)) {
           dryRunCounts.close++
@@ -190,7 +218,8 @@ export default async function () {
   }
 
   const filingsPath = path.join(process.env.RUNNER_TEMP || '/tmp', `filings-${crypto.randomUUID()}.json`)
-  fs.writeFileSync(filingsPath, JSON.stringify(filings))
+  const outputFilings = suppressedFilings.size > 0 ? filings.filter(f => !suppressedFilings.has(f)) : filings
+  fs.writeFileSync(filingsPath, JSON.stringify(outputFilings))
   core.setOutput('filings_file', filingsPath)
 
   core.debug(`Output: 'filings_file: ${filingsPath}'`)

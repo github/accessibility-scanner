@@ -27,6 +27,10 @@ export async function openIssue(octokit: Octokit, repoWithOwner: string, finding
   if (primary.ruleId) {
     labels.push(`${primary.scannerType} rule: ${primary.ruleId}`)
   }
+  // Flag non-WCAG findings so they can be filtered or triaged separately
+  if (finding.category && finding.category !== 'wcag') {
+    labels.push(finding.category)
+  }
 
   const count = findings.length
   const titleSuffix = count > 1 ? ` (${count} occurrences)` : ` on ${new URL(primary.url).pathname}`
