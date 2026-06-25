@@ -189,6 +189,8 @@ describe('file action — dry_run', () => {
     openIssue.mockResolvedValue(resp)
     reopenIssue.mockResolvedValue(resp)
     closeIssue.mockResolvedValue(resp)
+    // the wontfix-label check issues a GET before reopening; return no labels so the reopen proceeds
+    octokitRequest.mockResolvedValue({data: {labels: []}})
 
     await runFileAction()
 
