@@ -67,7 +67,7 @@ describe('openIssue', () => {
 
   it('adds a category label for non-WCAG findings', async () => {
     const octokit = mockOctokit()
-    await openIssue(octokit, 'org/repo', {...baseFinding, category: 'best-practice'})
+    await openIssue(octokit, 'org/repo', [{...baseFinding, category: 'best-practice'}])
 
     expect(octokit.request).toHaveBeenCalledWith(
       expect.any(String),
@@ -79,7 +79,7 @@ describe('openIssue', () => {
 
   it('does not add a category label for WCAG findings', async () => {
     const octokit = mockOctokit()
-    await openIssue(octokit, 'org/repo', {...baseFinding, category: 'wcag'})
+    await openIssue(octokit, 'org/repo', [{...baseFinding, category: 'wcag'}])
 
     const labels = octokit.request.mock.calls[0][1].labels
     expect(labels).not.toContain('wcag')

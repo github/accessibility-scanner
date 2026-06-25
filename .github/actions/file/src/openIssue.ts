@@ -28,8 +28,8 @@ export async function openIssue(octokit: Octokit, repoWithOwner: string, finding
     labels.push(`${primary.scannerType} rule: ${primary.ruleId}`)
   }
   // Flag non-WCAG findings so they can be filtered or triaged separately
-  if (finding.category && finding.category !== 'wcag') {
-    labels.push(finding.category)
+  if (primary.category && primary.category !== 'wcag') {
+    labels.push(primary.category)
   }
 
   const count = findings.length
