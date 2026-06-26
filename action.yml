@@ -45,6 +45,14 @@ inputs:
     description: "In the 'file' step, also open grouped issues which link to all issues with the same problem"
     required: false
     default: 'false'
+  file_best_practice_issues:
+    description: 'File issues for best-practice findings (accessibility recommendations that are not hard WCAG failures). Disabling suppresses new issues while existing ones are left untouched.'
+    required: false
+    default: 'true'
+  file_experimental_issues:
+    description: 'File issues for experimental findings (checks that are not yet stable). Disabling suppresses new issues while existing ones are left untouched.'
+    required: false
+    default: 'true'
   reduced_motion:
     description: 'Playwright reducedMotion setting: https://playwright.dev/docs/api/class-browser#browser-new-page-option-reduced-motion'
     required: false
@@ -134,6 +142,8 @@ runs:
         screenshot_repository: ${{ github.repository }}
         open_grouped_issues: ${{ inputs.open_grouped_issues }}
         dry_run: ${{ inputs.dry_run }}
+        file_best_practice_issues: ${{ inputs.file_best_practice_issues }}
+        file_experimental_issues: ${{ inputs.file_experimental_issues }}
     - if: ${{ steps.file.outputs.filings_file }}
       name: Get issues from filings
       id: get_issues_from_filings

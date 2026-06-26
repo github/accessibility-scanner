@@ -18,13 +18,25 @@ export function generateIssueBody(finding: Finding, screenshotRepo: string): str
 `
   }
 
+  const categoryNotice =
+    finding.category && finding.category !== 'wcag'
+      ? `> [!NOTE]\n> This is ${
+          finding.category === 'experimental' ? 'an experimental check' : 'a best-practice recommendation'
+        }, not a definite WCAG failure.\n\n`
+      : ''
+
+  const standardsLine =
+    finding.category && finding.category !== 'wcag'
+      ? '- [ ] The fix MUST meet the accessibility standards specified by the repository or organization (WCAG 2.2 if applicable).'
+      : '- [ ] The fix MUST meet WCAG 2.2 guidelines OR the accessibility standards specified by the repository or organization.'
+
   const acceptanceCriteria = `## Acceptance Criteria
 - [ ] The specific violation reported in this issue is no longer reproducible.
-- [ ] The fix MUST meet WCAG 2.1 guidelines OR the accessibility standards specified by the repository or organization.
+${standardsLine}
 - [ ] A test SHOULD be added to ensure this specific violation does not regress.
 - [ ] This PR MUST NOT introduce any new accessibility issues or regressions.`
 
-  const body = `## What
+  const body = `${categoryNotice}## What
 An accessibility scan ${finding.html ? `flagged the element \`${finding.html}\`` : `found an issue on ${finding.url}`} because ${finding.problemShort}. Learn more about why this was flagged by visiting ${finding.problemUrl}.
 
 ${screenshotSection ?? ''}

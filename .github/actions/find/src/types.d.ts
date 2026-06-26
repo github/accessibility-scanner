@@ -1,5 +1,8 @@
+export type FindingCategory = 'wcag' | 'best-practice' | 'experimental'
+
 export type Finding = {
   scannerType: string
+  category?: FindingCategory
   url: string
   html?: string
   problemShort: string
