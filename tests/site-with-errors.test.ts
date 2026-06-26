@@ -58,6 +58,7 @@ describe('site-with-errors', () => {
     const expected = [
       {
         scannerType: 'axe',
+        category: 'wcag',
         url: 'http://127.0.0.1:4000/',
         html: '<span class="post-meta">Jul 30, 2025</span>',
         problemShort: 'elements must meet minimum color contrast ratio thresholds',
@@ -67,6 +68,7 @@ describe('site-with-errors', () => {
       },
       {
         scannerType: 'axe',
+        category: 'best-practice',
         url: 'http://127.0.0.1:4000/',
         html: '<html lang="en">',
         problemShort: 'page should contain a level-one heading',
@@ -75,6 +77,7 @@ describe('site-with-errors', () => {
       },
       {
         scannerType: 'axe',
+        category: 'wcag',
         url: 'http://127.0.0.1:4000/jekyll/update/2025/07/30/welcome-to-jekyll.html',
         html: `<time class="dt-published" datetime="2025-07-30T17:32:33+00:00" itemprop="datePublished">Jul 30, 2025
       </time>`,
@@ -85,6 +88,7 @@ describe('site-with-errors', () => {
       },
       {
         scannerType: 'axe',
+        category: 'wcag',
         url: 'http://127.0.0.1:4000/about/',
         html: '<a href="https://jekyllrb.com/">jekyllrb.com</a>',
         problemShort: 'elements must meet minimum color contrast ratio thresholds',
@@ -94,6 +98,7 @@ describe('site-with-errors', () => {
       },
       {
         scannerType: 'axe',
+        category: 'wcag',
         url: 'http://127.0.0.1:4000/404.html',
         html: '<li class="p-name">Accessibility Scanner Demo</li>',
         problemShort: 'elements must meet minimum color contrast ratio thresholds',
@@ -103,6 +108,7 @@ describe('site-with-errors', () => {
       },
       {
         scannerType: 'axe',
+        category: 'best-practice',
         url: 'http://127.0.0.1:4000/404.html',
         html: '<h1 class="post-title"></h1>',
         problemShort: 'headings should not be empty',

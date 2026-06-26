@@ -161,4 +161,40 @@ describe('findForUrl', () => {
       expect(loadedPlugins[1].default).toHaveBeenCalledTimes(0)
     })
   })
+
+  describe('axe finding categorization', () => {
+    function axeViolation(tags: string[]) {
+      return {
+        id: 'some-rule',
+        help: 'Help',
+        helpUrl: 'https://example.com',
+        description: 'Description',
+        tags,
+        nodes: [{html: '<div></div>', failureSummary: 'summary'}],
+      }
+    }
+
+    async function categoryFor(tags: string[]) {
+      clearAll()
+      actionInput = JSON.stringify(['axe'])
+      vi.mocked(AxeBuilder.prototype.analyze).mockResolvedValueOnce({
+        violations: [axeViolation(tags)],
+      } as unknown as axe.AxeResults)
+
+      const findings = await findForUrl('test.com')
+      return findings[0].category
+    }
+
+    it('categorizes a violation with only wcag tags as wcag', async () => {
+      expect(await categoryFor(['wcag2a', 'wcag111'])).toBe('wcag')
+    })
+
+    it('categorizes a violation with a best-practice tag as best-practice', async () => {
+      expect(await categoryFor(['cat.semantics', 'best-practice'])).toBe('best-practice')
+    })
+
+    it('categorizes a violation with an experimental tag as experimental, even alongside wcag tags', async () => {
+      expect(await categoryFor(['wcag2a', 'experimental'])).toBe('experimental')
+    })
+  })
 })
