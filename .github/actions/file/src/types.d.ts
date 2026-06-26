@@ -3,8 +3,11 @@ export type FindingNode = {
   target?: string
 }
 
+export type FindingCategory = 'wcag' | 'best-practice' | 'experimental'
+
 export type Finding = {
   scannerType: string
+  category?: FindingCategory
   ruleId?: string
   url: string
   html?: string

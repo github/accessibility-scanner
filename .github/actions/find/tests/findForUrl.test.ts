@@ -127,6 +127,7 @@ describe('findForUrl', () => {
       help: 'Elements must meet minimum color contrast ratio thresholds',
       helpUrl: 'https://dequeuniversity.com/rules/axe/4.10/color-contrast',
       description: 'Ensure contrast meets WCAG thresholds',
+      tags: ['wcag2aa', 'wcag143'],
       nodes: [
         {html: '<span>one</span>', target: ['span.one'], failureSummary: 'Fix any of the following:'},
         {html: '<span>two</span>', target: ['div', 'span.two'], failureSummary: 'Fix any of the following:'},
@@ -144,5 +145,41 @@ describe('findForUrl', () => {
       {html: '<span>one</span>', target: 'span.one'},
       {html: '<span>two</span>', target: 'div span.two'},
     ])
+  })
+
+  describe('axe finding categorization', () => {
+    function axeViolation(tags: string[]) {
+      return {
+        id: 'some-rule',
+        help: 'Help',
+        helpUrl: 'https://example.com',
+        description: 'Description',
+        tags,
+        nodes: [{html: '<div></div>', target: ['div'], failureSummary: 'summary'}],
+      }
+    }
+
+    async function categoryFor(tags: string[]) {
+      clearAll()
+      actionInput = JSON.stringify(['axe'])
+      vi.mocked(AxeBuilder.prototype.analyze).mockResolvedValueOnce({
+        violations: [axeViolation(tags)],
+      } as unknown as axe.AxeResults)
+
+      const findings = await findForUrl('test.com')
+      return findings[0].category
+    }
+
+    it('categorizes a violation with only wcag tags as wcag', async () => {
+      expect(await categoryFor(['wcag2a', 'wcag111'])).toBe('wcag')
+    })
+
+    it('categorizes a violation with a best-practice tag as best-practice', async () => {
+      expect(await categoryFor(['cat.semantics', 'best-practice'])).toBe('best-practice')
+    })
+
+    it('categorizes a violation with an experimental tag as experimental, even alongside wcag tags', async () => {
+      expect(await categoryFor(['wcag2a', 'experimental'])).toBe('experimental')
+    })
   })
 })
