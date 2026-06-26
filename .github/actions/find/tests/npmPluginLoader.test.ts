@@ -19,12 +19,16 @@ describe('npmPluginLoader', () => {
   })
 
   describe('installNpmPackage', () => {
-    it('installs with --no-save and --ignore-scripts', () => {
+    it('installs with --no-save, --no-package-lock and --ignore-scripts', () => {
       const execSpy = vi.spyOn(childProcess, 'execFileSync').mockImplementation(() => Buffer.from(''))
       npmPluginLoader.installNpmPackage('some-pkg@1.0.0')
-      expect(execSpy).toHaveBeenCalledWith('npm', ['install', 'some-pkg@1.0.0', '--no-save', '--ignore-scripts'], {
-        stdio: 'inherit',
-      })
+      expect(execSpy).toHaveBeenCalledWith(
+        'npm',
+        ['install', 'some-pkg@1.0.0', '--no-save', '--no-package-lock', '--ignore-scripts'],
+        {
+          stdio: 'inherit',
+        },
+      )
     })
   })
 
@@ -34,7 +38,7 @@ describe('npmPluginLoader', () => {
       await npmPluginLoader.loadPluginViaNpm({name: 'p', package: 'nonexistent-pkg-xyz', version: '2.3.4'})
       expect(execSpy).toHaveBeenCalledWith(
         'npm',
-        ['install', 'nonexistent-pkg-xyz@2.3.4', '--no-save', '--ignore-scripts'],
+        ['install', 'nonexistent-pkg-xyz@2.3.4', '--no-save', '--no-package-lock', '--ignore-scripts'],
         {stdio: 'inherit'},
       )
     })
@@ -75,6 +79,14 @@ describe('loadNpmPlugins', () => {
     vi.spyOn(npmPluginLoader, 'loadPluginViaNpm').mockResolvedValue({name: 'bad'} as unknown as Plugin)
     const warnSpy = vi.spyOn(core, 'warning').mockImplementation(() => {})
     await pluginManager.loadNpmPlugins([{name: 'bad', package: ALLOWED}])
+    expect(warnSpy).toHaveBeenCalled()
+    expect(pluginManager.getPlugins().length).toBe(0)
+  })
+
+  it('skips an NPM plugin whose exported name does not match the requested name', async () => {
+    vi.spyOn(npmPluginLoader, 'loadPluginViaNpm').mockResolvedValue({name: 'actual-name', default: vi.fn()})
+    const warnSpy = vi.spyOn(core, 'warning').mockImplementation(() => {})
+    await pluginManager.loadNpmPlugins([{name: 'requested-name', package: ALLOWED}])
     expect(warnSpy).toHaveBeenCalled()
     expect(pluginManager.getPlugins().length).toBe(0)
   })

@@ -16,7 +16,12 @@ type ScanEntry = string | {name?: unknown; package?: unknown; version?: unknown}
 export function getScansContext() {
   if (!scansContext) {
     const scansInput = core.getInput('scans', {required: false})
-    const rawScans = JSON.parse(scansInput || '[]') as ScanEntry[]
+    const parsed = JSON.parse(scansInput || '[]')
+    // Fail early with a clear message instead of a cryptic 'not iterable' error later.
+    if (!Array.isArray(parsed)) {
+      throw new Error(`'scans' input must be a JSON array, got: ${scansInput}`)
+    }
+    const rawScans = parsed as ScanEntry[]
 
     // scansToPerform holds the name of every scan/plugin to run
     const scansToPerform: string[] = []

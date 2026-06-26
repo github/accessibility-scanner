@@ -77,8 +77,7 @@ export async function loadCustomPlugins() {
   await loadPluginsFromPath({pluginsPath, skipBuiltInPlugins: BUILT_IN_PLUGINS})
 }
 
-// Curated first-party packages allowed to be installed and loaded from NPM.
-// Kept intentionally small while the plugin system is being prototyped.
+// First-party packages allowed to be installed and loaded from NPM.
 const FIRST_PARTY_NPM_PLUGINS = ['@github/accessibility-scanner-alt-text-plugin']
 
 // exported for mocking/testing. not for actual use
@@ -89,7 +88,7 @@ export async function loadNpmPlugins(npmPlugins: NpmPluginRequest[]) {
   core.info('Loading NPM plugins')
 
   for (const request of npmPlugins) {
-    // Only install curated first-party packages.
+    // Only install first-party packages.
     if (!FIRST_PARTY_NPM_PLUGINS.includes(request.package)) {
       core.warning(`Skipping NPM plugin '${request.package}' because it is not a first-party package`)
       continue
@@ -103,6 +102,14 @@ export async function loadNpmPlugins(npmPlugins: NpmPluginRequest[]) {
     // Validate the package actually exports a usable plugin.
     if (typeof plugin.name !== 'string' || typeof plugin.default !== 'function') {
       core.warning(`Skipping NPM plugin '${request.package}' because it does not export a valid plugin`)
+      continue
+    }
+
+    // The requested name (in 'scans') gates invocation, so a mismatch means the plugin would load but never run.
+    if (plugin.name !== request.name) {
+      core.warning(
+        `Skipping NPM plugin '${request.package}' because it exported name '${plugin.name}', which does not match requested name '${request.name}'`,
+      )
       continue
     }
 

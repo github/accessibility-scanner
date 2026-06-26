@@ -116,6 +116,17 @@ describe('findForUrl', () => {
       expect(loadedPlugins[0].default).toHaveBeenCalledTimes(1)
       expect(loadedPlugins[1].default).toHaveBeenCalledTimes(0)
     })
+
+    it('forwards object-form NPM plugin entries to loadPlugins', async () => {
+      loadedPlugins = []
+      actionInput = JSON.stringify([{name: 'alt-text-scan', package: '@github/accessibility-scanner-alt-text-plugin'}])
+      clearAll()
+
+      await findForUrl('test.com')
+      expect(pluginManager.loadPlugins).toHaveBeenCalledWith([
+        {name: 'alt-text-scan', package: '@github/accessibility-scanner-alt-text-plugin', version: undefined},
+      ])
+    })
   })
 
   describe('axe finding categorization', () => {

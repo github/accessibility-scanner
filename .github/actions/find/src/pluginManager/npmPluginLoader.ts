@@ -2,9 +2,9 @@ import {execFileSync} from 'child_process'
 import * as core from '@actions/core'
 import type {NpmPluginRequest, Plugin} from './types.js'
 
-// Install the package at runtime
+// Install the package at runtime.
 export function installNpmPackage(spec: string) {
-  execFileSync('npm', ['install', spec, '--no-save', '--ignore-scripts'], {stdio: 'inherit'})
+  execFileSync('npm', ['install', spec, '--no-save', '--no-package-lock', '--ignore-scripts'], {stdio: 'inherit'})
 }
 
 // Install and import a single NPM-published plugin
