@@ -12,6 +12,7 @@ vi.mock('../src/closeIssue.js', () => ({closeIssue: (...args: unknown[]) => clos
 const inputs: Record<string, string> = {}
 const infoLines: string[] = []
 const outputs: Record<string, string> = {}
+const failedMessages: string[] = []
 vi.mock('@actions/core', () => ({
   getInput: (name: string) => inputs[name] ?? '',
   getBooleanInput: (name: string) => (inputs[name] ?? 'false') === 'true',
@@ -23,7 +24,9 @@ vi.mock('@actions/core', () => ({
   },
   debug: () => {},
   warning: () => {},
-  setFailed: () => {},
+  setFailed: (msg: string) => {
+    failedMessages.push(msg)
+  },
 }))
 
 // --- Mock fs: feed findings/cached filings in, swallow the output write ---
@@ -91,6 +94,7 @@ describe('file action — dry_run', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     infoLines.length = 0
+    failedMessages.length = 0
     for (const k of Object.keys(inputs)) delete inputs[k]
     for (const k of Object.keys(outputs)) delete outputs[k]
     vi.spyOn(console, 'table').mockImplementation(() => {})
@@ -193,5 +197,36 @@ describe('file action — dry_run', () => {
     expect(openIssue).toHaveBeenCalled()
     expect(reopenIssue).toHaveBeenCalled()
     expect(closeIssue).toHaveBeenCalled()
+  })
+
+  it("group_by 'rule' collapses multiple same-rule findings into a single OPEN", async () => {
+    // Three brand-new color-contrast findings across two URLs, no cached filings.
+    const ccA1 = {...finding, url: 'https://example.com/a', html: '<span>1</span>'}
+    const ccA2 = {...finding, url: 'https://example.com/a', html: '<span>2</span>'}
+    const ccB1 = {...finding, url: 'https://example.com/b', html: '<span>3</span>'}
+    files['/tmp/findings.json'] = JSON.stringify([ccA1, ccA2, ccB1])
+    files['/tmp/cached.json'] = JSON.stringify([])
+    inputs.findings_file = '/tmp/findings.json'
+    inputs.cached_filings_file = '/tmp/cached.json'
+    inputs.repository = 'org/repo'
+    inputs.token = 'fake-token'
+    inputs.dry_run = 'true'
+    inputs.group_by = 'rule'
+
+    await runFileAction()
+
+    expect(vi.mocked(console.table)).toHaveBeenCalledWith(expect.objectContaining({open: 1}))
+  })
+
+  it('fails fast on an invalid group_by value', async () => {
+    setup()
+    inputs.group_by = 'bogus'
+
+    await runFileAction()
+
+    expect(failedMessages.join('\n')).toContain("Invalid 'group_by' value: 'bogus'")
+    expect(openIssue).not.toHaveBeenCalled()
+    expect(reopenIssue).not.toHaveBeenCalled()
+    expect(closeIssue).not.toHaveBeenCalled()
   })
 })

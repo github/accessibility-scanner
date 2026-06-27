@@ -28,21 +28,21 @@ function mockOctokit() {
 describe('openIssue', () => {
   it('passes screenshotRepo to generateIssueBody when provided', async () => {
     const octokit = mockOctokit()
-    await openIssue(octokit, 'org/filing-repo', baseFinding, 'org/workflow-repo')
+    await openIssue(octokit, 'org/filing-repo', [baseFinding], 'org/workflow-repo')
 
-    expect(generateIssueBody).toHaveBeenCalledWith(baseFinding, 'org/workflow-repo')
+    expect(generateIssueBody).toHaveBeenCalledWith([baseFinding], 'org/workflow-repo')
   })
 
   it('falls back to repoWithOwner when screenshotRepo is not provided', async () => {
     const octokit = mockOctokit()
-    await openIssue(octokit, 'org/filing-repo', baseFinding)
+    await openIssue(octokit, 'org/filing-repo', [baseFinding])
 
-    expect(generateIssueBody).toHaveBeenCalledWith(baseFinding, 'org/filing-repo')
+    expect(generateIssueBody).toHaveBeenCalledWith([baseFinding], 'org/filing-repo')
   })
 
   it('posts to the correct filing repo, not the screenshot repo', async () => {
     const octokit = mockOctokit()
-    await openIssue(octokit, 'org/filing-repo', baseFinding, 'org/workflow-repo')
+    await openIssue(octokit, 'org/filing-repo', [baseFinding], 'org/workflow-repo')
 
     expect(octokit.request).toHaveBeenCalledWith(
       'POST /repos/org/filing-repo/issues',
@@ -55,7 +55,7 @@ describe('openIssue', () => {
 
   it('includes the correct labels based on the finding', async () => {
     const octokit = mockOctokit()
-    await openIssue(octokit, 'org/repo', baseFinding)
+    await openIssue(octokit, 'org/repo', [baseFinding])
 
     expect(octokit.request).toHaveBeenCalledWith(
       expect.any(String),
@@ -67,7 +67,7 @@ describe('openIssue', () => {
 
   it('adds a category label for non-WCAG findings', async () => {
     const octokit = mockOctokit()
-    await openIssue(octokit, 'org/repo', {...baseFinding, category: 'best-practice'})
+    await openIssue(octokit, 'org/repo', [{...baseFinding, category: 'best-practice'}])
 
     expect(octokit.request).toHaveBeenCalledWith(
       expect.any(String),
@@ -79,7 +79,7 @@ describe('openIssue', () => {
 
   it('does not add a category label for WCAG findings', async () => {
     const octokit = mockOctokit()
-    await openIssue(octokit, 'org/repo', {...baseFinding, category: 'wcag'})
+    await openIssue(octokit, 'org/repo', [{...baseFinding, category: 'wcag'}])
 
     const labels = octokit.request.mock.calls[0][1].labels
     expect(labels).not.toContain('wcag')
@@ -93,10 +93,20 @@ describe('openIssue', () => {
       ...baseFinding,
       problemShort: 'a'.repeat(300),
     }
-    await openIssue(octokit, 'org/repo', longFinding)
+    await openIssue(octokit, 'org/repo', [longFinding])
 
     const callArgs = octokit.request.mock.calls[0][1]
     expect(callArgs.title.length).toBeLessThanOrEqual(256)
     expect(callArgs.title).toMatch(/…$/)
+  })
+
+  it('includes an occurrence count in the title when grouping multiple findings', async () => {
+    const octokit = mockOctokit()
+    const second = {...baseFinding, url: 'https://example.com/other', html: '<span>Another</span>'}
+    await openIssue(octokit, 'org/repo', [baseFinding, second])
+
+    const callArgs = octokit.request.mock.calls[0][1]
+    expect(callArgs.title).toContain('(2 occurrences)')
+    expect(generateIssueBody).toHaveBeenCalledWith([baseFinding, second], 'org/repo')
   })
 })
