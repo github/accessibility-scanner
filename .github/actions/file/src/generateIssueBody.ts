@@ -37,7 +37,7 @@ ${standardsLine}
 - [ ] This PR MUST NOT introduce any new accessibility issues or regressions.`
 
   const body = `${categoryNotice}## What
-${describeWhat(finding)}
+${describeFinding(finding)}
 
 ${screenshotSection ?? ''}
 To fix this, ${finding.solutionShort}.
@@ -49,7 +49,7 @@ ${acceptanceCriteria}
   return body
 }
 
-function describeWhat(finding: Finding): string {
+function describeFinding(finding: Finding): string {
   const reason = `because ${finding.problemShort}. Learn more about why this was flagged by visiting ${finding.problemUrl}.`
 
   // Axe carries every failing element; list them all, not just the first.
