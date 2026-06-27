@@ -14,6 +14,7 @@ import {getWontfixIssueNumbers, shouldReopenIssue, WONTFIX_LABEL} from './should
 import {openIssue} from './openIssue.js'
 import {reopenIssue} from './reopenIssue.js'
 import {updateFilingsWithNewFindings} from './updateFilingsWithNewFindings.js'
+import {GROUP_BY_VALUES, isGroupBy} from './groupBy.js'
 import {OctokitResponse} from '@octokit/types'
 const OctokitWithThrottling = Octokit.plugin(throttling)
 
@@ -36,6 +37,12 @@ export default async function () {
     ? JSON.parse(fs.readFileSync(cachedFilingsFile, 'utf8'))
     : []
   const shouldOpenGroupedIssues = core.getBooleanInput('open_grouped_issues')
+  const groupByInput = core.getInput('group_by') || 'finding'
+  if (!isGroupBy(groupByInput)) {
+    core.setFailed(`Invalid 'group_by' value: '${groupByInput}'. Must be one of: ${GROUP_BY_VALUES.join(', ')}.`)
+    return
+  }
+  const groupBy = groupByInput
   const dryRun = core.getBooleanInput('dry_run')
   const fileBestPracticeIssues = getBooleanInputWithDefault('file_best_practice_issues', true)
   const fileExperimentalIssues = getBooleanInputWithDefault('file_experimental_issues', true)
@@ -45,6 +52,7 @@ export default async function () {
   core.debug(`Input: 'screenshot_repository: ${screenshotRepo}'`)
   core.debug(`Input: 'cached_filings_file: ${cachedFilingsFile}'`)
   core.debug(`Input: 'open_grouped_issues: ${shouldOpenGroupedIssues}'`)
+  core.debug(`Input: 'group_by: ${groupBy}'`)
   core.debug(`Input: 'dry_run: ${dryRun}'`)
   core.debug(`Input: 'file_best_practice_issues: ${fileBestPracticeIssues}'`)
   core.debug(`Input: 'file_experimental_issues: ${fileExperimentalIssues}'`)
@@ -69,7 +77,7 @@ export default async function () {
       },
     },
   })
-  const filings = updateFilingsWithNewFindings(cachedFilings, findings)
+  const filings = updateFilingsWithNewFindings(cachedFilings, findings, groupBy)
 
   // Suppressed new filings are kept out of the cache
   const suppressedFilings = new Set<Filing>()
@@ -131,7 +139,7 @@ export default async function () {
           filing.issue.state = 'closed'
         } else if (isNewFiling(filing)) {
           // Open a new issue for the filing
-          response = await openIssue(octokit, repoWithOwner, filing.findings[0], screenshotRepo)
+          response = await openIssue(octokit, repoWithOwner, filing.findings, screenshotRepo)
           ;(filing as Filing).issue = {state: 'open'} as Issue
 
           // Track for grouping
@@ -151,8 +159,8 @@ export default async function () {
             // The developer intentionally closed this issue and labeled it 'wontfix', so leave it closed
             core.info(`Skipping reopen of issue labeled '${WONTFIX_LABEL}': ${filing.issue.url}`)
           } else {
-            // Reopen the filing's issue and update the body with the latest finding
-            response = await reopenIssue(octokit, issue, filing.findings[0], repoWithOwner, screenshotRepo)
+            // Reopen the filing's issue and update the body with the latest finding(s)
+            response = await reopenIssue(octokit, issue, filing.findings, repoWithOwner, screenshotRepo)
             filing.issue.state = 'reopened'
           }
         }

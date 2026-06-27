@@ -17,26 +17,29 @@ function truncateWithEllipsis(text: string, maxLength: number): string {
   return text.length > maxLength ? text.slice(0, maxLength - 1) + '…' : text
 }
 
-export async function openIssue(octokit: Octokit, repoWithOwner: string, finding: Finding, screenshotRepo?: string) {
+export async function openIssue(octokit: Octokit, repoWithOwner: string, findings: Finding[], screenshotRepo?: string) {
   const owner = repoWithOwner.split('/')[0]
   const repo = repoWithOwner.split('/')[1]
+  const primary = findings[0]
 
-  const labels = [`${finding.scannerType}-scanning-issue`]
+  const labels = [`${primary.scannerType}-scanning-issue`]
   // Only include a ruleId label when it's defined
-  if (finding.ruleId) {
-    labels.push(`${finding.scannerType} rule: ${finding.ruleId}`)
+  if (primary.ruleId) {
+    labels.push(`${primary.scannerType} rule: ${primary.ruleId}`)
   }
   // Flag non-WCAG findings so they can be filtered or triaged separately
-  if (finding.category && finding.category !== 'wcag') {
-    labels.push(finding.category)
+  if (primary.category && primary.category !== 'wcag') {
+    labels.push(primary.category)
   }
 
+  const count = findings.length
+  const titleSuffix = count > 1 ? ` (${count} occurrences)` : ` on ${new URL(primary.url).pathname}`
   const title = truncateWithEllipsis(
-    `Accessibility issue: ${finding.problemShort[0].toUpperCase() + finding.problemShort.slice(1)} on ${new URL(finding.url).pathname}`,
+    `Accessibility issue: ${primary.problemShort[0].toUpperCase() + primary.problemShort.slice(1)}${titleSuffix}`,
     GITHUB_ISSUE_TITLE_MAX_LENGTH,
   )
 
-  const body = generateIssueBody(finding, screenshotRepo ?? repoWithOwner)
+  const body = generateIssueBody(findings, screenshotRepo ?? repoWithOwner)
 
   return octokit.request(`POST /repos/${owner}/${repo}/issues`, {
     owner,

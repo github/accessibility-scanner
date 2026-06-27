@@ -1,6 +1,9 @@
 import type {Finding} from './types.d.js'
 
-export function generateIssueBody(finding: Finding, screenshotRepo: string): string {
+export function generateIssueBody(occurrences: Finding | Finding[], screenshotRepo: string): string {
+  const findings = Array.isArray(occurrences) ? occurrences : [occurrences]
+  const finding = findings[0]
+
   const solutionLong = finding.solutionLong
     ?.split('\n')
     .map((line: string) =>
@@ -15,6 +18,16 @@ export function generateIssueBody(finding: Finding, screenshotRepo: string): str
     const screenshotUrl = `https://github.com/${screenshotRepo}/blob/gh-cache/.screenshots/${finding.screenshotId}.png`
     screenshotSection = `
 [View screenshot](${screenshotUrl})
+`
+  }
+
+  let occurrencesSection = ''
+  if (findings.length > 1) {
+    const items = findings.map(f => `- [ ] ${f.html ? `\`${f.html}\` on ${f.url}` : f.url}`).join('\n')
+    occurrencesSection = `
+## ${findings.length} Other Occurrences:
+
+${items}
 `
   }
 
@@ -42,7 +55,7 @@ An accessibility scan ${finding.html ? `flagged the element \`${finding.html}\``
 ${screenshotSection ?? ''}
 To fix this, ${finding.solutionShort}.
 ${solutionLong ? `\nSpecifically:\n\n${solutionLong}` : ''}
-
+${occurrencesSection}
 ${acceptanceCriteria}
 `
 

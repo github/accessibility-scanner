@@ -45,6 +45,10 @@ inputs:
     description: "In the 'file' step, also open grouped issues which link to all issues with the same problem"
     required: false
     default: 'false'
+  group_by:
+    description: "How to group findings into issues: 'finding' (one issue per violation, default), 'rule' (one issue per rule), or 'rule+url' (one issue per rule per scanned URL)."
+    required: false
+    default: 'finding'
   file_best_practice_issues:
     description: 'File issues for best-practice findings (accessibility recommendations that are not hard WCAG failures). Disabling suppresses new issues while existing ones are left untouched.'
     required: false
@@ -141,6 +145,7 @@ runs:
         cached_filings_file: ${{ steps.normalize_cache.outputs.cached_filings_file }}
         screenshot_repository: ${{ github.repository }}
         open_grouped_issues: ${{ inputs.open_grouped_issues }}
+        group_by: ${{ inputs.group_by }}
         dry_run: ${{ inputs.dry_run }}
         file_best_practice_issues: ${{ inputs.file_best_practice_issues }}
         file_experimental_issues: ${{ inputs.file_experimental_issues }}
