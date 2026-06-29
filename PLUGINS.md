@@ -53,7 +53,7 @@ To use an NPM plugin, pass an object (instead of a plain string) in the `scans` 
 - `package` — the NPM package name to install.
 - `version` — (optional) a version or dist-tag to pin. If omitted, the latest version is installed.
 
-Only the set of first-party packages may be loaded from NPM. Any other package is skipped with a warning.
+Only the set of [first-party packages](.github/actions/find/src/pluginManager/index.ts#L91) may be loaded from NPM. Any other package is skipped with a warning.
 
 ```yaml
 jobs:

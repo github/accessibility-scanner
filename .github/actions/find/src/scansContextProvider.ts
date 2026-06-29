@@ -17,7 +17,6 @@ export function getScansContext() {
   if (!scansContext) {
     const scansInput = core.getInput('scans', {required: false})
     const parsed = JSON.parse(scansInput || '[]')
-    // Fail early with a clear message instead of a cryptic 'not iterable' error later.
     if (!Array.isArray(parsed)) {
       throw new Error(`'scans' input must be a JSON array, got: ${scansInput}`)
     }
