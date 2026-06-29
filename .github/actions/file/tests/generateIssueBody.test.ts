@@ -78,6 +78,25 @@ describe('generateIssueBody', () => {
     expect(body).not.toContain('flagged the element')
   })
 
+  it('lists every node when the finding carries multiple elements', () => {
+    const body = generateIssueBody(
+      {
+        ...baseFinding,
+        html: '<span>first</span>',
+        nodes: [
+          {html: '<span>first</span>', target: 'span.first'},
+          {html: '<a href="x">link</a>', target: 'a.link'},
+        ],
+      },
+      'github/accessibility-scanner',
+    )
+
+    expect(body).toContain('flagged 2 elements')
+    expect(body).toContain('- `<span>first</span>` (selector: `span.first`)')
+    expect(body).toContain('- `<a href="x">link</a>` (selector: `a.link`)')
+    expect(body).not.toContain('flagged the element')
+  })
+
   it('omits the Occurrences section for a single finding', () => {
     const body = generateIssueBody(baseFinding, 'github/accessibility-scanner')
 

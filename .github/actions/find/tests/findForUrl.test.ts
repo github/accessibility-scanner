@@ -129,6 +129,35 @@ describe('findForUrl', () => {
     })
   })
 
+  it('captures every failing element of an axe violation as nodes', async () => {
+    actionInput = ''
+    clearAll()
+
+    const violation = {
+      id: 'color-contrast',
+      help: 'Elements must meet minimum color contrast ratio thresholds',
+      helpUrl: 'https://dequeuniversity.com/rules/axe/4.10/color-contrast',
+      description: 'Ensure contrast meets WCAG thresholds',
+      tags: ['wcag2aa', 'wcag143'],
+      nodes: [
+        {html: '<span>one</span>', target: ['span.one'], failureSummary: 'Fix any of the following:'},
+        {html: '<span>two</span>', target: ['div', 'span.two'], failureSummary: 'Fix any of the following:'},
+      ],
+    }
+    vi.mocked(AxeBuilder.prototype.analyze).mockResolvedValueOnce({
+      violations: [violation],
+    } as unknown as axe.AxeResults)
+
+    const findings = await findForUrl('test.com')
+
+    expect(findings).toHaveLength(1)
+    expect(findings[0].html).toBe('<span>one</span>')
+    expect(findings[0].nodes).toEqual([
+      {html: '<span>one</span>', target: 'span.one'},
+      {html: '<span>two</span>', target: 'div span.two'},
+    ])
+  })
+
   describe('axe finding categorization', () => {
     function axeViolation(tags: string[]) {
       return {
@@ -137,7 +166,7 @@ describe('findForUrl', () => {
         helpUrl: 'https://example.com',
         description: 'Description',
         tags,
-        nodes: [{html: '<div></div>', failureSummary: 'summary'}],
+        nodes: [{html: '<div></div>', target: ['div'], failureSummary: 'summary'}],
       }
     }
 
