@@ -3,12 +3,12 @@ import {describe, it, expect, vi, beforeEach} from 'vitest'
 import * as childProcess from 'child_process'
 import * as core from '@actions/core'
 import * as pluginManager from '../src/pluginManager/index.js'
-import * as npmPluginLoader from '../src/pluginManager/npmPluginLoader.js'
+import * as npmPluginLoader from '../src/pluginManager/pluginNpmLoader.js'
 import type {Plugin} from '../src/pluginManager/types.js'
 
 vi.mock('child_process', {spy: true})
 vi.mock('@actions/core', {spy: true})
-vi.mock('../src/pluginManager/npmPluginLoader.js', {spy: true})
+vi.mock('../src/pluginManager/pluginNpmLoader.js', {spy: true})
 
 const ALLOWED = '@github/accessibility-scanner-alt-text-plugin'
 

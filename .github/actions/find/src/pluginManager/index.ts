@@ -3,7 +3,7 @@ import * as path from 'path'
 import {fileURLToPath} from 'url'
 import * as core from '@actions/core'
 import {loadPluginViaJsFile, loadPluginViaTsFile} from './pluginFileLoaders.js'
-import {loadPluginViaNpm} from './npmPluginLoader.js'
+import {loadPluginViaNpm} from './pluginNpmLoader.js'
 import type {NpmPluginRequest, Plugin, PluginDefaultParams} from './types.js'
 
 // Helper to get __dirname equivalent in ES Modules
@@ -105,7 +105,7 @@ export async function loadNpmPlugins(npmPlugins: NpmPluginRequest[]) {
       continue
     }
 
-    // The requested name (in 'scans') gates invocation, so a mismatch means the plugin would load but never run.
+    // Mismatch means the plugin would load but never run.
     if (plugin.name !== request.name) {
       core.warning(
         `Skipping NPM plugin '${request.package}' because it exported name '${plugin.name}', which does not match requested name '${request.name}'`,
