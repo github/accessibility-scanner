@@ -49,6 +49,16 @@ export function clearCache() {
   plugins.length = 0
 }
 
+// True when the object is a usable plugin (exposes a name and default export).
+function isValidPlugin(plugin: Plugin | undefined): plugin is Plugin {
+  return typeof plugin?.name === 'string' && typeof plugin.default === 'function'
+}
+
+// True when a plugin with the same name is already loaded.
+function isDuplicatePlugin(plugin: Plugin): boolean {
+  return plugins.some(existing => existing.name === plugin.name)
+}
+
 // exported for mocking/testing. not for actual use
 export async function loadBuiltInPlugins() {
   core.info('Loading built-in plugins')
@@ -99,12 +109,11 @@ export async function loadNpmPlugins(npmPlugins: NpmPluginRequest[]) {
       continue
     }
 
-    // Validate the package actually exports a usable plugin.
-    if (typeof plugin.name !== 'string' || typeof plugin.default !== 'function') {
+    // Plugin doesn't expose a usable name/default export.
+    if (!isValidPlugin(plugin)) {
       core.warning(`Skipping NPM plugin '${request.package}' because it does not export a valid plugin`)
       continue
     }
-
     // Mismatch means the plugin would load but never run.
     if (plugin.name !== request.name) {
       core.warning(
@@ -112,9 +121,8 @@ export async function loadNpmPlugins(npmPlugins: NpmPluginRequest[]) {
       )
       continue
     }
-
     // Built-in and local plugins take precedence over NPM ones of the same name.
-    if (plugins.some(existing => existing.name === plugin.name)) {
+    if (isDuplicatePlugin(plugin)) {
       core.info(`Skipping NPM plugin '${plugin.name}' because a plugin with that name is already loaded`)
       continue
     }
@@ -151,6 +159,15 @@ export async function loadPluginsFromPath({
 
         if (skipBuiltInPlugins?.includes(plugin.name)) {
           core.info(`Skipping built-in plugin: ${plugin.name}`)
+          continue
+        }
+
+        if (!isValidPlugin(plugin)) {
+          core.warning(`Skipping plugin '${pluginFolder}' because it does not export a valid plugin`)
+          continue
+        }
+        if (isDuplicatePlugin(plugin)) {
+          core.warning(`Skipping plugin '${pluginFolder}' because a plugin named '${plugin.name}' is already loaded`)
           continue
         }
 
