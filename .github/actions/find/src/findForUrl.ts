@@ -85,11 +85,16 @@ async function runAxeScan({
 
   if (rawFindings) {
     for (const violation of rawFindings.violations) {
+      // Capture every failing element, not just the first, so one issue covers the rule.
       await addFinding({
         scannerType: 'axe',
         category: categorizeAxeViolation(violation.tags),
         url,
         html: violation.nodes[0].html.replace(/'/g, '&apos;'),
+        nodes: violation.nodes.map(node => ({
+          html: node.html.replace(/'/g, '&apos;'),
+          target: node.target.map(part => (Array.isArray(part) ? part.join(' ') : part)).join(' '),
+        })),
         problemShort: violation.help.toLowerCase().replace(/'/g, '&apos;'),
         problemUrl: violation.helpUrl.replace(/'/g, '&apos;'),
         ruleId: violation.id,

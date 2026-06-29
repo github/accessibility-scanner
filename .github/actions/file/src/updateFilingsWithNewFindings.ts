@@ -17,6 +17,11 @@ function getFindingKey(finding: Finding, groupBy: GroupBy): string {
       return `${finding.url};${rule}`
     case 'finding':
     default:
+      // Axe groups every failing element under one rule, so key on the rule, not the
+      // element's HTML, which shifts with DOM changes and re-files tracked issues.
+      if (finding.scannerType === 'axe' && finding.ruleId) {
+        return `${finding.url};axe;${finding.ruleId}`
+      }
       if (finding.ruleId && finding.html) {
         return `${finding.url};${finding.ruleId};${finding.html}`
       }

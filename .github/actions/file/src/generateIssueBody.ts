@@ -50,7 +50,7 @@ ${standardsLine}
 - [ ] This PR MUST NOT introduce any new accessibility issues or regressions.`
 
   const body = `${categoryNotice}## What
-An accessibility scan ${finding.html ? `flagged the element \`${finding.html}\`` : `found an issue on ${finding.url}`} because ${finding.problemShort}. Learn more about why this was flagged by visiting ${finding.problemUrl}.
+${describeFinding(finding)}
 
 ${screenshotSection ?? ''}
 To fix this, ${finding.solutionShort}.
@@ -60,4 +60,25 @@ ${acceptanceCriteria}
 `
 
   return body
+}
+
+function describeFinding(finding: Finding): string {
+  const reason = `because ${finding.problemShort}. Learn more about why this was flagged by visiting ${finding.problemUrl}.`
+
+  // Axe carries every failing element; list them all, not just the first.
+  if (finding.nodes && finding.nodes.length > 0) {
+    const count = finding.nodes.length
+    const subject = count === 1 ? 'an element' : `${count} elements`
+    const elementList = finding.nodes
+      .map(node => `- \`${node.html}\`${node.target ? ` (selector: \`${node.target}\`)` : ''}`)
+      .join('\n')
+    const heading = count === 1 ? 'The following element needs' : 'The following elements need'
+    return `An accessibility scan flagged ${subject} on ${finding.url} ${reason}\n\n${heading} attention:\n\n${elementList}`
+  }
+
+  if (finding.html) {
+    return `An accessibility scan flagged the element \`${finding.html}\` ${reason}`
+  }
+
+  return `An accessibility scan found an issue on ${finding.url} ${reason}`
 }
