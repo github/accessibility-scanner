@@ -1,0 +1,116 @@
+import {describe, it, expect, vi, beforeEach} from 'vitest'
+
+import * as childProcess from 'child_process'
+import * as core from '@actions/core'
+import * as pluginManager from '../src/pluginManager/index.js'
+import * as npmPluginLoader from '../src/pluginManager/pluginNpmLoader.js'
+import * as scansContextProvider from '../src/scansContextProvider.js'
+import type {Plugin, NpmPluginRequest} from '../src/pluginManager/types.js'
+
+vi.mock('child_process', {spy: true})
+vi.mock('@actions/core', {spy: true})
+vi.mock('../src/pluginManager/pluginNpmLoader.js', {spy: true})
+vi.mock('../src/scansContextProvider.js', {spy: true})
+
+const ALLOWED = '@github/accessibility-scanner-alt-text-plugin'
+
+function mockNpmPlugins(npmPlugins: NpmPluginRequest[]) {
+  vi.spyOn(scansContextProvider, 'getScansContext').mockReturnValue({
+    scansToPerform: npmPlugins.map(plugin => plugin.name),
+    npmPlugins,
+    shouldPerformAxeScan: false,
+    shouldRunPlugins: true,
+  })
+}
+
+describe('npmPluginLoader', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+    vi.clearAllMocks()
+  })
+
+  describe('installNpmPackage', () => {
+    it('installs with --no-save, --no-package-lock and --ignore-scripts', () => {
+      const execSpy = vi.spyOn(childProcess, 'execFileSync').mockImplementation(() => Buffer.from(''))
+      npmPluginLoader.installNpmPackage('some-pkg@1.0.0')
+      expect(execSpy).toHaveBeenCalledWith(
+        'npm',
+        ['install', 'some-pkg@1.0.0', '--no-save', '--no-package-lock', '--ignore-scripts'],
+        {
+          stdio: 'inherit',
+        },
+      )
+    })
+  })
+
+  describe('loadPluginViaNpm', () => {
+    it('pins the version in the install spec', async () => {
+      const execSpy = vi.spyOn(childProcess, 'execFileSync').mockImplementation(() => Buffer.from(''))
+      await npmPluginLoader.loadPluginViaNpm({name: 'p', package: 'nonexistent-pkg-xyz', version: '2.3.4'})
+      expect(execSpy).toHaveBeenCalledWith(
+        'npm',
+        ['install', 'nonexistent-pkg-xyz@2.3.4', '--no-save', '--no-package-lock', '--ignore-scripts'],
+        {stdio: 'inherit'},
+      )
+    })
+
+    it('returns undefined and warns when loading fails', async () => {
+      vi.spyOn(childProcess, 'execFileSync').mockImplementation(() => Buffer.from(''))
+      const warnSpy = vi.spyOn(core, 'warning').mockImplementation(() => {})
+      const plugin = await npmPluginLoader.loadPluginViaNpm({name: 'p', package: 'nonexistent-pkg-xyz'})
+      expect(plugin).toBeUndefined()
+      expect(warnSpy).toHaveBeenCalled()
+    })
+  })
+})
+
+describe('loadNpmPlugins', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+    vi.clearAllMocks()
+    pluginManager.clearCache()
+  })
+
+  it('loads a plugin from a first-party package', async () => {
+    vi.spyOn(npmPluginLoader, 'loadPluginViaNpm').mockResolvedValue({name: 'alt-text-scan', default: vi.fn()})
+    mockNpmPlugins([{name: 'alt-text-scan', package: ALLOWED}])
+    await pluginManager.loadNpmPlugins()
+    expect(pluginManager.getPlugins().map(plugin => plugin.name)).toContain('alt-text-scan')
+  })
+
+  it('skips and warns when a package is not first-party', async () => {
+    const loadSpy = vi.spyOn(npmPluginLoader, 'loadPluginViaNpm').mockResolvedValue(undefined)
+    const warnSpy = vi.spyOn(core, 'warning').mockImplementation(() => {})
+    mockNpmPlugins([{name: 'evil', package: 'evil-pkg'}])
+    await pluginManager.loadNpmPlugins()
+    expect(loadSpy).not.toHaveBeenCalled()
+    expect(warnSpy).toHaveBeenCalled()
+    expect(pluginManager.getPlugins().length).toBe(0)
+  })
+
+  it('skips a package that does not export a valid plugin', async () => {
+    vi.spyOn(npmPluginLoader, 'loadPluginViaNpm').mockResolvedValue({name: 'bad'} as unknown as Plugin)
+    const warnSpy = vi.spyOn(core, 'warning').mockImplementation(() => {})
+    mockNpmPlugins([{name: 'bad', package: ALLOWED}])
+    await pluginManager.loadNpmPlugins()
+    expect(warnSpy).toHaveBeenCalled()
+    expect(pluginManager.getPlugins().length).toBe(0)
+  })
+
+  it('skips an NPM plugin whose exported name does not match the requested name', async () => {
+    vi.spyOn(npmPluginLoader, 'loadPluginViaNpm').mockResolvedValue({name: 'actual-name', default: vi.fn()})
+    const warnSpy = vi.spyOn(core, 'warning').mockImplementation(() => {})
+    mockNpmPlugins([{name: 'requested-name', package: ALLOWED}])
+    await pluginManager.loadNpmPlugins()
+    expect(warnSpy).toHaveBeenCalled()
+    expect(pluginManager.getPlugins().length).toBe(0)
+  })
+
+  it('skips an NPM plugin whose name collides with an already-loaded plugin', async () => {
+    pluginManager.getPlugins().push({name: 'dup', default: vi.fn()})
+    vi.spyOn(npmPluginLoader, 'loadPluginViaNpm').mockResolvedValue({name: 'dup', default: vi.fn()})
+    mockNpmPlugins([{name: 'dup', package: ALLOWED}])
+    await pluginManager.loadNpmPlugins()
+    expect(pluginManager.getPlugins().filter(plugin => plugin.name === 'dup').length).toBe(1)
+  })
+})

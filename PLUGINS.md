@@ -43,6 +43,36 @@ jobs:
           # ... the rest of the workflow setup
 ```
 
+## Loading plugins from NPM packages
+
+In addition to local plugins under `./.github/scanner-plugins`, the scanner can install and load plugins published as NPM packages. This avoids having to vendor a plugin's source into your repo.
+
+To use an NPM plugin, pass an object (instead of a plain string) in the `scans` input with the following fields:
+
+- `name` — the plugin name exported by the package (used to match against `scans`, same as local plugins).
+- `package` — the NPM package name to install.
+- `version` — (optional) a version or dist-tag to pin. If omitted, the latest version is installed.
+
+Only the set of [first-party packages](.github/actions/find/src/pluginManager/index.ts#L91) may be loaded from NPM. Any other package is skipped with a warning.
+
+```yaml
+jobs:
+  accessibility_scanner:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: github/accessibility-scanner@v3
+        with:
+          scans: |
+            ["axe", {"name": "alt-text-scan", "package": "@github/accessibility-scanner-alt-text-plugin", "version": "1.0.0"}]
+```
+
+Notes:
+
+- Packages are installed at runtime with `npm install --ignore-scripts`, so install/postinstall scripts in the package will not run. Pin a `version` to avoid silently picking up future releases.
+- If an NPM plugin shares a name with a built-in or local plugin, the built-in/local plugin wins and the NPM one is skipped.
+- Plugin configuration works the same as local plugins: place a config-only folder at `./.github/scanner-plugins/<name>/config.json` in your repo (the plugin reads its config relative to the repo you run the workflow from).
+
 ## Things to look out for
 
 - Plugin names should be unique. If multiple plugins have the same name, and the `scans` input array contains this name, all the plugins with that name _will_ run. However, this is not advised because if you want to turn off one plugin, you'll have to go back and change that plugin name.
