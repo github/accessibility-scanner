@@ -1,4 +1,4 @@
-import type {ColorSchemePreference, Finding, ReducedMotionPreference, UrlConfig} from './types.d.js'
+import type {ColorSchemePreference, Finding, FindingCategory, ReducedMotionPreference, UrlConfig} from './types.d.js'
 import {AxeBuilder} from '@axe-core/playwright'
 import playwright from 'playwright'
 import {AuthContext} from './AuthContext.js'
@@ -85,10 +85,16 @@ async function runAxeScan({
 
   if (rawFindings) {
     for (const violation of rawFindings.violations) {
+      // Capture every failing element, not just the first, so one issue covers the rule.
       await addFinding({
         scannerType: 'axe',
+        category: categorizeAxeViolation(violation.tags),
         url,
         html: violation.nodes[0].html.replace(/'/g, '&apos;'),
+        nodes: violation.nodes.map(node => ({
+          html: node.html.replace(/'/g, '&apos;'),
+          target: node.target.map(part => (Array.isArray(part) ? part.join(' ') : part)).join(' '),
+        })),
         problemShort: violation.help.toLowerCase().replace(/'/g, '&apos;'),
         problemUrl: violation.helpUrl.replace(/'/g, '&apos;'),
         ruleId: violation.id,
@@ -97,4 +103,12 @@ async function runAxeScan({
       })
     }
   }
+}
+
+// Maps an Axe violation's tags to a conformance tier. Experimental is checked
+// first because some experimental rules also carry a wcag* tag.
+function categorizeAxeViolation(tags: string[]): FindingCategory {
+  if (tags.includes('experimental')) return 'experimental'
+  if (tags.includes('best-practice')) return 'best-practice'
+  return 'wcag'
 }

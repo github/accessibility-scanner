@@ -1,6 +1,9 @@
 import type {Finding} from './types.d.js'
 
-export function generateIssueBody(finding: Finding, screenshotRepo: string): string {
+export function generateIssueBody(occurrences: Finding | Finding[], screenshotRepo: string): string {
+  const findings = Array.isArray(occurrences) ? occurrences : [occurrences]
+  const finding = findings[0]
+
   const solutionLong = finding.solutionLong
     ?.split('\n')
     .map((line: string) =>
@@ -18,21 +21,64 @@ export function generateIssueBody(finding: Finding, screenshotRepo: string): str
 `
   }
 
+  let occurrencesSection = ''
+  if (findings.length > 1) {
+    const items = findings.map(f => `- [ ] ${f.html ? `\`${f.html}\` on ${f.url}` : f.url}`).join('\n')
+    occurrencesSection = `
+## ${findings.length} Other Occurrences:
+
+${items}
+`
+  }
+
+  const categoryNotice =
+    finding.category && finding.category !== 'wcag'
+      ? `> [!NOTE]\n> This is ${
+          finding.category === 'experimental' ? 'an experimental check' : 'a best-practice recommendation'
+        }, not a definite WCAG failure.\n\n`
+      : ''
+
+  const standardsLine =
+    finding.category && finding.category !== 'wcag'
+      ? '- [ ] The fix MUST meet the accessibility standards specified by the repository or organization (WCAG 2.2 if applicable).'
+      : '- [ ] The fix MUST meet WCAG 2.2 guidelines OR the accessibility standards specified by the repository or organization.'
+
   const acceptanceCriteria = `## Acceptance Criteria
 - [ ] The specific violation reported in this issue is no longer reproducible.
-- [ ] The fix MUST meet WCAG 2.1 guidelines OR the accessibility standards specified by the repository or organization.
+${standardsLine}
 - [ ] A test SHOULD be added to ensure this specific violation does not regress.
 - [ ] This PR MUST NOT introduce any new accessibility issues or regressions.`
 
-  const body = `## What
-An accessibility scan ${finding.html ? `flagged the element \`${finding.html}\`` : `found an issue on ${finding.url}`} because ${finding.problemShort}. Learn more about why this was flagged by visiting ${finding.problemUrl}.
+  const body = `${categoryNotice}## What
+${describeFinding(finding)}
 
 ${screenshotSection ?? ''}
 To fix this, ${finding.solutionShort}.
 ${solutionLong ? `\nSpecifically:\n\n${solutionLong}` : ''}
-
+${occurrencesSection}
 ${acceptanceCriteria}
 `
 
   return body
+}
+
+function describeFinding(finding: Finding): string {
+  const reason = `because ${finding.problemShort}. Learn more about why this was flagged by visiting ${finding.problemUrl}.`
+
+  // Axe carries every failing element; list them all, not just the first.
+  if (finding.nodes && finding.nodes.length > 0) {
+    const count = finding.nodes.length
+    const subject = count === 1 ? 'an element' : `${count} elements`
+    const elementList = finding.nodes
+      .map(node => `- \`${node.html}\`${node.target ? ` (selector: \`${node.target}\`)` : ''}`)
+      .join('\n')
+    const heading = count === 1 ? 'The following element needs' : 'The following elements need'
+    return `An accessibility scan flagged ${subject} on ${finding.url} ${reason}\n\n${heading} attention:\n\n${elementList}`
+  }
+
+  if (finding.html) {
+    return `An accessibility scan flagged the element \`${finding.html}\` ${reason}`
+  }
+
+  return `An accessibility scan found an issue on ${finding.url} ${reason}`
 }

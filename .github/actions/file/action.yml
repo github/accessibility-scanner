@@ -1,21 +1,21 @@
-name: "File"
-description: "Files GitHub issues to track potential accessibility gaps."
+name: 'File'
+description: 'Files GitHub issues to track potential accessibility gaps.'
 
 inputs:
   findings_file:
-    description: "Path to a JSON file containing the list of potential accessibility gaps"
+    description: 'Path to a JSON file containing the list of potential accessibility gaps'
     required: true
   repository:
-    description: "Repository (with owner) to file issues in"
+    description: 'Repository (with owner) to file issues in'
     required: true
   token:
     description: "Token with fine-grained permission 'issues: write'"
     required: true
   base_url:
-    description: "Optional base URL to pass into Octokit for the GitHub API (for example, `https://YOUR_HOSTNAME/api/v3` for GitHub Enterprise Server)"
+    description: 'Optional base URL to pass into Octokit for the GitHub API (for example, `https://YOUR_HOSTNAME/api/v3` for GitHub Enterprise Server)'
     required: false
   cached_filings_file:
-    description: "Path to a JSON file containing cached filings from previous runs. Without this, duplicate issues may be filed."
+    description: 'Path to a JSON file containing cached filings from previous runs. Without this, duplicate issues may be filed.'
     required: false
   screenshot_repository:
     description: "Repository (with owner) where screenshots are stored on the gh-cache branch. Defaults to the 'repository' input if not set. Required if issues are open in a different repo to construct proper screenshot URLs."
@@ -23,16 +23,32 @@ inputs:
   open_grouped_issues:
     description: "In the 'file' step, also open grouped issues which link to all issues with the same root cause"
     required: false
-    default: "false"
+    default: 'false'
+  group_by:
+    description: "How to group findings into issues: 'finding' (one issue per violation, default), 'rule' (one issue per rule), or 'rule+url' (one issue per rule per scanned URL)."
+    required: false
+    default: 'finding'
+  dry_run:
+    description: 'When true, log the issues that would be filed without opening, closing, or reopening any issues.'
+    required: false
+    default: 'false'
+  file_best_practice_issues:
+    description: 'File issues for best-practice findings (accessibility recommendations that are not hard WCAG failures). Disabling only suppresses new issues; existing ones are left untouched.'
+    required: false
+    default: 'true'
+  file_experimental_issues:
+    description: 'File issues for experimental findings (checks that are not yet stable). Disabling only suppresses new issues; existing ones are left untouched.'
+    required: false
+    default: 'true'
 
 outputs:
   filings_file:
-    description: "Path to a JSON file containing the list of issues filed (and their associated finding(s))"
+    description: 'Path to a JSON file containing the list of issues filed (and their associated finding(s))'
 
 runs:
-  using: "node24"
-  main: "bootstrap.js"
+  using: 'node24'
+  main: 'bootstrap.js'
 
 branding:
-  icon: "compass"
-  color: "blue"
+  icon: 'compass'
+  color: 'blue'
