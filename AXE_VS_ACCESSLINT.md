@@ -1,6 +1,6 @@
 # axe vs. AccessLint
 
-The a11y scanner ships two built-in scan engines: [axe-core](https://github.com/dequelabs/axe-core) (the default) and [AccessLint](https://github.com/AccessLint/accesslint), a newer, lightweight ruleset. Both run against the live page and report WCAG violations, and the two mostly overlap. axe is the mature, well-documented baseline; AccessLint adds a small set of checks axe doesn't run by default. This document covers what's different and provides advice on which to enable.
+The a11y scanner ships two built-in scan engines: [axe-core](https://github.com/dequelabs/axe-core) (the default) and [AccessLint](https://github.com/AccessLint/accesslint), a newer, lightweight ruleset. Both run against the live page and report WCAG violations as well as some best practices suggestions (unless disabled), and the two mostly overlap. axe is the mature, well-documented baseline; AccessLint adds a small set of checks axe doesn't run by default. This document covers what's different and provides advice on which to enable.
 
 > 👉 Pick engines with the `scans` input. They run independently and file their findings as separate issues.
 
