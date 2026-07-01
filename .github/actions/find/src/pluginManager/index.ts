@@ -4,7 +4,8 @@ import {fileURLToPath} from 'url'
 import * as core from '@actions/core'
 import {loadPluginViaJsFile, loadPluginViaTsFile} from './pluginFileLoaders.js'
 import {loadPluginViaNpm} from './pluginNpmLoader.js'
-import type {NpmPluginRequest, Plugin, PluginDefaultParams} from './types.js'
+import type {Plugin, PluginDefaultParams} from './types.js'
+import {getScansContext} from '../scansContextProvider.js'
 
 // Helper to get __dirname equivalent in ES Modules
 const __filename = fileURLToPath(import.meta.url)
@@ -21,13 +22,13 @@ export function getPlugins() {
 }
 let pluginsLoaded = false
 
-export async function loadPlugins(npmPlugins: NpmPluginRequest[] = []) {
+export async function loadPlugins() {
   try {
     if (!pluginsLoaded) {
       core.info('loading plugins')
       await loadBuiltInPlugins()
       await loadCustomPlugins()
-      await loadNpmPlugins(npmPlugins)
+      await loadNpmPlugins()
     }
   } catch {
     plugins.length = 0
@@ -91,7 +92,8 @@ export async function loadCustomPlugins() {
 const FIRST_PARTY_NPM_PLUGINS = ['@github/accessibility-scanner-alt-text-plugin']
 
 // exported for mocking/testing. not for actual use
-export async function loadNpmPlugins(npmPlugins: NpmPluginRequest[]) {
+export async function loadNpmPlugins() {
+  const {npmPlugins} = getScansContext()
   if (npmPlugins.length === 0) {
     return
   }

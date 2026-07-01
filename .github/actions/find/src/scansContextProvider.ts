@@ -28,7 +28,12 @@ export function getScansContext() {
     for (const entry of rawScans) {
       if (typeof entry === 'string') {
         scansToPerform.push(entry)
-      } else if (entry && typeof entry.name === 'string' && typeof entry.package === 'string') {
+      } else if (
+        typeof entry === 'object' &&
+        entry !== null &&
+        typeof entry.name === 'string' &&
+        typeof entry.package === 'string'
+      ) {
         scansToPerform.push(entry.name)
         npmPlugins.push({
           name: entry.name,

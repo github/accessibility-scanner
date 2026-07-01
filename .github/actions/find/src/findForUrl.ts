@@ -41,7 +41,7 @@ export async function findForUrl(
     const scansContext = getScansContext()
 
     if (scansContext.shouldRunPlugins) {
-      const plugins = await loadPlugins(scansContext.npmPlugins)
+      const plugins = await loadPlugins()
       for (const plugin of plugins) {
         if (scansContext.scansToPerform.includes(plugin.name)) {
           core.info(`Running plugin: ${plugin.name}`)

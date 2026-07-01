@@ -117,15 +117,13 @@ describe('findForUrl', () => {
       expect(loadedPlugins[1].default).toHaveBeenCalledTimes(0)
     })
 
-    it('forwards object-form NPM plugin entries to loadPlugins', async () => {
+    it('runs plugins when a scans entry is an object-form NPM plugin', async () => {
       loadedPlugins = []
       actionInput = JSON.stringify([{name: 'alt-text-scan', package: '@github/accessibility-scanner-alt-text-plugin'}])
       clearAll()
 
       await findForUrl('test.com')
-      expect(pluginManager.loadPlugins).toHaveBeenCalledWith([
-        {name: 'alt-text-scan', package: '@github/accessibility-scanner-alt-text-plugin', version: undefined},
-      ])
+      expect(pluginManager.loadPlugins).toHaveBeenCalledTimes(1)
     })
   })
 
