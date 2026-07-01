@@ -17,7 +17,7 @@ inputs:
     required: false
     default: 'false'
   scans:
-    description: 'Stringified JSON array of scans to perform. If not provided, only Axe will be performed'
+    description: "Stringified JSON array of scans to perform. Core engines are 'axe' and 'accesslint'; any other entry is treated as a plugin name. If not provided, only Axe will be performed"
     required: false
   reduced_motion:
     description: 'Playwright reducedMotion setting: https://playwright.dev/docs/api/class-browser#browser-new-page-option-reduced-motion'

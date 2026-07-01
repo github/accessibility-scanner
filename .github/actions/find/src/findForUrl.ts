@@ -1,5 +1,6 @@
 import type {ColorSchemePreference, Finding, FindingCategory, ReducedMotionPreference, UrlConfig} from './types.d.js'
 import {AxeBuilder} from '@axe-core/playwright'
+import {accesslintAudit} from '@accesslint/playwright'
 import playwright from 'playwright'
 import {AuthContext} from './AuthContext.js'
 import {generateScreenshots} from './generateScreenshots.js'
@@ -59,6 +60,10 @@ export async function findForUrl(
     if (scansContext.shouldPerformAxeScan) {
       await runAxeScan({page, addFinding, excludeSelectors})
     }
+
+    if (scansContext.shouldPerformAccesslintScan) {
+      await runAccesslintScan({page, addFinding})
+    }
   } catch (e) {
     core.error(`Error during accessibility scan: ${e}`)
   }
@@ -102,6 +107,35 @@ async function runAxeScan({
         solutionLong: violation.nodes[0].failureSummary?.replace(/'/g, '&apos;'),
       })
     }
+  }
+}
+
+async function runAccesslintScan({
+  page,
+  addFinding,
+}: {
+  page: playwright.Page
+  addFinding: (findingData: Finding, options?: {includeScreenshots?: boolean}) => Promise<void>
+}) {
+  const url = page.url()
+  core.info(`Scanning ${url} with AccessLint`)
+
+  // One violation per element; no per-rule docs URL, so problemUrl is the core rules table
+  const {violations} = await accesslintAudit(page as Parameters<typeof accesslintAudit>[0])
+  for (const violation of violations) {
+    await addFinding({
+      scannerType: 'accesslint',
+      url,
+      html: violation.html.replace(/'/g, '&apos;'),
+      problemShort: violation.message.toLowerCase().replace(/'/g, '&apos;'),
+      problemUrl: 'https://github.com/AccessLint/accesslint/blob/main/core/README.md#rules-1',
+      ruleId: violation.ruleId,
+      solutionShort:
+        `resolve the ${violation.ruleId} violation that accesslint flagged on \`${violation.selector}\``.replace(
+          /'/g,
+          '&apos;',
+        ),
+    })
   }
 }
 
