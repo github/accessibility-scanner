@@ -116,6 +116,15 @@ describe('findForUrl', () => {
       expect(loadedPlugins[0].default).toHaveBeenCalledTimes(1)
       expect(loadedPlugins[1].default).toHaveBeenCalledTimes(0)
     })
+
+    it('runs plugins when a scans entry is an object-form NPM plugin', async () => {
+      loadedPlugins = []
+      actionInput = JSON.stringify([{name: 'alt-text-scan', package: '@github/accessibility-scanner-alt-text-plugin'}])
+      clearAll()
+
+      await findForUrl('test.com')
+      expect(pluginManager.loadPlugins).toHaveBeenCalledTimes(1)
+    })
   })
 
   it('captures every failing element of an axe violation as nodes', async () => {
