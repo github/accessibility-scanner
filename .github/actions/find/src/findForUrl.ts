@@ -7,12 +7,15 @@ import {loadPlugins, invokePlugin} from './pluginManager/index.js'
 import {getScansContext} from './scansContextProvider.js'
 import * as core from '@actions/core'
 
+const DEFAULT_RENDERED_CONTENT_TIMEOUT = 30000
+
 export async function findForUrl(
   urlConfig: UrlConfig,
   authContext?: AuthContext,
   includeScreenshots: boolean = false,
   reducedMotion?: ReducedMotionPreference,
   colorScheme?: ColorSchemePreference,
+  renderedContentTimeout: number = DEFAULT_RENDERED_CONTENT_TIMEOUT,
 ): Promise<Finding[]> {
   const {url, excludeSelectors} = urlConfig
   const browser = await playwright.chromium.launch({
@@ -27,11 +30,7 @@ export async function findForUrl(
   const context = await browser.newContext(contextOptions)
   const page = await context.newPage()
   await page.goto(url)
-  try {
-    await page.waitForLoadState('networkidle', {timeout: 30000})
-  } catch (e) {
-    core.warning(`Unable to wait for ${url} to reach network idle before scanning: ${e}`)
-  }
+  await waitForRenderedContent({page, url, timeout: renderedContentTimeout})
 
   const findings: Finding[] = []
   const addFinding = async (findingData: Finding) => {
@@ -70,6 +69,14 @@ export async function findForUrl(
   await context.close()
   await browser.close()
   return findings
+}
+
+async function waitForRenderedContent({page, url, timeout}: {page: playwright.Page; url: string; timeout: number}) {
+  try {
+    await page.locator('body *:visible').first().waitFor({state: 'visible', timeout})
+  } catch (e) {
+    core.warning(`Unable to confirm rendered content for ${url} before scanning: ${e}`)
+  }
 }
 
 async function runAxeScan({

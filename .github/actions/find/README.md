@@ -31,6 +31,10 @@ configuration option.
 [`colorScheme`](https://playwright.dev/docs/api/class-browser#browser-new-context-option-color-scheme)
 configuration option.
 
+#### `rendered_content_timeout`
+
+**Optional** Timeout in milliseconds to wait for visible rendered content before scanning. If content is not detected in time, scanning continues. Default: `30000`.
+
 #### `include_screenshots`
 
 **Optional** Bool - whether to capture screenshots of scanned pages and include links to them in the issue

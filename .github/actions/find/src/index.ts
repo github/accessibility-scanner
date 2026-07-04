@@ -11,6 +11,7 @@ export default async function () {
   const urls = loadUrls({urlConfigs})
   const reducedMotion = loadReducedMotion()
   const colorScheme = loadColorScheme()
+  const renderedContentTimeout = loadRenderedContentTimeout()
 
   const actualUrls = urlConfigs || urls || []
 
@@ -22,7 +23,14 @@ export default async function () {
   for (const urlConfig of actualUrls) {
     const {url} = urlConfig
     core.info(`Preparing to scan ${url}`)
-    const findingsForUrl = await findForUrl(urlConfig, authContext, includeScreenshots, reducedMotion, colorScheme)
+    const findingsForUrl = await findForUrl(
+      urlConfig,
+      authContext,
+      includeScreenshots,
+      reducedMotion,
+      colorScheme,
+      renderedContentTimeout,
+    )
     if (findingsForUrl.length === 0) {
       core.info(`No accessibility gaps were found on ${url}`)
       continue
@@ -100,4 +108,16 @@ function loadColorScheme() {
   }
 
   return colorSchemeInput as ColorSchemePreference
+}
+
+function loadRenderedContentTimeout() {
+  const renderedContentTimeoutInput = core.getInput('rendered_content_timeout', {required: false})
+  if (!renderedContentTimeoutInput) return
+
+  const renderedContentTimeout = Number(renderedContentTimeoutInput)
+  if (!Number.isSafeInteger(renderedContentTimeout) || renderedContentTimeout <= 0) {
+    throw new Error("Input 'rendered_content_timeout' must be a positive integer number of milliseconds.")
+  }
+
+  return renderedContentTimeout
 }

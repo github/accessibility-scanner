@@ -10,12 +10,20 @@ import {clearCache} from '../src/scansContextProvider.js'
 const playwrightMocks = vi.hoisted(() => {
   const pageGoto = vi.fn()
   const pageWaitForLoadState = vi.fn()
+  const locatorWaitFor = vi.fn()
+  const locatorFirst = vi.fn(() => ({
+    waitFor: locatorWaitFor,
+  }))
+  const pageLocator = vi.fn(() => ({
+    first: locatorFirst,
+  }))
   const pageUrl = vi.fn()
   const contextClose = vi.fn()
   const browserClose = vi.fn()
   const contextNewPage = vi.fn(() => ({
     goto: pageGoto,
     waitForLoadState: pageWaitForLoadState,
+    locator: pageLocator,
     url: pageUrl,
   }))
   const browserNewContext = vi.fn(() => ({
@@ -33,6 +41,9 @@ const playwrightMocks = vi.hoisted(() => {
     contextNewPage,
     pageGoto,
     pageWaitForLoadState,
+    pageLocator,
+    locatorFirst,
+    locatorWaitFor,
     pageUrl,
     contextClose,
     browserClose,
@@ -63,6 +74,7 @@ function clearAll() {
   vi.clearAllMocks()
   playwrightMocks.pageGoto.mockResolvedValue(undefined)
   playwrightMocks.pageWaitForLoadState.mockResolvedValue(undefined)
+  playwrightMocks.locatorWaitFor.mockResolvedValue(undefined)
   playwrightMocks.pageUrl.mockReturnValue('test.com')
 }
 
@@ -81,32 +93,58 @@ describe('findForUrl', () => {
   }
 
   describe('page load handling', () => {
-    it('waits for network idle after navigation before scanning', async () => {
+    it('waits for late-rendered SPA content after navigation before scanning', async () => {
       actionInput = ''
       clearAll()
+      let resolveRenderedContent!: () => void
+      const renderedContent = new Promise<void>(resolve => {
+        resolveRenderedContent = resolve
+      })
+      playwrightMocks.locatorWaitFor.mockReturnValueOnce(renderedContent)
 
-      await findForUrl({url: 'test.com'})
+      const scan = findForUrl({url: 'test.com'})
+      await new Promise(resolve => setTimeout(resolve, 0))
 
       expect(playwrightMocks.pageGoto).toHaveBeenCalledWith('test.com')
-      expect(playwrightMocks.pageWaitForLoadState).toHaveBeenCalledWith('networkidle', {timeout: 30000})
+      expect(playwrightMocks.pageWaitForLoadState).not.toHaveBeenCalled()
+      expect(playwrightMocks.pageLocator).toHaveBeenCalledWith('body *:visible')
+      expect(playwrightMocks.locatorFirst).toHaveBeenCalledTimes(1)
+      expect(playwrightMocks.locatorWaitFor).toHaveBeenCalledWith({state: 'visible', timeout: 30000})
       expect(playwrightMocks.pageGoto.mock.invocationCallOrder[0]).toBeLessThan(
-        playwrightMocks.pageWaitForLoadState.mock.invocationCallOrder[0],
+        playwrightMocks.locatorWaitFor.mock.invocationCallOrder[0],
+      )
+      expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(0)
+
+      resolveRenderedContent()
+      await scan
+
+      expect(playwrightMocks.locatorWaitFor.mock.invocationCallOrder[0]).toBeLessThan(
+        playwrightMocks.pageUrl.mock.invocationCallOrder[0],
       )
       expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(1)
     })
 
-    it('logs a warning and proceeds with scanning when network idle times out', async () => {
+    it('logs a warning and proceeds with scanning when minimal static pages do not render visible content', async () => {
       const timeoutError = new Error('Timeout 30000ms exceeded')
       actionInput = ''
       clearAll()
-      playwrightMocks.pageWaitForLoadState.mockRejectedValueOnce(timeoutError)
+      playwrightMocks.locatorWaitFor.mockRejectedValueOnce(timeoutError)
 
       await findForUrl({url: 'test.com'})
 
       expect(core.warning).toHaveBeenCalledWith(
-        `Unable to wait for test.com to reach network idle before scanning: ${timeoutError}`,
+        `Unable to confirm rendered content for test.com before scanning: ${timeoutError}`,
       )
       expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(1)
+    })
+
+    it('uses the configured rendered content timeout', async () => {
+      actionInput = ''
+      clearAll()
+
+      await findForUrl({url: 'test.com'}, undefined, false, undefined, undefined, 1000)
+
+      expect(playwrightMocks.locatorWaitFor).toHaveBeenCalledWith({state: 'visible', timeout: 1000})
     })
   })
 
