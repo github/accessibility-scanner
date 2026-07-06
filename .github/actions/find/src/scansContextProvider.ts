@@ -5,6 +5,7 @@ type ScansContext = {
   scansToPerform: Array<string>
   npmPlugins: NpmPluginRequest[]
   shouldPerformAxeScan: boolean
+  shouldPerformAccesslintScan: boolean
   shouldRunPlugins: boolean
 }
 let scansContext: ScansContext | undefined
@@ -45,11 +46,10 @@ export function getScansContext() {
       }
     }
 
-    // - if we don't have a scans input
-    //   or we do have a scans input, but it only has 1 item and its 'axe'
-    //   then we only want to run 'axe' and not the plugins
-    // - keep in mind, 'onlyAxeScan' is not the same as 'shouldPerformAxeScan'
-    const onlyAxeScan = scansToPerform.length === 0 || (scansToPerform.length === 1 && scansToPerform[0] === 'axe')
+    // 'axe' and 'accesslint' are built-in core engines; anything else in the
+    // list is treated as a plugin name (local folder or NPM-published plugin).
+    const coreEngines = ['axe', 'accesslint']
+    const pluginScans = scansToPerform.filter(scan => !coreEngines.includes(scan))
 
     scansContext = {
       scansToPerform,
@@ -59,7 +59,8 @@ export function getScansContext() {
       // - we can enforce using the 'scans' input in a future major release and
       //   mark it as required
       shouldPerformAxeScan: !scansInput || scansToPerform.includes('axe'),
-      shouldRunPlugins: scansToPerform.length > 0 && !onlyAxeScan,
+      shouldPerformAccesslintScan: scansToPerform.includes('accesslint'),
+      shouldRunPlugins: pluginScans.length > 0,
     }
   }
 
