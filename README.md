@@ -184,7 +184,7 @@ See the [plugin docs](https://github.com/github/accessibility-scanner/tree/main/
 
 ### Alt-Text Plugin
 
-The [Alt-Text Plugin](https://github.com/github/accessibility-scanner-alt-text-plugin) is a first-party plugin, published to npm as [`@github/accessibility-scanner-alt-text-plugin`](https://www.npmjs.com/package/@github/accessibility-scanner-alt-text-plugin), that flags low-quality `alt` text — vague or generic wording, raw filenames, and repeated or placeholder text — beyond what Axe's `image-alt` rule catches. The scanner installs it for you at runtime; just add it to the `scans` input as an object with its `package` name:
+The [Alt Text Plugin](https://github.com/github/accessibility-scanner-alt-text-plugin) is a first-party scanner plugin published to npm as [`@github/accessibility-scanner-alt-text-plugin`](https://www.npmjs.com/package/@github/accessibility-scanner-alt-text-plugin). It flags low-quality `alt` text that can pass Axe's `image-alt` rule, including vague or generic descriptions, raw filenames, repeated text, and placeholder values. The scanner installs the package at runtime; to enable it, add the plugin to the `scans` input using its package name:
 
 ```yaml
 scans: |
