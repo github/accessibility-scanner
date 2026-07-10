@@ -57,9 +57,8 @@ jobs:
           # open_grouped_issues: false # Optional: Set to true to open an issue grouping individual issues per violation
           # reduced_motion: no-preference # Optional: Playwright reduced motion configuration option
           # color_scheme: light # Optional: Playwright color scheme configuration option
-          # rendered_content_timeout: 30000 # Optional: Milliseconds to wait for visible rendered content before scanning
           # scans: '["axe","reflow-scan"]' # Optional: An array of scans (or plugins) to be performed. If not provided, only Axe will be performed.
-          # url_configs: '[{"url":"https://example.com","excludeSelectors":["iframe","#widget"]}]' # Optional: Per-URL config with CSS selectors to exclude from the Axe scan. When provided, takes precedence over 'urls'.
+          # url_configs: '[{"url":"https://example.com","excludeSelectors":["iframe","#widget"],"waitForSelectors":["#app","[data-ready]"]}]' # Optional: Per-URL selectors to exclude from Axe or wait for before scanning. When provided, takes precedence over 'urls'.
 ```
 
 > 👉 Update all `REPLACE_THIS` placeholders with your actual values. See [Action Inputs](#action-inputs) for details.
@@ -131,9 +130,8 @@ Trigger the workflow manually or automatically based on your configuration. The 
 | `open_grouped_issues`     | No       | Whether to create a tracking issue which groups filed issues together by violation type. Default: `false`                                                                                                                                                        | `true`                                                                      |
 | `reduced_motion`          | No       | Playwright `reducedMotion` setting for scan contexts. Allowed values: `reduce`, `no-preference`                                                                                                                                                                  | `reduce`                                                                    |
 | `color_scheme`            | No       | Playwright `colorScheme` setting for scan contexts. Allowed values: `light`, `dark`, `no-preference`                                                                                                                                                             | `dark`                                                                      |
-| `rendered_content_timeout` | No       | Milliseconds to wait for visible rendered content before scanning. If content is not detected in time, scanning continues. Default: `30000`                                                                                                                       | `30000`                                                                     |
 | `scans`                   | No       | An array of scans (or plugins) to be performed. If not provided, only Axe will be performed.                                                                                                                                                                     | `'["axe", "reflow-scan", ...other plugins]'`                                |
-| `url_configs`             | No       | A stringified JSON array of URL config objects. Each object must have a `url` field and may have an optional `excludeSelectors` field (array of CSS selectors to exclude from the Axe scan for that URL). When provided, takes precedence over the `urls` input. | `'[{"url":"https://example.com","excludeSelectors":["iframe","#widget"]}]'` |
+| `url_configs`             | No       | A stringified JSON array of URL config objects. Each object must have a `url` field and may have `excludeSelectors` (selectors to exclude from Axe) and `waitForSelectors` (selectors that must become visible within 30 seconds before scanning). When provided, takes precedence over `urls`. | `'[{"url":"https://example.com","waitForSelectors":["#app"]}]'` |
 
 ---
 

@@ -11,7 +11,6 @@ export default async function () {
   const urls = loadUrls({urlConfigs})
   const reducedMotion = loadReducedMotion()
   const colorScheme = loadColorScheme()
-  const renderedContentTimeout = loadRenderedContentTimeout()
 
   const actualUrls = urlConfigs || urls || []
 
@@ -23,14 +22,7 @@ export default async function () {
   for (const urlConfig of actualUrls) {
     const {url} = urlConfig
     core.info(`Preparing to scan ${url}`)
-    const findingsForUrl = await findForUrl(
-      urlConfig,
-      authContext,
-      includeScreenshots,
-      reducedMotion,
-      colorScheme,
-      renderedContentTimeout,
-    )
+    const findingsForUrl = await findForUrl(urlConfig, authContext, includeScreenshots, reducedMotion, colorScheme)
     if (findingsForUrl.length === 0) {
       core.info(`No accessibility gaps were found on ${url}`)
       continue
@@ -62,6 +54,13 @@ function loadUrlConfigs() {
     for (const item of parsed) {
       if (typeof item !== 'object' || item === null || typeof item.url !== 'string') {
         throw new Error("Each entry in 'url_configs' must be an object with a 'url' string field.")
+      }
+      if (
+        item.waitForSelectors !== undefined &&
+        (!Array.isArray(item.waitForSelectors) ||
+          item.waitForSelectors.some((selector: unknown) => typeof selector !== 'string'))
+      ) {
+        throw new Error("Each 'waitForSelectors' field in 'url_configs' must be an array of CSS selector strings.")
       }
     }
 
@@ -108,16 +107,4 @@ function loadColorScheme() {
   }
 
   return colorSchemeInput as ColorSchemePreference
-}
-
-function loadRenderedContentTimeout() {
-  const renderedContentTimeoutInput = core.getInput('rendered_content_timeout', {required: false})
-  if (!renderedContentTimeoutInput) return
-
-  const renderedContentTimeout = Number(renderedContentTimeoutInput)
-  if (!Number.isSafeInteger(renderedContentTimeout) || renderedContentTimeout <= 0) {
-    throw new Error("Input 'rendered_content_timeout' must be a positive integer number of milliseconds.")
-  }
-
-  return renderedContentTimeout
 }

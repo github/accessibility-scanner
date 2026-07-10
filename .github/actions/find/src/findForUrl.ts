@@ -7,7 +7,7 @@ import {loadPlugins, invokePlugin} from './pluginManager/index.js'
 import {getScansContext} from './scansContextProvider.js'
 import * as core from '@actions/core'
 
-const DEFAULT_RENDERED_CONTENT_TIMEOUT = 30000
+const SELECTOR_WAIT_TIMEOUT = 30000
 
 export async function findForUrl(
   urlConfig: UrlConfig,
@@ -15,9 +15,8 @@ export async function findForUrl(
   includeScreenshots: boolean = false,
   reducedMotion?: ReducedMotionPreference,
   colorScheme?: ColorSchemePreference,
-  renderedContentTimeout: number = DEFAULT_RENDERED_CONTENT_TIMEOUT,
 ): Promise<Finding[]> {
-  const {url, excludeSelectors} = urlConfig
+  const {url, excludeSelectors, waitForSelectors} = urlConfig
   const browser = await playwright.chromium.launch({
     headless: true,
     executablePath: process.env.CI ? '/usr/bin/google-chrome' : undefined,
@@ -30,7 +29,11 @@ export async function findForUrl(
   const context = await browser.newContext(contextOptions)
   const page = await context.newPage()
   await page.goto(url)
-  await waitForRenderedContent({page, url, timeout: renderedContentTimeout})
+  await Promise.all(
+    (waitForSelectors ?? []).map(selector =>
+      page.locator(selector).waitFor({state: 'visible', timeout: SELECTOR_WAIT_TIMEOUT}),
+    ),
+  )
 
   const findings: Finding[] = []
   const addFinding = async (findingData: Finding) => {
@@ -69,14 +72,6 @@ export async function findForUrl(
   await context.close()
   await browser.close()
   return findings
-}
-
-async function waitForRenderedContent({page, url, timeout}: {page: playwright.Page; url: string; timeout: number}) {
-  try {
-    await page.locator('body *:visible').first().waitFor({state: 'visible', timeout})
-  } catch (e) {
-    core.warning(`Unable to confirm rendered content for ${url} before scanning: ${e}`)
-  }
 }
 
 async function runAxeScan({

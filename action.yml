@@ -7,7 +7,7 @@ inputs:
     required: false
     multiline: true
   url_configs:
-    description: "Stringified JSON array of URL config objects, each with a 'url' field and an optional 'excludeSelectors' field (array of CSS selectors to exclude from the Axe scan for that URL). When provided, takes precedence over the 'urls' input."
+    description: "Stringified JSON array of URL config objects, each with a 'url' field and optional 'excludeSelectors' (selectors to exclude from Axe) and 'waitForSelectors' (selectors that must be visible before scanning) fields. When provided, takes precedence over the 'urls' input."
     required: false
   repository:
     description: 'Repository (with owner) to file issues in'
@@ -51,10 +51,6 @@ inputs:
   color_scheme:
     description: 'Playwright colorScheme setting: https://playwright.dev/docs/api/class-browser#browser-new-context-option-color-scheme'
     required: false
-  rendered_content_timeout:
-    description: 'Timeout in milliseconds to wait for visible rendered content before scanning. If content is not detected in time, scanning continues.'
-    required: false
-    default: '30000'
   scans:
     description: 'Stringified JSON array of scans to perform. If not provided, only Axe will be performed'
     required: false
@@ -121,7 +117,6 @@ runs:
         include_screenshots: ${{ inputs.include_screenshots }}
         reduced_motion: ${{ inputs.reduced_motion }}
         color_scheme: ${{ inputs.color_scheme }}
-        rendered_content_timeout: ${{ inputs.rendered_content_timeout }}
         scans: ${{ inputs.scans }}
     - name: File
       id: file

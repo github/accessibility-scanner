@@ -9,20 +9,15 @@ import {clearCache} from '../src/scansContextProvider.js'
 
 const playwrightMocks = vi.hoisted(() => {
   const pageGoto = vi.fn()
-  const pageWaitForLoadState = vi.fn()
   const locatorWaitFor = vi.fn()
-  const locatorFirst = vi.fn(() => ({
-    waitFor: locatorWaitFor,
-  }))
   const pageLocator = vi.fn(() => ({
-    first: locatorFirst,
+    waitFor: locatorWaitFor,
   }))
   const pageUrl = vi.fn()
   const contextClose = vi.fn()
   const browserClose = vi.fn()
   const contextNewPage = vi.fn(() => ({
     goto: pageGoto,
-    waitForLoadState: pageWaitForLoadState,
     locator: pageLocator,
     url: pageUrl,
   }))
@@ -40,15 +35,18 @@ const playwrightMocks = vi.hoisted(() => {
     browserNewContext,
     contextNewPage,
     pageGoto,
-    pageWaitForLoadState,
     pageLocator,
-    locatorFirst,
     locatorWaitFor,
     pageUrl,
     contextClose,
     browserClose,
   }
 })
+
+const pluginMocks = vi.hoisted(() => ({
+  loadPlugins: vi.fn(),
+  invokePlugin: vi.fn(),
+}))
 
 vi.mock('@actions/core', {spy: true})
 vi.mock('playwright', () => ({
@@ -65,6 +63,7 @@ vi.mock('@axe-core/playwright', () => {
   AxeBuilderMock.prototype.analyze = vi.fn(() => Promise.resolve(rawFinding))
   return {AxeBuilder: AxeBuilderMock}
 })
+vi.mock('../src/pluginManager/index.js', () => pluginMocks)
 
 let actionInput: string = ''
 let loadedPlugins: Plugin[] = []
@@ -73,15 +72,16 @@ function clearAll() {
   clearCache()
   vi.clearAllMocks()
   playwrightMocks.pageGoto.mockResolvedValue(undefined)
-  playwrightMocks.pageWaitForLoadState.mockResolvedValue(undefined)
   playwrightMocks.locatorWaitFor.mockResolvedValue(undefined)
   playwrightMocks.pageUrl.mockReturnValue('test.com')
 }
 
 describe('findForUrl', () => {
   vi.spyOn(core, 'getInput').mockImplementation(() => actionInput)
-  vi.spyOn(pluginManager, 'loadPlugins').mockImplementation(() => Promise.resolve(loadedPlugins))
-  vi.spyOn(pluginManager, 'invokePlugin')
+  vi.mocked(pluginManager.loadPlugins).mockImplementation(() => Promise.resolve(loadedPlugins))
+  vi.mocked(pluginManager.invokePlugin).mockImplementation(({plugin, page, addFinding}) =>
+    plugin.default({page, addFinding}),
+  )
 
   async function axeOnlyTest() {
     clearAll()
@@ -93,58 +93,44 @@ describe('findForUrl', () => {
   }
 
   describe('page load handling', () => {
-    it('waits for late-rendered SPA content after navigation before scanning', async () => {
+    it('uses the default navigation readiness when no selectors are configured', async () => {
       actionInput = ''
       clearAll()
-      let resolveRenderedContent!: () => void
-      const renderedContent = new Promise<void>(resolve => {
-        resolveRenderedContent = resolve
-      })
-      playwrightMocks.locatorWaitFor.mockReturnValueOnce(renderedContent)
 
-      const scan = findForUrl({url: 'test.com'})
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await findForUrl({url: 'test.com'})
 
       expect(playwrightMocks.pageGoto).toHaveBeenCalledWith('test.com')
-      expect(playwrightMocks.pageWaitForLoadState).not.toHaveBeenCalled()
-      expect(playwrightMocks.pageLocator).toHaveBeenCalledWith('body *:visible')
-      expect(playwrightMocks.locatorFirst).toHaveBeenCalledTimes(1)
-      expect(playwrightMocks.locatorWaitFor).toHaveBeenCalledWith({state: 'visible', timeout: 30000})
-      expect(playwrightMocks.pageGoto.mock.invocationCallOrder[0]).toBeLessThan(
-        playwrightMocks.locatorWaitFor.mock.invocationCallOrder[0],
-      )
-      expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(0)
-
-      resolveRenderedContent()
-      await scan
-
-      expect(playwrightMocks.locatorWaitFor.mock.invocationCallOrder[0]).toBeLessThan(
-        playwrightMocks.pageUrl.mock.invocationCallOrder[0],
-      )
+      expect(playwrightMocks.pageLocator).not.toHaveBeenCalled()
       expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(1)
     })
 
-    it('logs a warning and proceeds with scanning when minimal static pages do not render visible content', async () => {
+    it('waits for each configured selector after navigation and before scanning', async () => {
+      actionInput = ''
+      clearAll()
+
+      await findForUrl({url: 'test.com', waitForSelectors: ['#app', '[data-ready]']})
+
+      expect(playwrightMocks.pageLocator).toHaveBeenNthCalledWith(1, '#app')
+      expect(playwrightMocks.pageLocator).toHaveBeenNthCalledWith(2, '[data-ready]')
+      expect(playwrightMocks.locatorWaitFor).toHaveBeenNthCalledWith(1, {state: 'visible', timeout: 30000})
+      expect(playwrightMocks.locatorWaitFor).toHaveBeenNthCalledWith(2, {state: 'visible', timeout: 30000})
+      expect(playwrightMocks.pageGoto.mock.invocationCallOrder[0]).toBeLessThan(
+        playwrightMocks.locatorWaitFor.mock.invocationCallOrder[0],
+      )
+      expect(playwrightMocks.locatorWaitFor.mock.invocationCallOrder[1]).toBeLessThan(
+        AxeBuilder.prototype.analyze.mock.invocationCallOrder[0],
+      )
+    })
+
+    it('does not scan when a configured selector times out', async () => {
       const timeoutError = new Error('Timeout 30000ms exceeded')
       actionInput = ''
       clearAll()
       playwrightMocks.locatorWaitFor.mockRejectedValueOnce(timeoutError)
 
-      await findForUrl({url: 'test.com'})
+      await expect(findForUrl({url: 'test.com', waitForSelectors: ['#app']})).rejects.toThrow(timeoutError)
 
-      expect(core.warning).toHaveBeenCalledWith(
-        `Unable to confirm rendered content for test.com before scanning: ${timeoutError}`,
-      )
-      expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(1)
-    })
-
-    it('uses the configured rendered content timeout', async () => {
-      actionInput = ''
-      clearAll()
-
-      await findForUrl({url: 'test.com'}, undefined, false, undefined, undefined, 1000)
-
-      expect(playwrightMocks.locatorWaitFor).toHaveBeenCalledWith({state: 'visible', timeout: 1000})
+      expect(AxeBuilder.prototype.analyze).not.toHaveBeenCalled()
     })
   })
 

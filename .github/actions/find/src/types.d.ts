@@ -41,4 +41,5 @@ export type ColorSchemePreference = 'light' | 'dark' | 'no-preference' | null
 export type UrlConfig = {
   url: string
   excludeSelectors?: string[]
+  waitForSelectors?: string[]
 }
