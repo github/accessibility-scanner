@@ -180,7 +180,18 @@ The a11y scanner leverages GitHub Copilot coding agent, which can be configured 
 
 ## Plugins
 
-See the [plugin docs](https://github.com/github/accessibility-scanner/tree/main/PLUGINS.md) for more information
+See the [plugin docs](https://github.com/github/accessibility-scanner/tree/main/PLUGINS.md) for more information, including how to load plugins published to npm.
+
+### Alt Text Plugin
+
+The [Alt Text Plugin](https://github.com/github/accessibility-scanner-alt-text-plugin) is a first-party scanner plugin published to npm as [`@github/accessibility-scanner-alt-text-plugin`](https://www.npmjs.com/package/@github/accessibility-scanner-alt-text-plugin). It flags low-quality `alt` text that can pass Axe's `image-alt` rule, including vague or generic descriptions, raw filenames, repeated text, and placeholder values. The scanner installs the package at runtime; to enable it, add the plugin to the `scans` input using its package name:
+
+```yaml
+scans: |
+  ["axe", {"name": "alt-text-scan", "package": "@github/accessibility-scanner-alt-text-plugin", "version": "1.0.0"}]
+```
+
+See the [plugin README](https://github.com/github/accessibility-scanner-alt-text-plugin#getting-started) for the current release version, full rule list, and setup instructions.
 
 ---
 
