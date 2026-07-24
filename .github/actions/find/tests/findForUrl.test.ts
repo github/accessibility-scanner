@@ -2,6 +2,7 @@ import {describe, it, expect, vi} from 'vitest'
 import * as core from '@actions/core'
 import {findForUrl} from '../src/findForUrl.js'
 import {AxeBuilder} from '@axe-core/playwright'
+import {accesslintAudit} from '@accesslint/playwright'
 import axe from 'axe-core'
 import * as pluginManager from '../src/pluginManager/index.js'
 import type {Plugin} from '../src/pluginManager/types.js'
@@ -33,6 +34,10 @@ vi.mock('@axe-core/playwright', () => {
   return {AxeBuilder: AxeBuilderMock}
 })
 
+vi.mock('@accesslint/playwright', () => ({
+  accesslintAudit: vi.fn(() => Promise.resolve({violations: []})),
+}))
+
 let actionInput: string = ''
 let loadedPlugins: Plugin[] = []
 
@@ -51,6 +56,7 @@ describe('findForUrl', () => {
 
     await findForUrl('test.com')
     expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(1)
+    expect(accesslintAudit).toHaveBeenCalledTimes(0)
     expect(pluginManager.loadPlugins).toHaveBeenCalledTimes(0)
     expect(pluginManager.invokePlugin).toHaveBeenCalledTimes(0)
   }
@@ -104,6 +110,44 @@ describe('findForUrl', () => {
       })
     })
 
+    describe('and the list includes accesslint', () => {
+      it('runs only the accesslint scan when it is the only entry', async () => {
+        actionInput = JSON.stringify(['accesslint'])
+        clearAll()
+
+        await findForUrl({url: 'test.com'})
+        expect(accesslintAudit).toHaveBeenCalledTimes(1)
+        expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(0)
+        expect(pluginManager.loadPlugins).toHaveBeenCalledTimes(0)
+      })
+
+      it('runs alongside axe when both are listed', async () => {
+        actionInput = JSON.stringify(['axe', 'accesslint'])
+        clearAll()
+
+        await findForUrl({url: 'test.com'})
+        expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(1)
+        expect(accesslintAudit).toHaveBeenCalledTimes(1)
+        expect(pluginManager.loadPlugins).toHaveBeenCalledTimes(0)
+      })
+
+      it('is treated as a core engine and runs alongside plugins', async () => {
+        loadedPlugins = [
+          {name: 'custom-scan-1', default: vi.fn()},
+          {name: 'custom-scan-2', default: vi.fn()},
+        ]
+
+        actionInput = JSON.stringify(['accesslint', 'custom-scan-1'])
+        clearAll()
+
+        await findForUrl({url: 'test.com'})
+        expect(accesslintAudit).toHaveBeenCalledTimes(1)
+        expect(pluginManager.invokePlugin).toHaveBeenCalledTimes(1)
+        expect(loadedPlugins[0].default).toHaveBeenCalledTimes(1)
+        expect(loadedPlugins[1].default).toHaveBeenCalledTimes(0)
+      })
+    })
+
     it('should only run scans that are included in the list', async () => {
       loadedPlugins = [
         {name: 'custom-scan-1', default: vi.fn()},
@@ -115,6 +159,15 @@ describe('findForUrl', () => {
       await findForUrl('test.com')
       expect(loadedPlugins[0].default).toHaveBeenCalledTimes(1)
       expect(loadedPlugins[1].default).toHaveBeenCalledTimes(0)
+    })
+
+    it('runs plugins when a scans entry is an object-form NPM plugin', async () => {
+      loadedPlugins = []
+      actionInput = JSON.stringify([{name: 'alt-text-scan', package: '@github/accessibility-scanner-alt-text-plugin'}])
+      clearAll()
+
+      await findForUrl('test.com')
+      expect(pluginManager.loadPlugins).toHaveBeenCalledTimes(1)
     })
   })
 
