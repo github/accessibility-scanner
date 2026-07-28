@@ -7,6 +7,7 @@ import {describe, expect, it} from 'vitest'
 import {loadPluginViaNpm} from '../src/pluginManager/pluginNpmLoader.js'
 
 const PLUGIN_ROOT = fileURLToPath(new URL('../src/pluginManager/', import.meta.url))
+const PLUGIN_NODE_MODULES = path.join(PLUGIN_ROOT, 'node_modules')
 
 describe('npmPluginLoader integration', () => {
   it('installs and loads a released plugin outside the consumer workspace', {timeout: 120_000}, async () => {
@@ -29,7 +30,7 @@ describe('npmPluginLoader integration', () => {
       expect(plugin?.default).toBeTypeOf('function')
       expect(
         fs.existsSync(
-          path.join(PLUGIN_ROOT, 'node_modules', '@github', 'accessibility-scanner-alt-text-plugin', 'package.json'),
+          path.join(PLUGIN_NODE_MODULES, '@github', 'accessibility-scanner-alt-text-plugin', 'package.json'),
         ),
       ).toBe(true)
     } finally {
@@ -40,6 +41,7 @@ describe('npmPluginLoader integration', () => {
         process.env.npm_config_min_release_age = originalMinimumReleaseAge
       }
       fs.rmSync(consumerWorkspace, {recursive: true, force: true})
+      fs.rmSync(PLUGIN_NODE_MODULES, {recursive: true, force: true})
     }
   })
 })
