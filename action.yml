@@ -64,7 +64,7 @@ inputs:
     description: 'Playwright colorScheme setting: https://playwright.dev/docs/api/class-browser#browser-new-context-option-color-scheme'
     required: false
   scans:
-    description: 'Stringified JSON array of scans to perform. If not provided, only Axe will be performed'
+    description: "Stringified JSON array of scans to perform. Core engines and local plugins use string names. Allowlisted NPM plugins use an object with 'name', 'package', and optional 'version'. If not provided, only Axe will be performed"
     required: false
   dry_run:
     description: 'When true, scan and log the issues that would be filed without opening, closing, reopening, or assigning any issues, and without writing to the cache.'

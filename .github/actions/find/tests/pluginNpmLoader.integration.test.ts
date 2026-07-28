@@ -6,7 +6,7 @@ import {describe, expect, it} from 'vitest'
 
 import {loadPluginViaNpm} from '../src/pluginManager/pluginNpmLoader.js'
 
-const ACTION_ROOT = fileURLToPath(new URL('..', import.meta.url))
+const PLUGIN_ROOT = fileURLToPath(new URL('../src/pluginManager/', import.meta.url))
 
 describe('npmPluginLoader integration', () => {
   it('installs and loads a released plugin outside the consumer workspace', {timeout: 120_000}, async () => {
@@ -17,7 +17,7 @@ describe('npmPluginLoader integration', () => {
     try {
       process.chdir(consumerWorkspace)
       process.env.npm_config_min_release_age = '0'
-      expect(process.cwd()).not.toBe(ACTION_ROOT)
+      expect(process.cwd()).not.toBe(PLUGIN_ROOT)
 
       const plugin = await loadPluginViaNpm({
         name: 'alt-text-scan',
@@ -27,6 +27,11 @@ describe('npmPluginLoader integration', () => {
 
       expect(plugin?.name).toBe('alt-text-scan')
       expect(plugin?.default).toBeTypeOf('function')
+      expect(
+        fs.existsSync(
+          path.join(PLUGIN_ROOT, 'node_modules', '@github', 'accessibility-scanner-alt-text-plugin', 'package.json'),
+        ),
+      ).toBe(true)
     } finally {
       process.chdir(originalCwd)
       if (originalMinimumReleaseAge === undefined) {

@@ -3,12 +3,12 @@ import {fileURLToPath} from 'url'
 import * as core from '@actions/core'
 import type {NpmPluginRequest, Plugin} from './types.js'
 
-const actionRoot = fileURLToPath(new URL('../..', import.meta.url))
+const pluginRoot = fileURLToPath(new URL('.', import.meta.url))
 
 // Install the package at runtime.
 export function installNpmPackage(spec: string) {
-  execFileSync('npm', ['install', spec, '--no-save', '--no-package-lock', '--ignore-scripts'], {
-    cwd: actionRoot,
+  execFileSync('npm', ['install', spec, '--prefix', pluginRoot, '--no-save', '--no-package-lock', '--ignore-scripts'], {
+    cwd: pluginRoot,
     stdio: 'inherit',
   })
 }
