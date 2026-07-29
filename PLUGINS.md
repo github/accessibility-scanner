@@ -1,5 +1,9 @@
 # Plugins
 
+## Minimum scanner version
+
+Loading plugins from NPM packages requires scanner v3.4.1 or later.
+
 The plugin system allows teams to create custom scans/tests to run on their pages. An example of this is Axe interaction tests. In some cases, it might be desirable to perform specific interactions on elements of a given page before doing an Axe scan. These interactions are usually unique to each page that is scanned, so it would require the owning team to write a custom plugin that can interact with the page and run the Axe scan when ready. See the existing plugins under [.github/scanner-plugins](https://github.com/github/accessibility-scanner/tree/main/.github/scanner-plugins) for examples of plugin structure.
 
 Some plugins come built-in with the scanner and can be enabled via [actions inputs](https://github.com/github/accessibility-scanner/tree/main/action.yml#L48-L50).
@@ -46,7 +50,6 @@ jobs:
 ## Loading plugins from NPM packages
 
 In addition to local plugins under `./.github/scanner-plugins`, the scanner can install and load plugins published as NPM packages. This avoids having to vendor a plugin's source into your repo.
-NPM package loading requires scanner v3.4.1 or later.
 
 To use an NPM plugin, pass an object (instead of a plain string) in the `scans` input with the following fields:
 
