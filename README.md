@@ -188,7 +188,7 @@ The [Alt Text Plugin](https://github.com/github/accessibility-scanner-alt-text-p
 
 ```yaml
 scans: |
-  ["axe", {"name": "alt-text-scan", "package": "@github/accessibility-scanner-alt-text-plugin", "version": "1.0.0"}]
+  ["axe", {"name": "alt-text-scan", "package": "@github/accessibility-scanner-alt-text-plugin", "version": "1.1.0"}]
 ```
 
 See the [plugin README](https://github.com/github/accessibility-scanner-alt-text-plugin#getting-started) for the current release version, full rule list, and setup instructions.

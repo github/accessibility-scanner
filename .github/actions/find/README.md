@@ -37,7 +37,9 @@ configuration option.
 
 #### `scans`
 
-**Optional** Stringified JSON array of scans (string) to perform. If not provided, only Axe will be performed.
+**Optional** Stringified JSON array of scans to perform. Core engines and local plugins use string names.
+Allowlisted NPM plugins use an object with `name`, `package`, and optional `version`. If not provided, only Axe
+will be performed. See [the plugin docs](../../../PLUGINS.md#loading-plugins-from-npm-packages) for an example.
 
 ### Outputs
 
