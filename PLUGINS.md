@@ -4,6 +4,10 @@ The plugin system allows teams to create custom scans/tests to run on their page
 
 Some plugins come built-in with the scanner and can be enabled via [actions inputs](https://github.com/github/accessibility-scanner/tree/main/action.yml#L48-L50).
 
+## Minimum scanner version
+
+3.4.1
+
 ## How plugins work
 
 Plugins are dynamically loaded by the scanner when it runs. The scanner will look into the `./.github` folder in your repo (where you run the workflow from) and search for a `scanner-plugins` folder. If it finds it, it will assume each folder under that is a plugin, and attempt to load the `index.ts` (first) or `index.js` (second) file inside it. Once loaded, the scanner will invoke the exported default function from the `index.js/index.ts` file.
@@ -46,7 +50,6 @@ jobs:
 ## Loading plugins from NPM packages
 
 In addition to local plugins under `./.github/scanner-plugins`, the scanner can install and load plugins published as NPM packages. This avoids having to vendor a plugin's source into your repo.
-NPM package loading requires scanner v3.4.1 or later.
 
 To use an NPM plugin, pass an object (instead of a plain string) in the `scans` input with the following fields:
 
