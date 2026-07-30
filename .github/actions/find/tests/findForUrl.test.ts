@@ -163,11 +163,19 @@ describe('findForUrl', () => {
 
     it('runs plugins when a scans entry is an object-form NPM plugin', async () => {
       loadedPlugins = []
-      actionInput = JSON.stringify([{name: 'alt-text-scan', package: '@github/accessibility-scanner-alt-text-plugin'}])
+      actionInput = JSON.stringify([
+        'axe',
+        {
+          name: 'alt-text-scan',
+          package: '@github/accessibility-scanner-alt-text-plugin',
+          version: '1.1.0',
+        },
+      ])
       clearAll()
 
       await findForUrl('test.com')
       expect(pluginManager.loadPlugins).toHaveBeenCalledTimes(1)
+      expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(1)
     })
   })
 

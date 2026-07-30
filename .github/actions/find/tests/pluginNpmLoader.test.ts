@@ -1,6 +1,7 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest'
 
 import * as childProcess from 'child_process'
+import {fileURLToPath} from 'url'
 import * as core from '@actions/core'
 import * as pluginManager from '../src/pluginManager/index.js'
 import * as npmPluginLoader from '../src/pluginManager/pluginNpmLoader.js'
@@ -13,6 +14,7 @@ vi.mock('../src/pluginManager/pluginNpmLoader.js', {spy: true})
 vi.mock('../src/scansContextProvider.js', {spy: true})
 
 const ALLOWED = '@github/accessibility-scanner-alt-text-plugin'
+const PLUGIN_ROOT = fileURLToPath(new URL('../src/pluginManager/', import.meta.url))
 
 function mockNpmPlugins(npmPlugins: NpmPluginRequest[]) {
   vi.spyOn(scansContextProvider, 'getScansContext').mockReturnValue({
@@ -35,8 +37,9 @@ describe('npmPluginLoader', () => {
       npmPluginLoader.installNpmPackage('some-pkg@1.0.0')
       expect(execSpy).toHaveBeenCalledWith(
         'npm',
-        ['install', 'some-pkg@1.0.0', '--no-save', '--no-package-lock', '--ignore-scripts'],
+        ['install', 'some-pkg@1.0.0', '--prefix', PLUGIN_ROOT, '--no-save', '--no-package-lock', '--ignore-scripts'],
         {
+          cwd: PLUGIN_ROOT,
           stdio: 'inherit',
         },
       )
@@ -49,8 +52,16 @@ describe('npmPluginLoader', () => {
       await npmPluginLoader.loadPluginViaNpm({name: 'p', package: 'nonexistent-pkg-xyz', version: '2.3.4'})
       expect(execSpy).toHaveBeenCalledWith(
         'npm',
-        ['install', 'nonexistent-pkg-xyz@2.3.4', '--no-save', '--no-package-lock', '--ignore-scripts'],
-        {stdio: 'inherit'},
+        [
+          'install',
+          'nonexistent-pkg-xyz@2.3.4',
+          '--prefix',
+          PLUGIN_ROOT,
+          '--no-save',
+          '--no-package-lock',
+          '--ignore-scripts',
+        ],
+        {cwd: PLUGIN_ROOT, stdio: 'inherit'},
       )
     })
 

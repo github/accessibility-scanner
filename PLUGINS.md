@@ -46,6 +46,7 @@ jobs:
 ## Loading plugins from NPM packages
 
 In addition to local plugins under `./.github/scanner-plugins`, the scanner can install and load plugins published as NPM packages. This avoids having to vendor a plugin's source into your repo.
+NPM package loading requires scanner v3.4.1 or later.
 
 To use an NPM plugin, pass an object (instead of a plain string) in the `scans` input with the following fields:
 
@@ -64,7 +65,7 @@ jobs:
       - uses: github/accessibility-scanner@v3
         with:
           scans: |
-            ["axe", {"name": "alt-text-scan", "package": "@github/accessibility-scanner-alt-text-plugin", "version": "1.0.0"}]
+            ["axe", {"name": "alt-text-scan", "package": "@github/accessibility-scanner-alt-text-plugin", "version": "1.1.0"}]
 ```
 
 Notes:
