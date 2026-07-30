@@ -1,4 +1,4 @@
-name: Test
+name: accessibility-scanner
 on:
   pull_request:
     types:
@@ -21,8 +21,8 @@ env:
   TESTING_REPOSITORY: StarChenWork/accessibility-scanner
 
 jobs:
-  test:
-    name: Test
+  accessibility-scanner:
+    name: accessibility-scanner
     runs-on: ubuntu-latest
     # Run if triggered manually, or for a non-draft PR
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
