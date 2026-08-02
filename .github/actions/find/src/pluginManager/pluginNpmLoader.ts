@@ -1,0 +1,29 @@
+import {execFileSync} from 'child_process'
+import {fileURLToPath} from 'url'
+import * as core from '@actions/core'
+import type {NpmPluginRequest, Plugin} from './types.js'
+
+const pluginRoot = fileURLToPath(new URL('.', import.meta.url))
+
+// Install the package at runtime.
+export function installNpmPackage(spec: string) {
+  execFileSync('npm', ['install', spec, '--prefix', pluginRoot, '--no-save', '--no-package-lock', '--ignore-scripts'], {
+    cwd: pluginRoot,
+    stdio: 'inherit',
+  })
+}
+
+// Install and import a single NPM-published plugin
+export async function loadPluginViaNpm(request: NpmPluginRequest): Promise<Plugin | undefined> {
+  const spec = request.version ? `${request.package}@${request.version}` : request.package
+  try {
+    core.info(`Installing NPM plugin: ${spec}`)
+    installNpmPackage(spec)
+    // Import the bare package specifier as-is; pathToFileURL would mangle it.
+    const imported = await import(request.package)
+    return imported as Plugin
+  } catch (e) {
+    core.warning(`Failed to load NPM plugin '${spec}': ${e}`)
+    return undefined
+  }
+}

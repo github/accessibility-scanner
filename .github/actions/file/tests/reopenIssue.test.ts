@@ -41,16 +41,16 @@ describe('reopenIssue', () => {
 
   it('passes screenshotRepo to generateIssueBody when provided', async () => {
     const octokit = mockOctokit()
-    await reopenIssue(octokit, testIssue, baseFinding, 'org/filing-repo', 'org/workflow-repo')
+    await reopenIssue(octokit, testIssue, [baseFinding], 'org/filing-repo', 'org/workflow-repo')
 
-    expect(generateIssueBody).toHaveBeenCalledWith(baseFinding, 'org/workflow-repo')
+    expect(generateIssueBody).toHaveBeenCalledWith([baseFinding], 'org/workflow-repo')
   })
 
   it('falls back to repoWithOwner when screenshotRepo is not provided', async () => {
     const octokit = mockOctokit()
-    await reopenIssue(octokit, testIssue, baseFinding, 'org/filing-repo')
+    await reopenIssue(octokit, testIssue, [baseFinding], 'org/filing-repo')
 
-    expect(generateIssueBody).toHaveBeenCalledWith(baseFinding, 'org/filing-repo')
+    expect(generateIssueBody).toHaveBeenCalledWith([baseFinding], 'org/filing-repo')
   })
 
   it('does not generate a body when finding is not provided', async () => {
@@ -66,14 +66,14 @@ describe('reopenIssue', () => {
 
   it('does not generate a body when repoWithOwner is not provided', async () => {
     const octokit = mockOctokit()
-    await reopenIssue(octokit, testIssue, baseFinding)
+    await reopenIssue(octokit, testIssue, [baseFinding])
 
     expect(generateIssueBody).not.toHaveBeenCalled()
   })
 
   it('sends PATCH to the correct issue URL with state open', async () => {
     const octokit = mockOctokit()
-    await reopenIssue(octokit, testIssue, baseFinding, 'org/filing-repo', 'org/workflow-repo')
+    await reopenIssue(octokit, testIssue, [baseFinding], 'org/filing-repo', 'org/workflow-repo')
 
     expect(octokit.request).toHaveBeenCalledWith(
       'PATCH /repos/org/filing-repo/issues/7',
@@ -86,7 +86,7 @@ describe('reopenIssue', () => {
 
   it('includes generated body when finding and repoWithOwner are provided', async () => {
     const octokit = mockOctokit()
-    await reopenIssue(octokit, testIssue, baseFinding, 'org/filing-repo', 'org/workflow-repo')
+    await reopenIssue(octokit, testIssue, [baseFinding], 'org/filing-repo', 'org/workflow-repo')
 
     expect(octokit.request).toHaveBeenCalledWith(
       expect.any(String),

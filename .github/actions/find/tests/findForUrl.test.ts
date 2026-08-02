@@ -2,6 +2,7 @@ import {describe, it, expect, vi} from 'vitest'
 import * as core from '@actions/core'
 import {findForUrl} from '../src/findForUrl.js'
 import {AxeBuilder} from '@axe-core/playwright'
+import {accesslintAudit} from '@accesslint/playwright'
 import axe from 'axe-core'
 import * as pluginManager from '../src/pluginManager/index.js'
 import type {Plugin} from '../src/pluginManager/types.js'
@@ -65,6 +66,10 @@ vi.mock('@axe-core/playwright', () => {
 })
 vi.mock('../src/pluginManager/index.js', () => pluginMocks)
 
+vi.mock('@accesslint/playwright', () => ({
+  accesslintAudit: vi.fn(() => Promise.resolve({violations: []})),
+}))
+
 let actionInput: string = ''
 let loadedPlugins: Plugin[] = []
 
@@ -88,6 +93,7 @@ describe('findForUrl', () => {
 
     await findForUrl({url: 'test.com'})
     expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(1)
+    expect(accesslintAudit).toHaveBeenCalledTimes(0)
     expect(pluginManager.loadPlugins).toHaveBeenCalledTimes(0)
     expect(pluginManager.invokePlugin).toHaveBeenCalledTimes(0)
   }
@@ -183,6 +189,44 @@ describe('findForUrl', () => {
       })
     })
 
+    describe('and the list includes accesslint', () => {
+      it('runs only the accesslint scan when it is the only entry', async () => {
+        actionInput = JSON.stringify(['accesslint'])
+        clearAll()
+
+        await findForUrl({url: 'test.com'})
+        expect(accesslintAudit).toHaveBeenCalledTimes(1)
+        expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(0)
+        expect(pluginManager.loadPlugins).toHaveBeenCalledTimes(0)
+      })
+
+      it('runs alongside axe when both are listed', async () => {
+        actionInput = JSON.stringify(['axe', 'accesslint'])
+        clearAll()
+
+        await findForUrl({url: 'test.com'})
+        expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(1)
+        expect(accesslintAudit).toHaveBeenCalledTimes(1)
+        expect(pluginManager.loadPlugins).toHaveBeenCalledTimes(0)
+      })
+
+      it('is treated as a core engine and runs alongside plugins', async () => {
+        loadedPlugins = [
+          {name: 'custom-scan-1', default: vi.fn()},
+          {name: 'custom-scan-2', default: vi.fn()},
+        ]
+
+        actionInput = JSON.stringify(['accesslint', 'custom-scan-1'])
+        clearAll()
+
+        await findForUrl({url: 'test.com'})
+        expect(accesslintAudit).toHaveBeenCalledTimes(1)
+        expect(pluginManager.invokePlugin).toHaveBeenCalledTimes(1)
+        expect(loadedPlugins[0].default).toHaveBeenCalledTimes(1)
+        expect(loadedPlugins[1].default).toHaveBeenCalledTimes(0)
+      })
+    })
+
     it('should only run scans that are included in the list', async () => {
       loadedPlugins = [
         {name: 'custom-scan-1', default: vi.fn()},
@@ -194,6 +238,88 @@ describe('findForUrl', () => {
       await findForUrl({url: 'test.com'})
       expect(loadedPlugins[0].default).toHaveBeenCalledTimes(1)
       expect(loadedPlugins[1].default).toHaveBeenCalledTimes(0)
+    })
+
+    it('runs plugins when a scans entry is an object-form NPM plugin', async () => {
+      loadedPlugins = []
+      actionInput = JSON.stringify([
+        'axe',
+        {
+          name: 'alt-text-scan',
+          package: '@github/accessibility-scanner-alt-text-plugin',
+          version: '1.1.0',
+        },
+      ])
+      clearAll()
+
+      await findForUrl('test.com')
+      expect(pluginManager.loadPlugins).toHaveBeenCalledTimes(1)
+      expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  it('captures every failing element of an axe violation as nodes', async () => {
+    actionInput = ''
+    clearAll()
+
+    const violation = {
+      id: 'color-contrast',
+      help: 'Elements must meet minimum color contrast ratio thresholds',
+      helpUrl: 'https://dequeuniversity.com/rules/axe/4.10/color-contrast',
+      description: 'Ensure contrast meets WCAG thresholds',
+      tags: ['wcag2aa', 'wcag143'],
+      nodes: [
+        {html: '<span>one</span>', target: ['span.one'], failureSummary: 'Fix any of the following:'},
+        {html: '<span>two</span>', target: ['div', 'span.two'], failureSummary: 'Fix any of the following:'},
+      ],
+    }
+    vi.mocked(AxeBuilder.prototype.analyze).mockResolvedValueOnce({
+      violations: [violation],
+    } as unknown as axe.AxeResults)
+
+    const findings = await findForUrl('test.com')
+
+    expect(findings).toHaveLength(1)
+    expect(findings[0].html).toBe('<span>one</span>')
+    expect(findings[0].nodes).toEqual([
+      {html: '<span>one</span>', target: 'span.one'},
+      {html: '<span>two</span>', target: 'div span.two'},
+    ])
+  })
+
+  describe('axe finding categorization', () => {
+    function axeViolation(tags: string[]) {
+      return {
+        id: 'some-rule',
+        help: 'Help',
+        helpUrl: 'https://example.com',
+        description: 'Description',
+        tags,
+        nodes: [{html: '<div></div>', target: ['div'], failureSummary: 'summary'}],
+      }
+    }
+
+    async function categoryFor(tags: string[]) {
+      clearAll()
+      actionInput = JSON.stringify(['axe'])
+      vi.mocked(AxeBuilder.prototype.analyze).mockResolvedValueOnce({
+        violations: [axeViolation(tags)],
+      } as unknown as axe.AxeResults)
+
+      const findings = await findForUrl('test.com')
+      return findings[0].category
+    }
+
+    it('categorizes a violation with only wcag tags as wcag', async () => {
+      expect(await categoryFor(['wcag2a', 'wcag111'])).toBe('wcag')
+    })
+
+    it('categorizes a violation with a best-practice tag as best-practice', async () => {
+      expect(await categoryFor(['cat.semantics', 'best-practice'])).toBe('best-practice')
+    })
+
+    it('categorizes a violation with an experimental tag as experimental, even alongside wcag tags', async () => {
+      expect(await categoryFor(['wcag2a', 'experimental'])).toBe('experimental')
     })
   })
 })
