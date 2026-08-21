@@ -3,11 +3,19 @@ description: Fill out the details to request allowlisting your third party plugi
 labels: 'allowlist-plugin-request'
 body:
   - type: input
+    id: npm-package
     attributes: 
       label: Link to your plugin on NPM
     validations:
       required: true
+  - type: input
+    id: github-repo-link
+    attributes: 
+      label: Link to the source code for your plugin on GitHub
+    validations:
+      required: true
   - type: textarea 
+    id: plugin-description
     attributes: 
       label: What does your plugin do?  
       description: Please provide a brief description of your plugin's functionality.

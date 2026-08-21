@@ -3,17 +3,11 @@
 The plugin system allows teams to create custom scans/tests to run on their pages. An example of this is Axe interaction tests. In some cases, it might be desirable to perform specific interactions on elements of a given page before doing an Axe scan. These interactions are usually unique to each page that is scanned, so it would require the owning team to write a custom plugin that can interact with the page and run the Axe scan when ready.
 
 Some first-party plugins come built-in with the scanner repository and can be enabled via [actions inputs](https://github.com/github/accessibility-scanner/tree/main/action.yml#L48-L50).
-There are also some [allowlisted](https://github.com/github/accessibility-scanner/blob/7ec4b73ca2fdb471ad6f71a48a88e7b1a84ab3ad/.github/actions/find/src/pluginManager/index.ts#L92) first-party plugins hosted in a different repository; we also have the ability to support loading approved third-party plugins [from NPM](./loading-plugins-from-npm-packages).
+There are also some [allowlisted](https://github.com/github/accessibility-scanner/blob/7ec4b73ca2fdb471ad6f71a48a88e7b1a84ab3ad/.github/actions/find/src/pluginManager/index.ts#L92) first-party plugins hosted in a different repository; we also have the ability to support loading approved third-party plugins [from NPM](#loading-plugins-from-npm-packages).
 
 ## How to create plugins
 
-### Plugin folder structure for all plugins
-
-- Each plugin should have one `index.ts` OR `index.js` file inside its folder.
-- The `index.ts/index.js` file must export a `name` field. This is the name used to pass to the `scans` input. So if the plugin exports a name value of `my-custom-plugin` and we pass the following to the scanner action inputs: `scans: ['my-custom-plugin']`, it would cause the scanner to only run that plugin.
-- The `index.ts/index.js` file must export a default function (see [below](./default-function-api)). This is the function that the scanner uses to run the plugin. This can be an async function.
-
-### Default function API
+### Default function API (all plugins)
 
 When the default function is invoked, the following arguments are passed to the function:
 
@@ -31,9 +25,9 @@ A async function (you must use `await` or `.then` when invoking this function) t
 
 Create a repository containing the required files/functions mentioned above, then publish it as an NPM package (with a public URL).
 
-Once the public URL is live, please fill out [this issue template](./.github/ISSUE_TEMPLATE/allowlist-npm-plugin-request.yml) so we can allowlist your plugin in future versions of the scanner.
+Once the public URL is live, please fill out [this issue form](https://github.com/github/accessibility-scanner/issues/new?template=allowlist-npm-plugin-request.yml) so we can allowlist your plugin in future versions of the scanner.
 
-To then enable an NPM plugin in the `scans` input, follow the instructions in the [loading plugins from NPM](./loading-plugins-from-npm-packages) section.
+To then enable an NPM plugin in the `scans` input, follow the instructions in the [loading plugins from NPM](./loading-plugins-from-npm-packages) section. Since NPM plugins are loaded through their package entry point, ensure that entry point provides a default function following the API described above.
 
 An example of a plugin which can be loaded from NPM is our [alt text scanning plugin](https://github.com/github/accessibility-scanner-alt-text-plugin).
 
@@ -55,6 +49,11 @@ jobs:
         with:
           # ... the rest of the workflow setup
 ```
+#### Plugin folder structure for local plugins
+
+- Each plugin should have one `index.ts` OR `index.js` file inside its folder.
+- The `index.ts/index.js` file must export a `name` field. This is the name used to pass to the `scans` input. So if the plugin exports a name value of `my-custom-plugin` and we pass the following to the scanner action inputs: `scans: ['my-custom-plugin']`, it would cause the scanner to only run that plugin.
+- The `index.ts/index.js` file must export a default function (see [below](./default-function-api)). This is the function that the scanner uses to run the plugin. This can be an async function.
 
 ## Loading plugins from NPM packages
 
