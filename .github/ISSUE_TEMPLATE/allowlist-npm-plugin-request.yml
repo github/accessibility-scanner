@@ -1,0 +1,15 @@
+name: Allowlist Third Party NPM Plugin Request
+description: Fill out the details to request allowlisting your third party plugin hosted on NPM in the scanner.
+labels: 'allowlist-plugin-request'
+body:
+  - type: input
+    attributes: 
+      label: Link to your plugin on NPM
+    validations:
+      required: true
+  - type: textarea 
+    attributes: 
+      label: What does your plugin do?  
+      description: Please provide a brief description of your plugin's functionality.
+    validations:
+      required: true
