@@ -27,7 +27,7 @@ Create a repository containing the required files/functions mentioned above, the
 
 Once the public URL is live, please fill out [this issue form](https://github.com/github/accessibility-scanner/issues/new?template=allowlist-npm-plugin-request.yml) so we can allowlist your plugin in future versions of the scanner.
 
-To then enable an NPM plugin in the `scans` input, follow the instructions in the [loading plugins from NPM](./loading-plugins-from-npm-packages) section. Since NPM plugins are loaded through their package entry point, ensure that entry point provides a default function following the API described above.
+To then enable an NPM plugin in the `scans` input, follow the instructions in the [loading plugins from NPM](#loading-plugins-from-npm-packages) section. Since NPM plugins are loaded through their package entry point, ensure that entry point provides a default function following the API described above.
 
 An example of a plugin which can be loaded from NPM is our [alt text scanning plugin](https://github.com/github/accessibility-scanner-alt-text-plugin).
 
