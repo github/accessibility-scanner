@@ -25,7 +25,10 @@ A async function (you must use `await` or `.then` when invoking this function) t
 
 Create a repository containing the required files/functions mentioned above, then publish it as an NPM package (with a public URL).
 
+Since loaded plugins can run arbitrary code defined by the plugin author, malicious NPM-hosted third-party plugins are a security concern. To help mitigate supply-chain attack risks, we maintain an in-code allowlist of NPM plugins which are permitted to load and execute code.
+
 Once the public URL is live, please fill out [this issue form](https://github.com/github/accessibility-scanner/issues/new?template=allowlist-npm-plugin-request.yml) so we can allowlist your plugin in future versions of the scanner.
+A GitHub engineer will review the plugin codebase to check whether it functions as described in the opened issue; if so, it will be approved and the issue closed after an ensuing scanner release which allowlists your plugin.
 
 To then enable an NPM plugin in the `scans` input, follow the instructions in the [loading plugins from NPM](#loading-plugins-from-npm-packages) section. Since NPM plugins are loaded through their package entry point, ensure that entry point provides a default function following the API described above.
 
