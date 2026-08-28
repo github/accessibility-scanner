@@ -10,7 +10,7 @@ The a11y scanner helps teams:
 
 > ⚠️ **Note:** The a11y scanner is currently in public preview. Feature development work is still ongoing. It can help identify accessibility gaps but cannot guarantee fully accessible code suggestions. Always review before merging!
 
-🎥 **[Watch the demo video](https://youtu.be/CvRJcEzCSQM)** to see the a11y scanner in action.
+🎥 **[Watch the demo video](https://youtu.be/gzpDNd8ahqE)** to see the a11y scanner in action.
 
 ---
 
