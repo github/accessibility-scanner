@@ -8,6 +8,8 @@ import {loadPlugins, invokePlugin} from './pluginManager/index.js'
 import {getScansContext} from './scansContextProvider.js'
 import * as core from '@actions/core'
 
+const SELECTOR_WAIT_TIMEOUT = 30000
+
 export async function findForUrl(
   urlConfig: UrlConfig,
   authContext?: AuthContext,
@@ -15,7 +17,7 @@ export async function findForUrl(
   reducedMotion?: ReducedMotionPreference,
   colorScheme?: ColorSchemePreference,
 ): Promise<Finding[]> {
-  const {url, excludeSelectors} = urlConfig
+  const {url, excludeSelectors, waitForSelectors} = urlConfig
   const browser = await playwright.chromium.launch({
     headless: true,
     executablePath: process.env.CI ? '/usr/bin/google-chrome' : undefined,
@@ -28,6 +30,11 @@ export async function findForUrl(
   const context = await browser.newContext(contextOptions)
   const page = await context.newPage()
   await page.goto(url)
+  await Promise.all(
+    (waitForSelectors ?? []).map(selector =>
+      page.locator(selector).waitFor({state: 'visible', timeout: SELECTOR_WAIT_TIMEOUT}),
+    ),
+  )
 
   const findings: Finding[] = []
   const addFinding = async (findingData: Finding) => {

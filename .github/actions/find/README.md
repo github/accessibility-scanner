@@ -15,6 +15,10 @@ https://primer.style
 https://primer.style/octicons/
 ```
 
+#### `url_configs`
+
+**Optional** Stringified JSON array of per-URL configuration objects. Each object must include a `url` and may include `excludeSelectors` (selectors to exclude from Axe) and `waitForSelectors` (selectors that must become visible within 30 seconds before scanning). When provided, this input takes precedence over `urls`.
+
 #### `auth_context`
 
 **Optional** Stringified JSON object containing `username`, `password`, `cookies`, and/or `localStorage` from an authenticated session. For example: `{"username":"some-user","password":"correct-horse-battery-staple","cookies":[{"name":"theme-preference","value":"light","domain":"primer.style","path":"/"}],"localStorage":{"https://primer.style":{"theme-preference":"light"}}}`
