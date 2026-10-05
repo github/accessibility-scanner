@@ -7,7 +7,7 @@ inputs:
     required: false
     multiline: true
   url_configs:
-    description: "Stringified JSON array of URL config objects, each with a 'url' field and an optional 'excludeSelectors' field (array of CSS selectors to exclude from the Axe scan for that URL). When provided, takes precedence over the 'urls' input."
+    description: "Stringified JSON array of URL config objects, each with a 'url' field and optional 'excludeSelectors' (selectors to exclude from Axe) and 'waitForSelectors' (selectors that must be visible before scanning) fields. When provided, takes precedence over the 'urls' input."
     required: false
   repository:
     description: 'Repository (with owner) to file issues in'

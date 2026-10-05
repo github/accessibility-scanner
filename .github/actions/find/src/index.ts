@@ -55,6 +55,13 @@ function loadUrlConfigs() {
       if (typeof item !== 'object' || item === null || typeof item.url !== 'string') {
         throw new Error("Each entry in 'url_configs' must be an object with a 'url' string field.")
       }
+      if (
+        item.waitForSelectors !== undefined &&
+        (!Array.isArray(item.waitForSelectors) ||
+          item.waitForSelectors.some((selector: unknown) => typeof selector !== 'string'))
+      ) {
+        throw new Error("Each 'waitForSelectors' field in 'url_configs' must be an array of CSS selector strings.")
+      }
     }
 
     return parsed as UrlConfig[]
