@@ -108,6 +108,11 @@ describe('findForUrl', () => {
       expect(playwrightMocks.pageGoto).toHaveBeenCalledWith('test.com')
       expect(playwrightMocks.pageLocator).not.toHaveBeenCalled()
       expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(1)
+      expect(playwrightMocks.contextClose).toHaveBeenCalledTimes(1)
+      expect(playwrightMocks.browserClose).toHaveBeenCalledTimes(1)
+      expect(playwrightMocks.contextClose.mock.invocationCallOrder[0]).toBeLessThan(
+        playwrightMocks.browserClose.mock.invocationCallOrder[0],
+      )
     })
 
     it('waits for each configured selector after navigation and before scanning', async () => {
@@ -128,15 +133,58 @@ describe('findForUrl', () => {
       )
     })
 
-    it('does not scan when a configured selector times out', async () => {
+    it('closes the context and browser without scanning when a configured selector times out', async () => {
       const timeoutError = new Error('Timeout 30000ms exceeded')
       actionInput = ''
       clearAll()
       playwrightMocks.locatorWaitFor.mockRejectedValueOnce(timeoutError)
 
-      await expect(findForUrl({url: 'test.com', waitForSelectors: ['#app']})).rejects.toThrow(timeoutError)
+      await expect(findForUrl({url: 'test.com', waitForSelectors: ['#app']})).rejects.toBe(timeoutError)
 
       expect(AxeBuilder.prototype.analyze).not.toHaveBeenCalled()
+      expect(playwrightMocks.contextClose).toHaveBeenCalledTimes(1)
+      expect(playwrightMocks.browserClose).toHaveBeenCalledTimes(1)
+    })
+
+    it.each([
+      ['context creation', playwrightMocks.browserNewContext, false],
+      ['page creation', playwrightMocks.contextNewPage, true],
+      ['navigation', playwrightMocks.pageGoto, true],
+    ] as const)('cleans up when %s fails', async (_stage, failingOperation, contextCreated) => {
+      const error = new Error('Page setup failed')
+      actionInput = ''
+      clearAll()
+      failingOperation.mockRejectedValueOnce(error)
+
+      await expect(findForUrl({url: 'test.com'})).rejects.toBe(error)
+
+      expect(AxeBuilder.prototype.analyze).not.toHaveBeenCalled()
+      expect(playwrightMocks.contextClose).toHaveBeenCalledTimes(contextCreated ? 1 : 0)
+      expect(playwrightMocks.browserClose).toHaveBeenCalledTimes(1)
+    })
+
+    it('closes the browser even if closing the context fails', async () => {
+      const error = new Error('Context cleanup failed')
+      actionInput = ''
+      clearAll()
+      playwrightMocks.contextClose.mockRejectedValueOnce(error)
+
+      await expect(findForUrl({url: 'test.com'})).rejects.toBe(error)
+
+      expect(playwrightMocks.browserClose).toHaveBeenCalledTimes(1)
+    })
+
+    it('preserves scan error handling and closes the context and browser', async () => {
+      const error = new Error('Scan failed')
+      actionInput = ''
+      clearAll()
+      vi.mocked(AxeBuilder.prototype.analyze).mockRejectedValueOnce(error)
+
+      await expect(findForUrl({url: 'test.com'})).resolves.toEqual([])
+
+      expect(core.error).toHaveBeenCalledWith(`Error during accessibility scan: ${error}`)
+      expect(playwrightMocks.contextClose).toHaveBeenCalledTimes(1)
+      expect(playwrightMocks.browserClose).toHaveBeenCalledTimes(1)
     })
   })
 

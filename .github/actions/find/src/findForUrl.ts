@@ -27,56 +27,63 @@ export async function findForUrl(
     ...(reducedMotion ? {reducedMotion} : {}),
     ...(colorScheme ? {colorScheme} : {}),
   }
-  const context = await browser.newContext(contextOptions)
-  const page = await context.newPage()
-  await page.goto(url)
-  await Promise.all(
-    (waitForSelectors ?? []).map(selector =>
-      page.locator(selector).waitFor({state: 'visible', timeout: SELECTOR_WAIT_TIMEOUT}),
-    ),
-  )
-
-  const findings: Finding[] = []
-  const addFinding = async (findingData: Finding) => {
-    let screenshotId
-    if (includeScreenshots) {
-      screenshotId = await generateScreenshots(page)
-    }
-    findings.push({...findingData, screenshotId})
-  }
-
+  let context: playwright.BrowserContext | undefined
   try {
-    const scansContext = getScansContext()
+    context = await browser.newContext(contextOptions)
+    const page = await context.newPage()
+    await page.goto(url)
+    await Promise.all(
+      (waitForSelectors ?? []).map(selector =>
+        page.locator(selector).waitFor({state: 'visible', timeout: SELECTOR_WAIT_TIMEOUT}),
+      ),
+    )
 
-    if (scansContext.shouldRunPlugins) {
-      const plugins = await loadPlugins()
-      for (const plugin of plugins) {
-        if (scansContext.scansToPerform.includes(plugin.name)) {
-          core.info(`Running plugin: ${plugin.name}`)
-          await invokePlugin({
-            plugin,
-            page,
-            addFinding,
-          })
-        } else {
-          core.info(`Skipping plugin ${plugin.name} because it is not included in the 'scans' input`)
+    const findings: Finding[] = []
+    const addFinding = async (findingData: Finding) => {
+      let screenshotId
+      if (includeScreenshots) {
+        screenshotId = await generateScreenshots(page)
+      }
+      findings.push({...findingData, screenshotId})
+    }
+
+    try {
+      const scansContext = getScansContext()
+
+      if (scansContext.shouldRunPlugins) {
+        const plugins = await loadPlugins()
+        for (const plugin of plugins) {
+          if (scansContext.scansToPerform.includes(plugin.name)) {
+            core.info(`Running plugin: ${plugin.name}`)
+            await invokePlugin({
+              plugin,
+              page,
+              addFinding,
+            })
+          } else {
+            core.info(`Skipping plugin ${plugin.name} because it is not included in the 'scans' input`)
+          }
         }
       }
-    }
 
-    if (scansContext.shouldPerformAxeScan) {
-      await runAxeScan({page, addFinding, excludeSelectors})
-    }
+      if (scansContext.shouldPerformAxeScan) {
+        await runAxeScan({page, addFinding, excludeSelectors})
+      }
 
-    if (scansContext.shouldPerformAccesslintScan) {
-      await runAccesslintScan({page, addFinding})
+      if (scansContext.shouldPerformAccesslintScan) {
+        await runAccesslintScan({page, addFinding})
+      }
+    } catch (e) {
+      core.error(`Error during accessibility scan: ${e}`)
     }
-  } catch (e) {
-    core.error(`Error during accessibility scan: ${e}`)
+    return findings
+  } finally {
+    try {
+      await context?.close()
+    } finally {
+      await browser.close()
+    }
   }
-  await context.close()
-  await browser.close()
-  return findings
 }
 
 async function runAxeScan({
