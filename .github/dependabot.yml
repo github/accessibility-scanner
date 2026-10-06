@@ -36,6 +36,8 @@ updates:
           - "*"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
   - package-ecosystem: "bundler"
     directory: "/sites/site-with-errors"
     groups:

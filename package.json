@@ -25,12 +25,12 @@
     "@github/prettier-config": "^0.0.6",
     "@octokit/core": "^7.0.6",
     "@octokit/plugin-throttling": "^11.0.3",
-    "@octokit/types": "^16.0.0",
+    "@octokit/types": "^18.0.0",
     "@types/node": "^26.0.0",
     "eslint": "^10.4.0",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.8.3",
     "typescript-eslint": "^8.59.4",
-    "vitest": "^4.1.6"
+    "vitest": "^5.0.0"
   }
 }

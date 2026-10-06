@@ -10,7 +10,7 @@ The a11y scanner helps teams:
 
 > ⚠️ **Note:** The a11y scanner is currently in public preview. Feature development work is still ongoing. It can help identify accessibility gaps but cannot guarantee fully accessible code suggestions. Always review before merging!
 
-🎥 **[Watch the demo video](https://youtu.be/CvRJcEzCSQM)** to see the a11y scanner in action.
+🎥 **[Watch the demo video](https://youtu.be/gzpDNd8ahqE)** to see the a11y scanner in action.
 
 ---
 
@@ -62,7 +62,7 @@ jobs:
           # reduced_motion: no-preference # Optional: Playwright reduced motion configuration option
           # color_scheme: light # Optional: Playwright color scheme configuration option
           # scans: '["axe","accesslint","reflow-scan"]' # Optional: An array of scans (or plugins) to be performed. Built-in engines are 'axe' and 'accesslint'; any other entry is a plugin name. If not provided, only Axe will be performed.
-          # url_configs: '[{"url":"https://example.com","excludeSelectors":["iframe","#widget"]}]' # Optional: Per-URL config with CSS selectors to exclude from the Axe scan. When provided, takes precedence over 'urls'.
+          # url_configs: '[{"url":"https://example.com","excludeSelectors":["iframe","#widget"],"waitForSelectors":["#app","[data-ready]"]}]' # Optional: Per-URL config with CSS selectors to exclude from Axe or wait for before scanning. When provided, takes precedence over 'urls'.
 ```
 
 > 👉 Update all `REPLACE_THIS` placeholders with your actual values. See [Action Inputs](#action-inputs) for details.
@@ -139,7 +139,7 @@ Trigger the workflow manually or automatically based on your configuration. The 
 | `color_scheme`              | No       | Playwright `colorScheme` setting for scan contexts. Allowed values: `light`, `dark`, `no-preference`                                                                                                                                                             | `dark`                                                                      |
 | `scans`                     | No       | An array of scans (or plugins) to be performed. Built-in engines are `axe` and `accesslint`; any other entry is treated as a plugin name. If not provided, only Axe will be performed.                                                                           | `'["axe", "accesslint", ...other plugins]'`                                 |
 | `dry_run`                   | No       | When `true`, scan and log the issues that _would_ be filed without opening, closing, reopening, or assigning any issues — and without writing to the `gh-cache` branch. Useful for safely previewing results. Default: `false`                                   | `true`                                                                      |
-| `url_configs`               | No       | A stringified JSON array of URL config objects. Each object must have a `url` field and may have an optional `excludeSelectors` field (array of CSS selectors to exclude from the Axe scan for that URL). When provided, takes precedence over the `urls` input. | `'[{"url":"https://example.com","excludeSelectors":["iframe","#widget"]}]'` |
+| `url_configs`               | No       | A stringified JSON array of URL config objects. Each object must have a `url` field and may have `excludeSelectors` (selectors to exclude from Axe) and `waitForSelectors` (selectors that must become visible within 30 seconds before scanning). When provided, takes precedence over the `urls` input. | `'[{"url":"https://example.com","excludeSelectors":["iframe","#widget"],"waitForSelectors":["#app"]}]'` |
 
 ---
 
