@@ -37,6 +37,7 @@ export default async function () {
 
   core.debug(`Output: 'findings_file: ${findingsPath}'`)
   core.info(`Found ${findings.length} findings in total`)
+  findings.forEach(f => console.log(JSON.stringify(f, null, 2)))
   core.info("Finished 'find' action")
 }
 
