@@ -28,6 +28,8 @@ export default async function () {
       continue
     }
     findings.push(...findingsForUrl)
+    findingsForUrl.forEach(f => console.log(JSON.stringify(f, null, 2)))
+
     core.info(`Found ${findingsForUrl.length} findings for ${url}`)
   }
 
