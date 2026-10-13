@@ -20,6 +20,8 @@ export type Finding = {
   originalUrl: string
 }
 
+export type FindingInput = Omit<Finding, 'originalUrl'>
+
 export type Cookie = {
   name: string
   value: string
