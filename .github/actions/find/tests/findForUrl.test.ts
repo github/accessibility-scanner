@@ -340,7 +340,14 @@ describe('findForUrl', () => {
     clearAll()
     vi.mocked(AxeBuilder.prototype.analyze).mockResolvedValueOnce({
       violations: [
-        {id: 'r', help: 'h', helpUrl: 'https://example.com', description: 'd', tags: [], nodes: [{html: '<a></a>', target: ['a']}]},
+        {
+          id: 'r',
+          help: 'h',
+          helpUrl: 'https://example.com',
+          description: 'd',
+          tags: [],
+          nodes: [{html: '<a></a>', target: ['a']}],
+        },
       ],
     } as unknown as axe.AxeResults)
 
