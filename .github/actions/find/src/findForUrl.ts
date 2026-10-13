@@ -44,7 +44,7 @@ export async function findForUrl(
       if (includeScreenshots) {
         screenshotId = await generateScreenshots(page)
       }
-      findings.push({...findingData, screenshotId})
+      findings.push({...findingData, screenshotId, originalUrl: url})
     }
 
     try {

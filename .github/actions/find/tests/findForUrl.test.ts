@@ -335,6 +335,21 @@ describe('findForUrl', () => {
     ])
   })
 
+  it('adds the original url to each finding', async () => {
+    actionInput = ''
+    clearAll()
+    vi.mocked(AxeBuilder.prototype.analyze).mockResolvedValueOnce({
+      violations: [
+        {id: 'r', help: 'h', helpUrl: 'https://example.com', description: 'd', tags: [], nodes: [{html: '<a></a>', target: ['a']}]},
+      ],
+    } as unknown as axe.AxeResults)
+
+    const findings = await findForUrl({url: 'https://original.example/page'})
+
+    expect(findings).toHaveLength(1)
+    expect(findings[0].originalUrl).toBe('https://original.example/page')
+  })
+
   describe('axe finding categorization', () => {
     function axeViolation(tags: string[]) {
       return {
