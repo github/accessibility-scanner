@@ -1,4 +1,11 @@
-import type {ColorSchemePreference, Finding, FindingCategory, ReducedMotionPreference, UrlConfig} from './types.d.js'
+import type {
+  ColorSchemePreference,
+  Finding,
+  FindingCategory,
+  FindingInput,
+  ReducedMotionPreference,
+  UrlConfig,
+} from './types.d.js'
 import {AxeBuilder} from '@axe-core/playwright'
 import {accesslintAudit} from '@accesslint/playwright'
 import playwright from 'playwright'
@@ -39,12 +46,12 @@ export async function findForUrl(
     )
 
     const findings: Finding[] = []
-    const addFinding = async (findingData: Finding) => {
+    const addFinding = async (findingData: FindingInput) => {
       let screenshotId
       if (includeScreenshots) {
         screenshotId = await generateScreenshots(page)
       }
-      findings.push({...findingData, screenshotId})
+      findings.push({...findingData, screenshotId, originalUrl: url})
     }
 
     try {
@@ -92,7 +99,7 @@ async function runAxeScan({
   excludeSelectors,
 }: {
   page: playwright.Page
-  addFinding: (findingData: Finding, options?: {includeScreenshots?: boolean}) => Promise<void>
+  addFinding: (findingData: FindingInput, options?: {includeScreenshots?: boolean}) => Promise<void>
   excludeSelectors?: string[]
 }) {
   const url = page.url()
@@ -129,7 +136,7 @@ async function runAccesslintScan({
   addFinding,
 }: {
   page: playwright.Page
-  addFinding: (findingData: Finding, options?: {includeScreenshots?: boolean}) => Promise<void>
+  addFinding: (findingData: FindingInput, options?: {includeScreenshots?: boolean}) => Promise<void>
 }) {
   const url = page.url()
   core.info(`Scanning ${url} with AccessLint`)

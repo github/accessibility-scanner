@@ -1,9 +1,9 @@
-import type {Finding} from '../types.d.js'
+import type {FindingInput} from '../types.d.js'
 import playwright from 'playwright'
 
 export type PluginDefaultParams = {
   page: playwright.Page
-  addFinding: (findingData: Finding) => Promise<void>
+  addFinding: (findingData: FindingInput) => Promise<void>
 }
 
 export type Plugin = {

@@ -10,6 +10,7 @@ export type Finding = {
   category?: FindingCategory
   ruleId?: string
   url: string
+  originalUrl: string
   html?: string
   nodes?: FindingNode[]
   problemShort: string

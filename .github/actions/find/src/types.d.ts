@@ -17,7 +17,10 @@ export type Finding = {
   solutionLong?: string
   screenshotId?: string
   ruleId?: string
+  originalUrl: string
 }
+
+export type FindingInput = Omit<Finding, 'originalUrl'>
 
 export type Cookie = {
   name: string
