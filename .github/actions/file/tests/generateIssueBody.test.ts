@@ -24,10 +24,24 @@ describe('generateIssueBody', () => {
     const body = generateIssueBody(baseFinding, 'github/accessibility-scanner')
 
     expect(body).toContain('## What')
+    expect(body).toContain('**Rule:** `axe rule: color-contrast`')
     expect(body).toContain('## Acceptance Criteria')
     expect(body).toContain('The specific violation reported in this issue is no longer reproducible.')
     expect(body).toContain('The fix MUST meet WCAG 2.2 guidelines OR')
     expect(body).not.toContain('Specifically:')
+  })
+
+  it('omits the rule line when the finding has no ruleId', () => {
+    const body = generateIssueBody(findingWithEmptyOptionalFields, 'github/accessibility-scanner')
+
+    expect(body).not.toContain('**Rule:**')
+  })
+
+  it('includes the full rule ID when its label would be shortened', () => {
+    const ruleId = 'keyboard-accessible/scrollable-region-with-an-extra-long-description'
+    const body = generateIssueBody({...baseFinding, ruleId}, 'github/accessibility-scanner')
+
+    expect(body).toContain(`**Rule:** \`axe rule: ${ruleId}\``)
   })
 
   it('formats solutionLong lines into bullets while preserving Fix any/Fix all lines', () => {
