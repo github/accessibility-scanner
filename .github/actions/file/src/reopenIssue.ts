@@ -6,13 +6,13 @@ import {generateIssueBody} from './generateIssueBody.js'
 export async function reopenIssue(
   octokit: Octokit,
   {owner, repository, issueNumber}: Issue,
-  finding?: Finding,
+  findings?: Finding[],
   repoWithOwner?: string,
   screenshotRepo?: string,
 ) {
   let body: string | undefined
-  if (finding && repoWithOwner) {
-    body = generateIssueBody(finding, screenshotRepo ?? repoWithOwner)
+  if (findings?.length && repoWithOwner) {
+    body = generateIssueBody(findings, screenshotRepo ?? repoWithOwner)
   }
 
   return octokit.request(`PATCH /repos/${owner}/${repository}/issues/${issueNumber}`, {

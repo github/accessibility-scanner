@@ -7,7 +7,7 @@ inputs:
     required: false
     multiline: true
   url_configs:
-    description: "Stringified JSON array of URL config objects, each with a 'url' field and an optional 'excludeSelectors' field (array of CSS selectors to exclude from the Axe scan for that URL). When provided, takes precedence over the 'urls' input."
+    description: "Stringified JSON array of URL config objects, each with a 'url' field and optional 'excludeSelectors' (selectors to exclude from Axe) and 'waitForSelectors' (selectors that must be visible before scanning) fields. When provided, takes precedence over the 'urls' input."
     required: false
   auth_context:
     description: "Stringified JSON object containing 'username', 'password', 'cookies', and/or 'localStorage' from an authenticated session"
@@ -17,7 +17,7 @@ inputs:
     required: false
     default: 'false'
   scans:
-    description: 'Stringified JSON array of scans to perform. If not provided, only Axe will be performed'
+    description: "Stringified JSON array of scans to perform. Core engines are 'axe' and 'accesslint'. Any other entry is either a plugin name (string) or, for a first-party NPM-published plugin, an object with 'name', 'package', and optional 'version'. If not provided, only Axe will be performed"
     required: false
   reduced_motion:
     description: 'Playwright reducedMotion setting: https://playwright.dev/docs/api/class-browser#browser-new-page-option-reduced-motion'

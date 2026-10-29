@@ -1,8 +1,18 @@
+export type FindingNode = {
+  html: string
+  target?: string
+}
+
+export type FindingCategory = 'wcag' | 'best-practice' | 'experimental'
+
 export type Finding = {
   scannerType: string
+  category?: FindingCategory
   ruleId?: string
   url: string
+  originalUrl: string
   html?: string
+  nodes?: FindingNode[]
   problemShort: string
   problemUrl: string
   solutionShort: string

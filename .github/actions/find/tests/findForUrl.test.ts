@@ -2,34 +2,58 @@ import {describe, it, expect, vi} from 'vitest'
 import * as core from '@actions/core'
 import {findForUrl} from '../src/findForUrl.js'
 import {AxeBuilder} from '@axe-core/playwright'
+import {accesslintAudit} from '@accesslint/playwright'
 import axe from 'axe-core'
 import * as pluginManager from '../src/pluginManager/index.js'
 import type {Plugin} from '../src/pluginManager/types.js'
 import {clearCache} from '../src/scansContextProvider.js'
 
 const playwrightMocks = vi.hoisted(() => {
-  const page = {
-    pageUrl: '',
-    goto: vi.fn(),
-    url: vi.fn(),
-  }
-  const context = {
-    newPage: vi.fn(() => page),
-    close: vi.fn(),
-  }
-  const browser = {
-    newContext: vi.fn(() => context),
-    close: vi.fn(),
-  }
+  const pageGoto = vi.fn()
+  const locatorWaitFor = vi.fn()
+  const pageLocator = vi.fn(() => ({
+    waitFor: locatorWaitFor,
+  }))
+  const pageUrl = vi.fn()
+  const contextClose = vi.fn()
+  const browserClose = vi.fn()
+  const contextNewPage = vi.fn(() => ({
+    goto: pageGoto,
+    locator: pageLocator,
+    url: pageUrl,
+  }))
+  const browserNewContext = vi.fn(() => ({
+    newPage: contextNewPage,
+    close: contextClose,
+  }))
+  const browserLaunch = vi.fn(() => ({
+    newContext: browserNewContext,
+    close: browserClose,
+  }))
 
-  return {browser, context, page}
+  return {
+    browserLaunch,
+    browserNewContext,
+    contextNewPage,
+    pageGoto,
+    pageLocator,
+    locatorWaitFor,
+    pageUrl,
+    contextClose,
+    browserClose,
+  }
 })
+
+const pluginMocks = vi.hoisted(() => ({
+  loadPlugins: vi.fn(),
+  invokePlugin: vi.fn(),
+}))
 
 vi.mock('@actions/core', {spy: true})
 vi.mock('playwright', () => ({
   default: {
     chromium: {
-      launch: vi.fn(() => playwrightMocks.browser),
+      launch: playwrightMocks.browserLaunch,
     },
   },
 }))
@@ -40,6 +64,11 @@ vi.mock('@axe-core/playwright', () => {
   AxeBuilderMock.prototype.analyze = vi.fn(() => Promise.resolve(rawFinding))
   return {AxeBuilder: AxeBuilderMock}
 })
+vi.mock('../src/pluginManager/index.js', () => pluginMocks)
+
+vi.mock('@accesslint/playwright', () => ({
+  accesslintAudit: vi.fn(() => Promise.resolve({violations: []})),
+}))
 
 let actionInput: string = ''
 let loadedPlugins: Plugin[] = []
@@ -47,21 +76,117 @@ let loadedPlugins: Plugin[] = []
 function clearAll() {
   clearCache()
   vi.clearAllMocks()
+  playwrightMocks.pageGoto.mockResolvedValue(undefined)
+  playwrightMocks.locatorWaitFor.mockResolvedValue(undefined)
+  playwrightMocks.pageUrl.mockReturnValue('test.com')
 }
 
 describe('findForUrl', () => {
   vi.spyOn(core, 'getInput').mockImplementation(() => actionInput)
-  vi.spyOn(pluginManager, 'loadPlugins').mockImplementation(() => Promise.resolve(loadedPlugins))
-  vi.spyOn(pluginManager, 'invokePlugin')
+  vi.mocked(pluginManager.loadPlugins).mockImplementation(() => Promise.resolve(loadedPlugins))
+  vi.mocked(pluginManager.invokePlugin).mockImplementation(({plugin, page, addFinding}) =>
+    plugin.default({page, addFinding}),
+  )
 
   async function axeOnlyTest() {
     clearAll()
 
     await findForUrl({url: 'test.com'})
     expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(1)
+    expect(accesslintAudit).toHaveBeenCalledTimes(0)
     expect(pluginManager.loadPlugins).toHaveBeenCalledTimes(0)
     expect(pluginManager.invokePlugin).toHaveBeenCalledTimes(0)
   }
+
+  describe('page load handling', () => {
+    it('uses the default navigation readiness when no selectors are configured', async () => {
+      actionInput = ''
+      clearAll()
+
+      await findForUrl({url: 'test.com'})
+
+      expect(playwrightMocks.pageGoto).toHaveBeenCalledWith('test.com')
+      expect(playwrightMocks.pageLocator).not.toHaveBeenCalled()
+      expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(1)
+      expect(playwrightMocks.contextClose).toHaveBeenCalledTimes(1)
+      expect(playwrightMocks.browserClose).toHaveBeenCalledTimes(1)
+      expect(playwrightMocks.contextClose.mock.invocationCallOrder[0]).toBeLessThan(
+        playwrightMocks.browserClose.mock.invocationCallOrder[0],
+      )
+    })
+
+    it('waits for each configured selector after navigation and before scanning', async () => {
+      actionInput = ''
+      clearAll()
+
+      await findForUrl({url: 'test.com', waitForSelectors: ['#app', '[data-ready]']})
+
+      expect(playwrightMocks.pageLocator).toHaveBeenNthCalledWith(1, '#app')
+      expect(playwrightMocks.pageLocator).toHaveBeenNthCalledWith(2, '[data-ready]')
+      expect(playwrightMocks.locatorWaitFor).toHaveBeenNthCalledWith(1, {state: 'visible', timeout: 30000})
+      expect(playwrightMocks.locatorWaitFor).toHaveBeenNthCalledWith(2, {state: 'visible', timeout: 30000})
+      expect(playwrightMocks.pageGoto.mock.invocationCallOrder[0]).toBeLessThan(
+        playwrightMocks.locatorWaitFor.mock.invocationCallOrder[0],
+      )
+      expect(playwrightMocks.locatorWaitFor.mock.invocationCallOrder[1]).toBeLessThan(
+        AxeBuilder.prototype.analyze.mock.invocationCallOrder[0],
+      )
+    })
+
+    it('closes the context and browser without scanning when a configured selector times out', async () => {
+      const timeoutError = new Error('Timeout 30000ms exceeded')
+      actionInput = ''
+      clearAll()
+      playwrightMocks.locatorWaitFor.mockRejectedValueOnce(timeoutError)
+
+      await expect(findForUrl({url: 'test.com', waitForSelectors: ['#app']})).rejects.toBe(timeoutError)
+
+      expect(AxeBuilder.prototype.analyze).not.toHaveBeenCalled()
+      expect(playwrightMocks.contextClose).toHaveBeenCalledTimes(1)
+      expect(playwrightMocks.browserClose).toHaveBeenCalledTimes(1)
+    })
+
+    it.each([
+      ['context creation', playwrightMocks.browserNewContext, false],
+      ['page creation', playwrightMocks.contextNewPage, true],
+      ['navigation', playwrightMocks.pageGoto, true],
+    ] as const)('cleans up when %s fails', async (_stage, failingOperation, contextCreated) => {
+      const error = new Error('Page setup failed')
+      actionInput = ''
+      clearAll()
+      failingOperation.mockRejectedValueOnce(error)
+
+      await expect(findForUrl({url: 'test.com'})).rejects.toBe(error)
+
+      expect(AxeBuilder.prototype.analyze).not.toHaveBeenCalled()
+      expect(playwrightMocks.contextClose).toHaveBeenCalledTimes(contextCreated ? 1 : 0)
+      expect(playwrightMocks.browserClose).toHaveBeenCalledTimes(1)
+    })
+
+    it('closes the browser even if closing the context fails', async () => {
+      const error = new Error('Context cleanup failed')
+      actionInput = ''
+      clearAll()
+      playwrightMocks.contextClose.mockRejectedValueOnce(error)
+
+      await expect(findForUrl({url: 'test.com'})).rejects.toBe(error)
+
+      expect(playwrightMocks.browserClose).toHaveBeenCalledTimes(1)
+    })
+
+    it('preserves scan error handling and closes the context and browser', async () => {
+      const error = new Error('Scan failed')
+      actionInput = ''
+      clearAll()
+      vi.mocked(AxeBuilder.prototype.analyze).mockRejectedValueOnce(error)
+
+      await expect(findForUrl({url: 'test.com'})).resolves.toEqual([])
+
+      expect(core.error).toHaveBeenCalledWith(`Error during accessibility scan: ${error}`)
+      expect(playwrightMocks.contextClose).toHaveBeenCalledTimes(1)
+      expect(playwrightMocks.browserClose).toHaveBeenCalledTimes(1)
+    })
+  })
 
   describe('when no scans list is provided', () => {
     it('defaults to running only axe scan', async () => {
@@ -112,6 +237,44 @@ describe('findForUrl', () => {
       })
     })
 
+    describe('and the list includes accesslint', () => {
+      it('runs only the accesslint scan when it is the only entry', async () => {
+        actionInput = JSON.stringify(['accesslint'])
+        clearAll()
+
+        await findForUrl({url: 'test.com'})
+        expect(accesslintAudit).toHaveBeenCalledTimes(1)
+        expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(0)
+        expect(pluginManager.loadPlugins).toHaveBeenCalledTimes(0)
+      })
+
+      it('runs alongside axe when both are listed', async () => {
+        actionInput = JSON.stringify(['axe', 'accesslint'])
+        clearAll()
+
+        await findForUrl({url: 'test.com'})
+        expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(1)
+        expect(accesslintAudit).toHaveBeenCalledTimes(1)
+        expect(pluginManager.loadPlugins).toHaveBeenCalledTimes(0)
+      })
+
+      it('is treated as a core engine and runs alongside plugins', async () => {
+        loadedPlugins = [
+          {name: 'custom-scan-1', default: vi.fn()},
+          {name: 'custom-scan-2', default: vi.fn()},
+        ]
+
+        actionInput = JSON.stringify(['accesslint', 'custom-scan-1'])
+        clearAll()
+
+        await findForUrl({url: 'test.com'})
+        expect(accesslintAudit).toHaveBeenCalledTimes(1)
+        expect(pluginManager.invokePlugin).toHaveBeenCalledTimes(1)
+        expect(loadedPlugins[0].default).toHaveBeenCalledTimes(1)
+        expect(loadedPlugins[1].default).toHaveBeenCalledTimes(0)
+      })
+    })
+
     it('should only run scans that are included in the list', async () => {
       loadedPlugins = [
         {name: 'custom-scan-1', default: vi.fn()},
@@ -124,6 +287,110 @@ describe('findForUrl', () => {
       expect(loadedPlugins[0].default).toHaveBeenCalledTimes(1)
       expect(loadedPlugins[1].default).toHaveBeenCalledTimes(0)
     })
+
+    it('runs plugins when a scans entry is an object-form NPM plugin', async () => {
+      loadedPlugins = []
+      actionInput = JSON.stringify([
+        'axe',
+        {
+          name: 'alt-text-scan',
+          package: '@github/accessibility-scanner-alt-text-plugin',
+          version: '1.1.0',
+        },
+      ])
+      clearAll()
+
+      await findForUrl('test.com')
+      expect(pluginManager.loadPlugins).toHaveBeenCalledTimes(1)
+      expect(AxeBuilder.prototype.analyze).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  it('captures every failing element of an axe violation as nodes', async () => {
+    actionInput = ''
+    clearAll()
+
+    const violation = {
+      id: 'color-contrast',
+      help: 'Elements must meet minimum color contrast ratio thresholds',
+      helpUrl: 'https://dequeuniversity.com/rules/axe/4.10/color-contrast',
+      description: 'Ensure contrast meets WCAG thresholds',
+      tags: ['wcag2aa', 'wcag143'],
+      nodes: [
+        {html: '<span>one</span>', target: ['span.one'], failureSummary: 'Fix any of the following:'},
+        {html: '<span>two</span>', target: ['div', 'span.two'], failureSummary: 'Fix any of the following:'},
+      ],
+    }
+    vi.mocked(AxeBuilder.prototype.analyze).mockResolvedValueOnce({
+      violations: [violation],
+    } as unknown as axe.AxeResults)
+
+    const findings = await findForUrl('test.com')
+
+    expect(findings).toHaveLength(1)
+    expect(findings[0].html).toBe('<span>one</span>')
+    expect(findings[0].nodes).toEqual([
+      {html: '<span>one</span>', target: 'span.one'},
+      {html: '<span>two</span>', target: 'div span.two'},
+    ])
+  })
+
+  it('adds the original url to each finding', async () => {
+    actionInput = ''
+    clearAll()
+    vi.mocked(AxeBuilder.prototype.analyze).mockResolvedValueOnce({
+      violations: [
+        {
+          id: 'r',
+          help: 'h',
+          helpUrl: 'https://example.com',
+          description: 'd',
+          tags: [],
+          nodes: [{html: '<a></a>', target: ['a']}],
+        },
+      ],
+    } as unknown as axe.AxeResults)
+
+    const findings = await findForUrl({url: 'https://original.example/page'})
+
+    expect(findings).toHaveLength(1)
+    expect(findings[0].originalUrl).toBe('https://original.example/page')
+  })
+
+  describe('axe finding categorization', () => {
+    function axeViolation(tags: string[]) {
+      return {
+        id: 'some-rule',
+        help: 'Help',
+        helpUrl: 'https://example.com',
+        description: 'Description',
+        tags,
+        nodes: [{html: '<div></div>', target: ['div'], failureSummary: 'summary'}],
+      }
+    }
+
+    async function categoryFor(tags: string[]) {
+      clearAll()
+      actionInput = JSON.stringify(['axe'])
+      vi.mocked(AxeBuilder.prototype.analyze).mockResolvedValueOnce({
+        violations: [axeViolation(tags)],
+      } as unknown as axe.AxeResults)
+
+      const findings = await findForUrl('test.com')
+      return findings[0].category
+    }
+
+    it('categorizes a violation with only wcag tags as wcag', async () => {
+      expect(await categoryFor(['wcag2a', 'wcag111'])).toBe('wcag')
+    })
+
+    it('categorizes a violation with a best-practice tag as best-practice', async () => {
+      expect(await categoryFor(['cat.semantics', 'best-practice'])).toBe('best-practice')
+    })
+
+    it('categorizes a violation with an experimental tag as experimental, even alongside wcag tags', async () => {
+      expect(await categoryFor(['wcag2a', 'experimental'])).toBe('experimental')
+    })
   })
 
   describe('when ignoreHttpsErrors is enabled', () => {
@@ -133,7 +400,7 @@ describe('findForUrl', () => {
 
       await findForUrl({url: 'test.com'}, undefined, false, undefined, undefined, true)
 
-      expect(playwrightMocks.browser.newContext).toHaveBeenCalledWith({ignoreHTTPSErrors: true})
+      expect(playwrightMocks.browserNewContext).toHaveBeenCalledWith({ignoreHTTPSErrors: true})
     })
   })
 
@@ -144,7 +411,7 @@ describe('findForUrl', () => {
 
       await findForUrl({url: 'test.com'})
 
-      expect(playwrightMocks.browser.newContext).toHaveBeenCalledWith({})
+      expect(playwrightMocks.browserNewContext).toHaveBeenCalledWith({})
     })
 
     it('does not forward ignoreHTTPSErrors when explicitly disabled', async () => {
@@ -153,7 +420,7 @@ describe('findForUrl', () => {
 
       await findForUrl({url: 'test.com'}, undefined, false, undefined, undefined, false)
 
-      expect(playwrightMocks.browser.newContext).toHaveBeenCalledWith({})
+      expect(playwrightMocks.browserNewContext).toHaveBeenCalledWith({})
     })
   })
 })

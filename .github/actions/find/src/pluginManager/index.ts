@@ -3,7 +3,9 @@ import * as path from 'path'
 import {fileURLToPath} from 'url'
 import * as core from '@actions/core'
 import {loadPluginViaJsFile, loadPluginViaTsFile} from './pluginFileLoaders.js'
+import {loadPluginViaNpm} from './pluginNpmLoader.js'
 import type {Plugin, PluginDefaultParams} from './types.js'
+import {getScansContext} from '../scansContextProvider.js'
 
 // Helper to get __dirname equivalent in ES Modules
 const __filename = fileURLToPath(import.meta.url)
@@ -26,6 +28,7 @@ export async function loadPlugins() {
       core.info('loading plugins')
       await loadBuiltInPlugins()
       await loadCustomPlugins()
+      await loadNpmPlugins()
     }
   } catch {
     plugins.length = 0
@@ -47,6 +50,16 @@ export function clearCache() {
   plugins.length = 0
 }
 
+// True when the object is a usable plugin (exposes a name and default export).
+function isValidPlugin(plugin: Plugin | undefined): plugin is Plugin {
+  return typeof plugin?.name === 'string' && typeof plugin.default === 'function'
+}
+
+// True when a plugin with the same name is already loaded.
+function isDuplicatePlugin(plugin: Plugin): boolean {
+  return plugins.some(existing => existing.name === plugin.name)
+}
+
 // exported for mocking/testing. not for actual use
 export async function loadBuiltInPlugins() {
   core.info('Loading built-in plugins')
@@ -55,7 +68,7 @@ export async function loadBuiltInPlugins() {
   await loadPluginsFromPath({pluginsPath})
 }
 
-// exported for mocking/testing. not for actual use
+// export to be used for mocking/testing. not for actual use
 export async function loadCustomPlugins() {
   core.info('Loading custom plugins')
   const pluginsPath = path.join(process.cwd(), '.github/scanner-plugins/')
@@ -73,6 +86,52 @@ export async function loadCustomPlugins() {
   }
 
   await loadPluginsFromPath({pluginsPath, skipBuiltInPlugins: BUILT_IN_PLUGINS})
+}
+
+// First-party packages allowed to be installed and loaded from NPM.
+const FIRST_PARTY_NPM_PLUGINS = ['@github/accessibility-scanner-alt-text-plugin']
+
+// exported for mocking/testing. not for actual use
+export async function loadNpmPlugins() {
+  const {npmPlugins} = getScansContext()
+  if (npmPlugins.length === 0) {
+    return
+  }
+  core.info('Loading NPM plugins')
+
+  for (const request of npmPlugins) {
+    // Only install first-party packages.
+    if (!FIRST_PARTY_NPM_PLUGINS.includes(request.package)) {
+      core.warning(`Skipping NPM plugin '${request.package}' because it is not a first-party package`)
+      continue
+    }
+
+    const plugin = await loadPluginViaNpm(request)
+    if (!plugin) {
+      continue
+    }
+
+    // Plugin doesn't expose a usable name/default export.
+    if (!isValidPlugin(plugin)) {
+      core.warning(`Skipping NPM plugin '${request.package}' because it does not export a valid plugin`)
+      continue
+    }
+    // Mismatch means the plugin would load but never run.
+    if (plugin.name !== request.name) {
+      core.warning(
+        `Skipping NPM plugin '${request.package}' because it exported name '${plugin.name}', which does not match requested name '${request.name}'`,
+      )
+      continue
+    }
+    // Built-in and local plugins take precedence over NPM ones of the same name.
+    if (isDuplicatePlugin(plugin)) {
+      core.info(`Skipping NPM plugin '${plugin.name}' because a plugin with that name is already loaded`)
+      continue
+    }
+
+    core.info(`Found NPM plugin: ${plugin.name}`)
+    plugins.push(plugin)
+  }
 }
 
 // exported for mocking/testing. not for actual use
@@ -102,6 +161,15 @@ export async function loadPluginsFromPath({
 
         if (skipBuiltInPlugins?.includes(plugin.name)) {
           core.info(`Skipping built-in plugin: ${plugin.name}`)
+          continue
+        }
+
+        if (!isValidPlugin(plugin)) {
+          core.warning(`Skipping plugin '${pluginFolder}' because it does not export a valid plugin`)
+          continue
+        }
+        if (isDuplicatePlugin(plugin)) {
+          core.warning(`Skipping plugin '${pluginFolder}' because a plugin named '${plugin.name}' is already loaded`)
           continue
         }
 

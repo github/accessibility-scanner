@@ -39,13 +39,17 @@ describe('site-with-errors', () => {
 
   it('cache has expected results', () => {
     const actual = results.map(({issue: {url: issueUrl}, findings}) => {
-      const {problemUrl, solutionLong, screenshotId, ...finding} = findings[0]
+      const {problemUrl, solutionLong, screenshotId, nodes, originalUrl, ...finding} = findings[0]
       // Check volatile fields for existence only
       expect(issueUrl).toBeDefined()
       expect(problemUrl).toBeDefined()
+      expect(originalUrl).toBeDefined()
       // Axe-specific assertions
       if (finding.scannerType === 'axe') {
         expect(solutionLong).toBeDefined()
+        expect(nodes).toBeDefined()
+        expect(nodes!.length).toBeGreaterThan(0)
+        expect(nodes![0].html).toBe(finding.html)
         expect(problemUrl.startsWith('https://dequeuniversity.com/rules/axe/')).toBe(true)
         expect(problemUrl.endsWith(`/${finding.ruleId}?application=playwright`)).toBe(true)
       }
@@ -58,6 +62,7 @@ describe('site-with-errors', () => {
     const expected = [
       {
         scannerType: 'axe',
+        category: 'wcag',
         url: 'http://127.0.0.1:4000/',
         html: '<span class="post-meta">Jul 30, 2025</span>',
         problemShort: 'elements must meet minimum color contrast ratio thresholds',
@@ -67,6 +72,7 @@ describe('site-with-errors', () => {
       },
       {
         scannerType: 'axe',
+        category: 'best-practice',
         url: 'http://127.0.0.1:4000/',
         html: '<html lang="en">',
         problemShort: 'page should contain a level-one heading',
@@ -75,6 +81,7 @@ describe('site-with-errors', () => {
       },
       {
         scannerType: 'axe',
+        category: 'wcag',
         url: 'http://127.0.0.1:4000/jekyll/update/2025/07/30/welcome-to-jekyll.html',
         html: `<time class="dt-published" datetime="2025-07-30T17:32:33+00:00" itemprop="datePublished">Jul 30, 2025
       </time>`,
@@ -85,6 +92,7 @@ describe('site-with-errors', () => {
       },
       {
         scannerType: 'axe',
+        category: 'wcag',
         url: 'http://127.0.0.1:4000/about/',
         html: '<a href="https://jekyllrb.com/">jekyllrb.com</a>',
         problemShort: 'elements must meet minimum color contrast ratio thresholds',
@@ -94,6 +102,7 @@ describe('site-with-errors', () => {
       },
       {
         scannerType: 'axe',
+        category: 'wcag',
         url: 'http://127.0.0.1:4000/404.html',
         html: '<li class="p-name">Accessibility Scanner Demo</li>',
         problemShort: 'elements must meet minimum color contrast ratio thresholds',
@@ -103,6 +112,7 @@ describe('site-with-errors', () => {
       },
       {
         scannerType: 'axe',
+        category: 'best-practice',
         url: 'http://127.0.0.1:4000/404.html',
         html: '<h1 class="post-title"></h1>',
         problemShort: 'headings should not be empty',
@@ -112,17 +122,20 @@ describe('site-with-errors', () => {
       {
         scannerType: 'reflow-scan',
         url: 'http://127.0.0.1:4000/404.html',
-        problemShort: 'page requires horizontal scrolling at 320x256 viewport',
-        solutionShort: 'ensure content is responsive and does not require horizontal scrolling at small viewport sizes',
+        problemShort: 'needs review: page presents a horizontal scrollbar at a 320px wide viewport',
+        solutionShort:
+          'verify if sections of content can be viewed within the 320px wide viewport without needing to scroll in two dimensions to read the content of an individual section',
       },
     ]
     // Check that:
-    // - every expected object exists (no more and no fewer), and
+    // - every expected Axe and reflow-scan object exists (no more and no fewer), and
     // - each object has all fields, and
     // - field values match expectations exactly
     // A specific order is _not_ enforced.
-    expect(actual).toHaveLength(expected.length)
-    expect(actual).toEqual(expect.arrayContaining(expected))
+    const actualWithoutAccesslint = actual.filter(({scannerType}) => scannerType !== 'accesslint')
+    expect(actualWithoutAccesslint).toHaveLength(expected.length)
+    expect(actualWithoutAccesslint).toEqual(expect.arrayContaining(expected))
+    expect(actual.some(({scannerType}) => scannerType === 'accesslint')).toBe(true)
   })
 
   it('GITHUB_TOKEN environment variable is set', () => {
@@ -153,7 +166,9 @@ describe('site-with-errors', () => {
     })
 
     it('issues exist and have expected title, state, and assignee', async () => {
-      const actualTitles = issues.map(({title}) => title)
+      const actualTitles = issues
+        .filter((_, index) => results[index].findings[0].scannerType !== 'accesslint')
+        .map(({title}) => title)
       const expectedTitles = [
         'Accessibility issue: Elements must meet minimum color contrast ratio thresholds on /',
         'Accessibility issue: Page should contain a level-one heading on /',
@@ -161,7 +176,7 @@ describe('site-with-errors', () => {
         'Accessibility issue: Headings should not be empty on /404.html',
         'Accessibility issue: Elements must meet minimum color contrast ratio thresholds on /about/',
         'Accessibility issue: Elements must meet minimum color contrast ratio thresholds on /jekyll/update/2025/07/30/welcome-to-jekyll.html',
-        'Accessibility issue: Page requires horizontal scrolling at 320x256 viewport on /404.html',
+        'Accessibility issue: Needs review: page presents a horizontal scrollbar at a 320px wide viewport on /404.html',
       ]
       expect(actualTitles).toHaveLength(expectedTitles.length)
       expect(actualTitles).toEqual(expect.arrayContaining(expectedTitles))

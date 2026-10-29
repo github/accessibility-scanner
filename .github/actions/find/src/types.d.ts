@@ -1,14 +1,26 @@
+export type FindingNode = {
+  html: string
+  target?: string
+}
+
+export type FindingCategory = 'wcag' | 'best-practice' | 'experimental'
+
 export type Finding = {
   scannerType: string
+  category?: FindingCategory
   url: string
   html?: string
+  nodes?: FindingNode[]
   problemShort: string
   problemUrl: string
   solutionShort: string
   solutionLong?: string
   screenshotId?: string
   ruleId?: string
+  originalUrl: string
 }
+
+export type FindingInput = Omit<Finding, 'originalUrl'>
 
 export type Cookie = {
   name: string
@@ -41,4 +53,5 @@ export type ColorSchemePreference = 'light' | 'dark' | 'no-preference' | null
 export type UrlConfig = {
   url: string
   excludeSelectors?: string[]
+  waitForSelectors?: string[]
 }
