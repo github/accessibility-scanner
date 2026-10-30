@@ -23,6 +23,7 @@ export async function findForUrl(
   includeScreenshots: boolean = false,
   reducedMotion?: ReducedMotionPreference,
   colorScheme?: ColorSchemePreference,
+  ignoreHttpsErrors: boolean = false,
 ): Promise<Finding[]> {
   const {url, excludeSelectors, waitForSelectors} = urlConfig
   const browser = await playwright.chromium.launch({
@@ -33,6 +34,7 @@ export async function findForUrl(
     ...(authContext?.toPlaywrightBrowserContextOptions() ?? {}),
     ...(reducedMotion ? {reducedMotion} : {}),
     ...(colorScheme ? {colorScheme} : {}),
+    ...(ignoreHttpsErrors ? {ignoreHTTPSErrors: true} : {}),
   }
   let context: playwright.BrowserContext | undefined
   try {
