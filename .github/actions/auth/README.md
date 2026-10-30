@@ -25,6 +25,11 @@ Authenticate with Playwright and save session state. Supports HTTP Basic and for
 
 **Optional** Bool - whether to ignore HTTPS errors when logging in to hosts with self-signed certificates.
 
+[!WARNING]
+Enabling this disables TLS certificate validation for the authentication step itself. If an attacker can intercept traffic, they can present an untrusted certificate and capture submitted credentials (including HTTP Basic auth and form passwords) and resulting session cookies/storage.
+
+Use this only in trusted test/staging environments. For shared workflows, prefer a separate explicit opt-in for auth flows (for example, `auth_ignore_https_errors`) so certificate checks are not unintentionally disabled during credentialed requests.
+
 ### Outputs
 
 #### `auth_context`
