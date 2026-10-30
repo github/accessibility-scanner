@@ -21,6 +21,10 @@ Authenticate with Playwright and save session state. Supports HTTP Basic and for
 > [!IMPORTANT]
 > Don’t put passwords in your workflow as plain text; instead reference a [repository secret](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-a-repository).
 
+#### `ignore_https_errors`
+
+**Optional** Bool - whether to ignore HTTPS errors when logging in to hosts with self-signed certificates.
+
 ### Outputs
 
 #### `auth_context`

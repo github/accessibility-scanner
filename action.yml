@@ -127,6 +127,7 @@ runs:
         login_url: ${{ inputs.login_url }}
         username: ${{ inputs.username }}
         password: ${{ inputs.password }}
+        ignore_https_errors: ${{ inputs.ignore_https_errors }}
     - name: Find
       id: find
       uses: ./../../_actions/github/accessibility-scanner/current/.github/actions/find
