@@ -52,6 +52,7 @@ ${standardsLine}
   const body = `${categoryNotice}## What
 ${describeFinding(finding)}
 
+${finding.ruleId ? `**Rule:** \`${finding.scannerType} rule: ${finding.ruleId}\`\n\n` : ''}
 ${screenshotSection ?? ''}
 To fix this, ${finding.solutionShort}.
 ${solutionLong ? `\nSpecifically:\n\n${solutionLong}` : ''}

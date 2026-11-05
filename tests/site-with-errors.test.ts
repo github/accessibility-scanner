@@ -128,12 +128,14 @@ describe('site-with-errors', () => {
       },
     ]
     // Check that:
-    // - every expected object exists (no more and no fewer), and
+    // - every expected Axe and reflow-scan object exists (no more and no fewer), and
     // - each object has all fields, and
     // - field values match expectations exactly
     // A specific order is _not_ enforced.
-    expect(actual).toHaveLength(expected.length)
-    expect(actual).toEqual(expect.arrayContaining(expected))
+    const actualWithoutAccesslint = actual.filter(({scannerType}) => scannerType !== 'accesslint')
+    expect(actualWithoutAccesslint).toHaveLength(expected.length)
+    expect(actualWithoutAccesslint).toEqual(expect.arrayContaining(expected))
+    expect(actual.some(({scannerType}) => scannerType === 'accesslint')).toBe(true)
   })
 
   it('GITHUB_TOKEN environment variable is set', () => {
@@ -164,7 +166,9 @@ describe('site-with-errors', () => {
     })
 
     it('issues exist and have expected title, state, and assignee', async () => {
-      const actualTitles = issues.map(({title}) => title)
+      const actualTitles = issues
+        .filter((_, index) => results[index].findings[0].scannerType !== 'accesslint')
+        .map(({title}) => title)
       const expectedTitles = [
         'Accessibility issue: Elements must meet minimum color contrast ratio thresholds on /',
         'Accessibility issue: Page should contain a level-one heading on /',

@@ -1,4 +1,5 @@
 import {describe, it, expect, vi} from 'vitest'
+import {createHash} from 'node:crypto'
 
 // Mock generateIssueBody so we can inspect what screenshotRepo is passed
 vi.mock('../src/generateIssueBody.js', () => ({
@@ -63,6 +64,33 @@ describe('openIssue', () => {
         labels: ['axe-scanning-issue', 'axe rule: color-contrast'],
       }),
     )
+  })
+
+  it('shortens long rule labels with a deterministic hash suffix', async () => {
+    const octokit = mockOctokit()
+    const ruleId = 'keyboard-accessible/scrollable-region-with-an-extra-long-description'
+    const fullLabel = `axe rule: ${ruleId}`
+    await openIssue(octokit, 'org/repo', [{...baseFinding, ruleId}])
+
+    const labels = octokit.request.mock.calls[0][1].labels
+    const ruleLabel = labels[1]
+    const hash = createHash('sha256').update(fullLabel).digest('hex').slice(0, 4)
+
+    expect(ruleLabel).toBe(`${fullLabel.slice(0, 45)}-${hash}`)
+    expect(Array.from(ruleLabel)).toHaveLength(50)
+  })
+
+  it('produces distinct labels for different long rule IDs', async () => {
+    const firstOctokit = mockOctokit()
+    const secondOctokit = mockOctokit()
+    const commonPrefix = 'keyboard-accessible/scrollable-region-with-a-long-description-'
+    await openIssue(firstOctokit, 'org/repo', [{...baseFinding, ruleId: `${commonPrefix}first`}])
+    await openIssue(secondOctokit, 'org/repo', [{...baseFinding, ruleId: `${commonPrefix}second`}])
+
+    const firstLabel = firstOctokit.request.mock.calls[0][1].labels[1]
+    const secondLabel = secondOctokit.request.mock.calls[0][1].labels[1]
+    expect(firstLabel.slice(0, 45)).toBe(secondLabel.slice(0, 45))
+    expect(firstLabel).not.toBe(secondLabel)
   })
 
   it('adds a category label for non-WCAG findings', async () => {

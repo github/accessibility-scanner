@@ -392,4 +392,35 @@ describe('findForUrl', () => {
       expect(await categoryFor(['wcag2a', 'experimental'])).toBe('experimental')
     })
   })
+
+  describe('when ignoreHttpsErrors is enabled', () => {
+    it('forwards ignoreHTTPSErrors to the browser context', async () => {
+      actionInput = ''
+      clearAll()
+
+      await findForUrl({url: 'test.com'}, undefined, false, undefined, undefined, true)
+
+      expect(playwrightMocks.browserNewContext).toHaveBeenCalledWith({ignoreHTTPSErrors: true})
+    })
+  })
+
+  describe('when ignoreHttpsErrors is not enabled', () => {
+    it('does not forward ignoreHTTPSErrors by default', async () => {
+      actionInput = ''
+      clearAll()
+
+      await findForUrl({url: 'test.com'})
+
+      expect(playwrightMocks.browserNewContext).toHaveBeenCalledWith({})
+    })
+
+    it('does not forward ignoreHTTPSErrors when explicitly disabled', async () => {
+      actionInput = ''
+      clearAll()
+
+      await findForUrl({url: 'test.com'}, undefined, false, undefined, undefined, false)
+
+      expect(playwrightMocks.browserNewContext).toHaveBeenCalledWith({})
+    })
+  })
 })

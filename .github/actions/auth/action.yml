@@ -11,6 +11,10 @@ inputs:
   password:
     description: "Password"
     required: true
+  ignore_https_errors:
+    description: "Whether to ignore HTTPS errors when logging in to hosts with self-signed certificates"
+    required: false
+    default: "false"
 
 outputs:
   auth_context:

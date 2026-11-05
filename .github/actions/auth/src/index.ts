@@ -15,6 +15,7 @@ export default async function () {
     const username = core.getInput('username', {required: true})
     const password = core.getInput('password', {required: true})
     core.setSecret(password)
+    const ignoreHttpsErrors = core.getInput('ignore_https_errors', {required: false}).toLowerCase() === 'true'
 
     // Launch a headless browser
     browser = await playwright.chromium.launch({
@@ -27,6 +28,7 @@ export default async function () {
         username,
         password,
       },
+      ...(ignoreHttpsErrors ? {ignoreHTTPSErrors: true} : {}),
     })
     page = await context.newPage()
 
