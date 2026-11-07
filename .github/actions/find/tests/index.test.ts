@@ -43,7 +43,15 @@ describe('url_configs', () => {
 
     await find()
 
-    expect(mocks.findForUrl).toHaveBeenCalledWith(urlConfig, expect.anything(), false, undefined, undefined, false)
+    expect(mocks.findForUrl).toHaveBeenCalledWith(
+      urlConfig,
+      expect.anything(),
+      false,
+      undefined,
+      undefined,
+      false,
+      'log-and-continue',
+    )
   })
 
   it('rejects waitForSelectors values that are not arrays of strings', async () => {
