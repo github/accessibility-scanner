@@ -5,7 +5,6 @@ const mocks = vi.hoisted(() => ({
   inputs: {} as Record<string, string>,
   findForUrl: vi.fn(),
   writeFileSync: vi.fn(),
-  setOutput: vi.fn(),
 }))
 
 vi.mock('@actions/core', () => ({
@@ -13,7 +12,7 @@ vi.mock('@actions/core', () => ({
   getMultilineInput: vi.fn(() => []),
   debug: vi.fn(),
   info: vi.fn(),
-  setOutput: mocks.setOutput,
+  setOutput: vi.fn(),
 }))
 
 vi.mock('node:fs', () => ({
@@ -54,17 +53,5 @@ describe('url_configs', () => {
       "Invalid 'url_configs' input: Each 'waitForSelectors' field in 'url_configs' must be an array of CSS selector strings.",
     )
     expect(mocks.findForUrl).not.toHaveBeenCalled()
-  })
-
-  it('does not write findings or set the output when a URL scan fails', async () => {
-    mocks.inputs.url_configs = JSON.stringify([{url: 'https://example.com'}])
-    mocks.inputs.include_screenshots = 'false'
-    const error = new Error('Reflow scan failed')
-    mocks.findForUrl.mockRejectedValueOnce(error)
-
-    await expect(find()).rejects.toBe(error)
-
-    expect(mocks.writeFileSync).not.toHaveBeenCalled()
-    expect(mocks.setOutput).not.toHaveBeenCalled()
   })
 })

@@ -56,21 +56,11 @@ export async function findForUrl(
       findings.push({...findingData, screenshotId, originalUrl: url})
     }
 
-    let pluginsPending = false
     try {
       const scansContext = getScansContext()
 
       if (scansContext.shouldRunPlugins) {
-        pluginsPending = true
         const plugins = await loadPlugins()
-        const missingPlugins = scansContext.pluginsToPerform.filter(
-          name => !plugins.some(plugin => plugin.name === name),
-        )
-        if (missingPlugins.length > 0) {
-          throw new Error(
-            `Requested plugins could not be loaded: ${missingPlugins.join(', ')}; refusing to publish incomplete results.`,
-          )
-        }
         for (const plugin of plugins) {
           if (scansContext.scansToPerform.includes(plugin.name)) {
             core.info(`Running plugin: ${plugin.name}`)
@@ -83,7 +73,6 @@ export async function findForUrl(
             core.info(`Skipping plugin ${plugin.name} because it is not included in the 'scans' input`)
           }
         }
-        pluginsPending = false
       }
 
       if (scansContext.shouldPerformAxeScan) {
@@ -95,7 +84,6 @@ export async function findForUrl(
       }
     } catch (e) {
       core.error(`Error during accessibility scan: ${e}`)
-      if (pluginsPending) throw e
     }
     return findings
   } finally {

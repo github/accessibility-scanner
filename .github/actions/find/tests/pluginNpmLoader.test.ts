@@ -19,10 +19,8 @@ const PLUGIN_ROOT = fileURLToPath(new URL('../src/pluginManager/', import.meta.u
 function mockNpmPlugins(npmPlugins: NpmPluginRequest[]) {
   vi.spyOn(scansContextProvider, 'getScansContext').mockReturnValue({
     scansToPerform: npmPlugins.map(plugin => plugin.name),
-    pluginsToPerform: npmPlugins.map(plugin => plugin.name),
     npmPlugins,
     shouldPerformAxeScan: false,
-    shouldPerformAccesslintScan: false,
     shouldRunPlugins: true,
   })
 }

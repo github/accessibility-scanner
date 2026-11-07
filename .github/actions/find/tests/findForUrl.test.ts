@@ -1,8 +1,6 @@
 import {describe, it, expect, vi} from 'vitest'
 import * as core from '@actions/core'
-import fs from 'node:fs'
 import {findForUrl} from '../src/findForUrl.js'
-import find from '../src/index.js'
 import {AxeBuilder} from '@axe-core/playwright'
 import {accesslintAudit} from '@accesslint/playwright'
 import axe from 'axe-core'
@@ -189,126 +187,18 @@ describe('findForUrl', () => {
       expect(playwrightMocks.browserClose).toHaveBeenCalledTimes(1)
     })
 
-    it.each(['reflow-scan', 'custom-scan'])('fails the URL scan when %s does not complete', async pluginName => {
+    it('preserves caller logging and partial-result behavior when reflow fails', async () => {
       const error = new Error('overflow evaluation timed out')
-      loadedPlugins = [{name: pluginName, default: vi.fn().mockRejectedValue(error)}]
-      actionInput = JSON.stringify([pluginName])
+      loadedPlugins = [{name: 'reflow-scan', default: vi.fn().mockRejectedValue(error)}]
+      actionInput = JSON.stringify(['reflow-scan', 'axe'])
       clearAll()
 
-      await expect(findForUrl({url: 'test.com'})).rejects.toBe(error)
+      await expect(findForUrl({url: 'test.com'})).resolves.toEqual([])
 
+      expect(core.error).toHaveBeenCalledWith(`Error during accessibility scan: ${error}`)
       expect(AxeBuilder.prototype.analyze).not.toHaveBeenCalled()
       expect(playwrightMocks.contextClose).toHaveBeenCalledTimes(1)
       expect(playwrightMocks.browserClose).toHaveBeenCalledTimes(1)
-    })
-
-    it.each(['reflow-scan', 'custom-scan'])(
-      'fails the URL scan when requested %s could not be loaded',
-      async pluginName => {
-        loadedPlugins = []
-        actionInput = JSON.stringify([pluginName])
-        clearAll()
-
-        await expect(findForUrl({url: 'test.com'})).rejects.toThrow(
-          `Requested plugins could not be loaded: ${pluginName}; refusing to publish incomplete results.`,
-        )
-
-        expect(AxeBuilder.prototype.analyze).not.toHaveBeenCalled()
-      },
-    )
-
-    it.each(['reflow-scan', 'custom-scan-2'])(
-      'publishes no findings when an earlier plugin fails before requested %s runs',
-      async nextPlugin => {
-        const error = new Error('Custom plugin failed before reflow')
-        loadedPlugins = [
-          {
-            name: 'custom-scan',
-            default: vi.fn(async ({addFinding}) => {
-              await addFinding({
-                scannerType: 'custom-scan',
-                url: 'https://example.com',
-                problemShort: 'Generic test finding',
-              })
-              throw error
-            }),
-          },
-          {name: nextPlugin, default: vi.fn()},
-        ]
-        actionInput = JSON.stringify(['custom-scan', nextPlugin, 'axe', 'accesslint'])
-        clearAll()
-        const writeFindings = vi.spyOn(fs, 'writeFileSync').mockImplementation(() => {})
-
-        try {
-          await vi.mocked(core.getInput).withImplementation(
-            name => {
-              if (name === 'scans') return actionInput
-              if (name === 'url_configs') return JSON.stringify([{url: 'https://example.com'}])
-              if (name === 'include_screenshots') return 'false'
-              return ''
-            },
-            async () => {
-              await expect(find()).rejects.toBe(error)
-            },
-          )
-
-          expect(loadedPlugins[0].default).toHaveBeenCalledTimes(1)
-          expect(loadedPlugins[1].default).not.toHaveBeenCalled()
-          expect(AxeBuilder.prototype.analyze).not.toHaveBeenCalled()
-          expect(accesslintAudit).not.toHaveBeenCalled()
-          expect(writeFindings).not.toHaveBeenCalled()
-          expect(core.setOutput).not.toHaveBeenCalled()
-          expect(playwrightMocks.contextClose).toHaveBeenCalledTimes(1)
-          expect(playwrightMocks.browserClose).toHaveBeenCalledTimes(1)
-        } finally {
-          writeFindings.mockRestore()
-        }
-      },
-    )
-
-    it('fails if a later plugin throws even after reflow has completed successfully', async () => {
-      const error = new Error('Later plugin failed')
-      loadedPlugins = [
-        {name: 'reflow-scan', default: vi.fn()},
-        {name: 'custom-scan', default: vi.fn().mockRejectedValue(error)},
-      ]
-      actionInput = JSON.stringify(['reflow-scan', 'custom-scan'])
-      clearAll()
-
-      await expect(findForUrl({url: 'https://example.com'})).rejects.toBe(error)
-
-      expect(loadedPlugins[0].default).toHaveBeenCalledTimes(1)
-      expect(loadedPlugins[1].default).toHaveBeenCalledTimes(1)
-    })
-
-    it('preserves core-engine error handling after all requested plugins complete', async () => {
-      loadedPlugins = [{name: 'custom-scan', default: vi.fn()}]
-      actionInput = JSON.stringify(['custom-scan', 'axe'])
-      clearAll()
-      vi.mocked(AxeBuilder.prototype.analyze).mockRejectedValueOnce(new Error('Axe failed'))
-
-      await expect(findForUrl({url: 'https://example.com'})).resolves.toEqual([])
-      expect(loadedPlugins[0].default).toHaveBeenCalledTimes(1)
-    })
-
-    it('reports all missing requested plugins before running any plugin or core engine', async () => {
-      loadedPlugins = [{name: 'available-scan', default: vi.fn()}]
-      actionInput = JSON.stringify([
-        'axe',
-        'available-scan',
-        'missing-scan',
-        {name: 'npm-scan', package: '@example/scan'},
-        'accesslint',
-      ])
-      clearAll()
-
-      await expect(findForUrl({url: 'https://example.com'})).rejects.toThrow(
-        'Requested plugins could not be loaded: missing-scan, npm-scan; refusing to publish incomplete results.',
-      )
-
-      expect(loadedPlugins[0].default).not.toHaveBeenCalled()
-      expect(AxeBuilder.prototype.analyze).not.toHaveBeenCalled()
-      expect(accesslintAudit).not.toHaveBeenCalled()
     })
   })
 
@@ -413,7 +303,7 @@ describe('findForUrl', () => {
     })
 
     it('runs plugins when a scans entry is an object-form NPM plugin', async () => {
-      loadedPlugins = [{name: 'alt-text-scan', default: vi.fn()}]
+      loadedPlugins = []
       actionInput = JSON.stringify([
         'axe',
         {

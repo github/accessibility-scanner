@@ -5,12 +5,6 @@ The plugin system allows teams to create custom scans/tests to run on their page
 Some first-party plugins come built-in with the scanner repository and can be enabled via [actions inputs](https://github.com/github/accessibility-scanner/tree/main/action.yml#L48-L50).
 There are also some [allowlisted](https://github.com/github/accessibility-scanner/blob/7ec4b73ca2fdb471ad6f71a48a88e7b1a84ab3ad/.github/actions/find/src/pluginManager/index.ts#L92) first-party plugins hosted in a different repository; we also have the ability to support loading approved third-party plugins [from NPM](#loading-plugins-from-npm-packages).
 
-## Requested plugin completion
-
-Every plugin explicitly requested in `scans` must load and complete successfully. If any requested built-in, local, or NPM plugin is unavailable or throws, the find action fails, skips subsequent scans on that page, and attempts context/browser cleanup. It does not publish partial findings or a `findings_file` output for issue filing. A requested NPM plugin skipped by the allowlist or rejected during loading therefore also fails the scan.
-
-This intentionally replaces the previous behavior of logging plugin errors and returning partial findings, even when an earlier plugin has completed successfully. Plugins must propagate incomplete-check failures instead of catching them and returning normally. The existing error handling for the core engines (Axe and AccessLint) is unchanged; this is not a general runtime watchdog or partial-result recovery system.
-
 ## Built-in reflow scan
 
 Enable `reflow-scan` in the `scans` input to check for horizontal overflow at a 320 x 256 viewport. It keeps the existing 1px rounding tolerance and restores the original viewport after checking. If the original viewport is unavailable, it fails without resizing the page.
@@ -19,7 +13,9 @@ Viewport resize, overflow evaluation, and viewport restoration each have a **5-s
 
 The total plugin wait budget is 50 seconds when all phases run (15 seconds without an overflow finding). These are not hard wall-clock guarantees: timers need a responsive JavaScript event loop, timed-out Playwright operations are not cancelled, and context/browser teardown is outside these budgets. A blocked controller or browser teardown still requires runtime-level recovery.
 
-Reflow propagates incomplete checks through the same requested-plugin failure handling as other plugins. Restoration failures retain the original scan error with cleanup context; timeouts and failed restoration mark the page state as unsafe even if a timed-out operation later settles.
+Reflow propagates incomplete-check errors to its caller. Restoration failures retain the original scan error with cleanup context; timeouts and failed restoration mark the page state as unsafe even if a timed-out operation later settles. The current caller logs plugin errors, skips remaining scans on that page, attempts context/browser cleanup, and returns partial findings before continuing to later URLs.
+
+**Logging and continuing does not guarantee complete scan coverage or exclude partial findings from issue filing.** The separate configurable caller-policy change will offer opt-in abort behavior to stop incomplete plugin work before findings publication, while retaining log-and-continue as the compatibility default. This plugin change does not alter the scanner's existing error-handling policy.
 
 ## How to create plugins
 

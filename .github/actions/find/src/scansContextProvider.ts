@@ -3,7 +3,6 @@ import type {NpmPluginRequest} from './pluginManager/types.js'
 
 type ScansContext = {
   scansToPerform: Array<string>
-  pluginsToPerform: string[]
   npmPlugins: NpmPluginRequest[]
   shouldPerformAxeScan: boolean
   shouldPerformAccesslintScan: boolean
@@ -50,11 +49,10 @@ export function getScansContext() {
     // 'axe' and 'accesslint' are built-in core engines; anything else in the
     // list is treated as a plugin name (local folder or NPM-published plugin).
     const coreEngines = ['axe', 'accesslint']
-    const pluginsToPerform = scansToPerform.filter(scan => !coreEngines.includes(scan))
+    const pluginScans = scansToPerform.filter(scan => !coreEngines.includes(scan))
 
     scansContext = {
       scansToPerform,
-      pluginsToPerform,
       npmPlugins,
       // - if no 'scans' input is provided, we default to the existing behavior
       //   (only axe scan) for backwards compatability.
@@ -62,7 +60,7 @@ export function getScansContext() {
       //   mark it as required
       shouldPerformAxeScan: !scansInput || scansToPerform.includes('axe'),
       shouldPerformAccesslintScan: scansToPerform.includes('accesslint'),
-      shouldRunPlugins: pluginsToPerform.length > 0,
+      shouldRunPlugins: pluginScans.length > 0,
     }
   }
 
