@@ -54,4 +54,15 @@ describe('url_configs', () => {
     )
     expect(mocks.findForUrl).not.toHaveBeenCalled()
   })
+
+  it('does not write findings or set the output when a URL scan fails', async () => {
+    mocks.inputs.url_configs = JSON.stringify([{url: 'https://example.com'}])
+    mocks.inputs.include_screenshots = 'false'
+    const error = new Error('Reflow scan failed')
+    mocks.findForUrl.mockRejectedValueOnce(error)
+
+    await expect(find()).rejects.toBe(error)
+
+    expect(mocks.writeFileSync).not.toHaveBeenCalled()
+  })
 })

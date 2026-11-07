@@ -186,6 +186,31 @@ describe('findForUrl', () => {
       expect(playwrightMocks.contextClose).toHaveBeenCalledTimes(1)
       expect(playwrightMocks.browserClose).toHaveBeenCalledTimes(1)
     })
+
+    it('fails the URL scan when reflow does not complete', async () => {
+      const error = new Error('overflow evaluation timed out')
+      loadedPlugins = [{name: 'reflow-scan', default: vi.fn().mockRejectedValue(error)}]
+      actionInput = JSON.stringify(['reflow-scan'])
+      clearAll()
+
+      await expect(findForUrl({url: 'test.com'})).rejects.toBe(error)
+
+      expect(AxeBuilder.prototype.analyze).not.toHaveBeenCalled()
+      expect(playwrightMocks.contextClose).toHaveBeenCalledTimes(1)
+      expect(playwrightMocks.browserClose).toHaveBeenCalledTimes(1)
+    })
+
+    it('fails the URL scan when requested reflow could not be loaded', async () => {
+      loadedPlugins = []
+      actionInput = JSON.stringify(['reflow-scan'])
+      clearAll()
+
+      await expect(findForUrl({url: 'test.com'})).rejects.toThrow(
+        "The requested 'reflow-scan' plugin could not be loaded; refusing to publish incomplete results.",
+      )
+
+      expect(AxeBuilder.prototype.analyze).not.toHaveBeenCalled()
+    })
   })
 
   describe('when no scans list is provided', () => {

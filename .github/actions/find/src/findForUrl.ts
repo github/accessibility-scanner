@@ -56,19 +56,33 @@ export async function findForUrl(
       findings.push({...findingData, screenshotId, originalUrl: url})
     }
 
+    let reflowScanFailed = false
     try {
       const scansContext = getScansContext()
 
       if (scansContext.shouldRunPlugins) {
+        const reflowRequested = scansContext.scansToPerform.includes('reflow-scan')
+        reflowScanFailed = reflowRequested
         const plugins = await loadPlugins()
+        if (reflowRequested && !plugins.some(plugin => plugin.name === 'reflow-scan')) {
+          throw new Error(
+            "The requested 'reflow-scan' plugin could not be loaded; refusing to publish incomplete results.",
+          )
+        }
+        reflowScanFailed = false
         for (const plugin of plugins) {
           if (scansContext.scansToPerform.includes(plugin.name)) {
             core.info(`Running plugin: ${plugin.name}`)
-            await invokePlugin({
-              plugin,
-              page,
-              addFinding,
-            })
+            try {
+              await invokePlugin({
+                plugin,
+                page,
+                addFinding,
+              })
+            } catch (e) {
+              if (plugin.name === 'reflow-scan') reflowScanFailed = true
+              throw e
+            }
           } else {
             core.info(`Skipping plugin ${plugin.name} because it is not included in the 'scans' input`)
           }
@@ -84,6 +98,7 @@ export async function findForUrl(
       }
     } catch (e) {
       core.error(`Error during accessibility scan: ${e}`)
+      if (reflowScanFailed) throw e
     }
     return findings
   } finally {
