@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   inputs: {} as Record<string, string>,
   findForUrl: vi.fn(),
   writeFileSync: vi.fn(),
+  setOutput: vi.fn(),
 }))
 
 vi.mock('@actions/core', () => ({
@@ -12,7 +13,7 @@ vi.mock('@actions/core', () => ({
   getMultilineInput: vi.fn(() => []),
   debug: vi.fn(),
   info: vi.fn(),
-  setOutput: vi.fn(),
+  setOutput: mocks.setOutput,
 }))
 
 vi.mock('node:fs', () => ({
@@ -64,5 +65,6 @@ describe('url_configs', () => {
     await expect(find()).rejects.toBe(error)
 
     expect(mocks.writeFileSync).not.toHaveBeenCalled()
+    expect(mocks.setOutput).not.toHaveBeenCalled()
   })
 })

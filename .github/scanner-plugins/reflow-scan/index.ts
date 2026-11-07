@@ -1,5 +1,8 @@
-// Each phase has its own budget; the full check can wait at most 20 seconds.
+import type {PluginDefaultParams} from '../../actions/find/src/pluginManager/types.js'
+
+// Cooperative wait budgets only: timers must run, and browser teardown is not included.
 export const OPERATION_TIMEOUT_MS = 5000
+export const FINDING_TIMEOUT_MS = 35000
 
 class ReflowOperationError extends Error {
   constructor(
@@ -27,7 +30,13 @@ export class ReflowScanError extends Error {
   }
 }
 
-export default async function reflowScan({page, addFinding} = {}) {
+export default async function reflowScan({
+  page,
+  addFinding,
+}: {
+  page: Pick<PluginDefaultParams['page'], 'viewportSize' | 'url' | 'setViewportSize' | 'evaluate'>
+  addFinding: PluginDefaultParams['addFinding']
+}) {
   let originalViewport
   try {
     originalViewport = page.viewportSize()
@@ -51,8 +60,8 @@ export default async function reflowScan({page, addFinding} = {}) {
 
   const url = page.url()
   let resizeAttempted = false
-  let operationError
-  let cleanupError
+  let operationError: ReflowOperationError | undefined
+  let cleanupError: ReflowOperationError | undefined
 
   try {
     resizeAttempted = true
@@ -66,16 +75,19 @@ export default async function reflowScan({page, addFinding} = {}) {
     )
 
     if (scrollWidth > clientWidth + 1) {
-      await runBounded('finding callback', () =>
-        addFinding({
-          scannerType: 'reflow-scan',
-          url,
-          problemShort: 'needs review: page presents a horizontal scrollbar at a 320px wide viewport',
-          problemUrl: 'https://www.w3.org/WAI/WCAG22/Understanding/reflow.html',
-          solutionShort:
-            'verify if sections of content can be viewed within the 320px wide viewport without needing to scroll in two dimensions to read the content of an individual section',
-          solutionLong: `The page has a scroll width of ${scrollWidth}px but a client width of only ${clientWidth}px at a 320px wide viewport, resulting in a horizontal scrollbar. Ensure that multi-line text does not require scrolling in two-dimensions to read, as this would be a violation of WCAG Success Criterion 1.4.10 (Reflow).`,
-        }),
+      await runBounded(
+        'finding callback',
+        () =>
+          addFinding({
+            scannerType: 'reflow-scan',
+            url,
+            problemShort: 'needs review: page presents a horizontal scrollbar at a 320px wide viewport',
+            problemUrl: 'https://www.w3.org/WAI/WCAG22/Understanding/reflow.html',
+            solutionShort:
+              'verify if sections of content can be viewed within the 320px wide viewport without needing to scroll in two dimensions to read the content of an individual section',
+            solutionLong: `The page has a scroll width of ${scrollWidth}px but a client width of only ${clientWidth}px at a 320px wide viewport, resulting in a horizontal scrollbar. Ensure that multi-line text does not require scrolling in two-dimensions to read, as this would be a violation of WCAG Success Criterion 1.4.10 (Reflow).`,
+          }),
+        FINDING_TIMEOUT_MS,
       )
     }
   } catch (error) {
@@ -98,8 +110,8 @@ export default async function reflowScan({page, addFinding} = {}) {
     }
   }
 
-  if (operationError || cleanupError) {
-    const failure = operationError ?? cleanupError
+  const failure = operationError ?? cleanupError
+  if (failure) {
     throw new ReflowScanError(
       failure.operation,
       failure,
@@ -109,12 +121,16 @@ export default async function reflowScan({page, addFinding} = {}) {
   }
 }
 
-async function runBounded<T>(operation: string, action: () => Promise<T>): Promise<T> {
+async function runBounded<T>(
+  operation: string,
+  action: () => Promise<T>,
+  timeoutMs = OPERATION_TIMEOUT_MS,
+): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined
   const timeout = new Promise<never>((_, reject) => {
     timer = setTimeout(
-      () => reject(new ReflowOperationError(operation, `timed out after ${OPERATION_TIMEOUT_MS}ms`, true)),
-      OPERATION_TIMEOUT_MS,
+      () => reject(new ReflowOperationError(operation, `timed out after ${timeoutMs}ms`, true)),
+      timeoutMs,
     )
   })
 

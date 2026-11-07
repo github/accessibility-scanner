@@ -1,11 +1,11 @@
 import {afterEach, describe, expect, it, vi} from 'vitest'
-import reflowScan, {OPERATION_TIMEOUT_MS} from '../../../scanner-plugins/reflow-scan/index.js'
+import reflowScan, {FINDING_TIMEOUT_MS, OPERATION_TIMEOUT_MS} from '../../../scanner-plugins/reflow-scan/index.js'
 
 const originalViewport = {width: 1280, height: 720}
 
 function createPage({scrollWidth = 320, clientWidth = 320} = {}) {
   return {
-    viewportSize: vi.fn(() => originalViewport),
+    viewportSize: vi.fn<() => typeof originalViewport | null>(() => originalViewport),
     url: vi.fn(() => 'https://example.com'),
     setViewportSize: vi.fn().mockResolvedValue(undefined),
     evaluate: vi.fn().mockResolvedValue({scrollWidth, clientWidth}),
@@ -123,11 +123,24 @@ describe('reflow scan', () => {
         pageStateUnsafe: true,
       })
 
-      await vi.advanceTimersByTimeAsync(OPERATION_TIMEOUT_MS)
+      await vi.advanceTimersByTimeAsync(operation === 'finding callback' ? FINDING_TIMEOUT_MS : OPERATION_TIMEOUT_MS)
 
       await rejection
     },
   )
+
+  it('allows a healthy finding callback to take longer than the viewport-operation budget', async () => {
+    vi.useFakeTimers()
+    const page = createPage({scrollWidth: 400})
+    const addFinding = vi.fn(() => new Promise<void>(resolve => setTimeout(resolve, 31000)))
+    const scan = reflowScan({page, addFinding})
+
+    await vi.advanceTimersByTimeAsync(31000)
+    await expect(scan).resolves.toBeUndefined()
+
+    expect(page.setViewportSize).toHaveBeenLastCalledWith(originalViewport)
+    expect(vi.getTimerCount()).toBe(0)
+  })
 
   it('does not change the page when its original viewport is unavailable', async () => {
     const page = createPage()

@@ -1,6 +1,8 @@
 import {describe, it, expect, vi} from 'vitest'
 import * as core from '@actions/core'
+import fs from 'node:fs'
 import {findForUrl} from '../src/findForUrl.js'
+import find from '../src/index.js'
 import {AxeBuilder} from '@axe-core/playwright'
 import {accesslintAudit} from '@accesslint/playwright'
 import axe from 'axe-core'
@@ -210,6 +212,66 @@ describe('findForUrl', () => {
       )
 
       expect(AxeBuilder.prototype.analyze).not.toHaveBeenCalled()
+    })
+
+    it('publishes no findings when an earlier plugin fails before requested reflow runs', async () => {
+      const error = new Error('Custom plugin failed before reflow')
+      loadedPlugins = [
+        {
+          name: 'custom-scan',
+          default: vi.fn(async ({addFinding}) => {
+            await addFinding({
+              scannerType: 'custom-scan',
+              url: 'https://example.com',
+              problemShort: 'Generic test finding',
+            })
+            throw error
+          }),
+        },
+        {name: 'reflow-scan', default: vi.fn()},
+      ]
+      actionInput = JSON.stringify(['custom-scan', 'reflow-scan', 'axe', 'accesslint'])
+      clearAll()
+      const writeFindings = vi.spyOn(fs, 'writeFileSync').mockImplementation(() => {})
+
+      try {
+        await vi.mocked(core.getInput).withImplementation(
+          name => {
+            if (name === 'scans') return actionInput
+            if (name === 'url_configs') return JSON.stringify([{url: 'https://example.com'}])
+            if (name === 'include_screenshots') return 'false'
+            return ''
+          },
+          async () => {
+            await expect(find()).rejects.toBe(error)
+          },
+        )
+
+        expect(loadedPlugins[0].default).toHaveBeenCalledTimes(1)
+        expect(loadedPlugins[1].default).not.toHaveBeenCalled()
+        expect(AxeBuilder.prototype.analyze).not.toHaveBeenCalled()
+        expect(accesslintAudit).not.toHaveBeenCalled()
+        expect(writeFindings).not.toHaveBeenCalled()
+        expect(core.setOutput).not.toHaveBeenCalled()
+        expect(playwrightMocks.contextClose).toHaveBeenCalledTimes(1)
+        expect(playwrightMocks.browserClose).toHaveBeenCalledTimes(1)
+      } finally {
+        writeFindings.mockRestore()
+      }
+    })
+
+    it('preserves existing partial-result behavior after reflow has completed successfully', async () => {
+      loadedPlugins = [
+        {name: 'reflow-scan', default: vi.fn()},
+        {name: 'custom-scan', default: vi.fn().mockRejectedValue(new Error('Later plugin failed'))},
+      ]
+      actionInput = JSON.stringify(['reflow-scan', 'custom-scan'])
+      clearAll()
+
+      await expect(findForUrl({url: 'https://example.com'})).resolves.toEqual([])
+
+      expect(loadedPlugins[0].default).toHaveBeenCalledTimes(1)
+      expect(loadedPlugins[1].default).toHaveBeenCalledTimes(1)
     })
   })
 
