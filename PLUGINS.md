@@ -5,6 +5,18 @@ The plugin system allows teams to create custom scans/tests to run on their page
 Some first-party plugins come built-in with the scanner repository and can be enabled via [actions inputs](https://github.com/github/accessibility-scanner/tree/main/action.yml#L48-L50).
 There are also some [allowlisted](https://github.com/github/accessibility-scanner/blob/7ec4b73ca2fdb471ad6f71a48a88e7b1a84ab3ad/.github/actions/find/src/pluginManager/index.ts#L92) first-party plugins hosted in a different repository; we also have the ability to support loading approved third-party plugins [from NPM](#loading-plugins-from-npm-packages).
 
+## Built-in reflow scan
+
+Enable `reflow-scan` in the `scans` input to check for horizontal overflow at a 320 x 256 viewport. It keeps the existing 1px rounding tolerance and restores the original viewport after checking. If the original viewport is unavailable, it fails without resizing the page.
+
+Viewport resize, overflow evaluation, and viewport restoration each have a **5-second cooperative wait budget**. The finding callback has a separate **35-second budget**, allowing the screenshot library's existing 30-second timeout plus headroom for saving and recording the finding. This avoids reducing normal screenshot capture time to five seconds, but a callback exceeding 35 seconds now fails the reflow check instead of waiting indefinitely.
+
+The total plugin wait budget is 50 seconds when all phases run (15 seconds without an overflow finding). These are not hard wall-clock guarantees: timers need a responsive JavaScript event loop, timed-out Playwright operations are not cancelled, and context/browser teardown is outside these budgets. A blocked controller or browser teardown still requires runtime-level recovery.
+
+Reflow propagates incomplete-check errors to its caller. Restoration failures retain the original scan error with cleanup context; timeouts and failed restoration mark the page state as unsafe even if a timed-out operation later settles. The current caller logs plugin errors, skips remaining scans on that page, attempts context/browser cleanup, and returns partial findings before continuing to later URLs.
+
+**Logging and continuing does not guarantee complete scan coverage or exclude partial findings from issue filing.** The separate configurable caller-policy change will offer opt-in abort behavior to stop incomplete plugin work before findings publication, while retaining log-and-continue as the compatibility default. This plugin change does not alter the scanner's existing error-handling policy.
+
 ## How to create plugins
 
 ### Default function API (all plugins)
