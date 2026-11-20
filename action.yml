@@ -70,6 +70,10 @@ inputs:
   scans:
     description: "Stringified JSON array of scans to perform. Core engines and local plugins use string names. Allowlisted NPM plugins use an object with 'name', 'package', and optional 'version'. If not provided, only Axe will be performed"
     required: false
+  plugin_failure_policy:
+    description: "Plugin failure behavior: 'log-and-continue' preserves partial findings (default); 'abort' fails before publishing findings when a requested plugin fails or is unavailable. Does not change core engine failure behavior."
+    required: false
+    default: 'log-and-continue'
   dry_run:
     description: 'When true, scan and log the issues that would be filed without opening, closing, reopening, or assigning any issues, and without writing to the cache.'
     required: false
@@ -140,6 +144,7 @@ runs:
         color_scheme: ${{ inputs.color_scheme }}
         ignore_https_errors: ${{ inputs.ignore_https_errors }}
         scans: ${{ inputs.scans }}
+        plugin_failure_policy: ${{ inputs.plugin_failure_policy }}
     - name: File
       id: file
       uses: ./../../_actions/github/accessibility-scanner/current/.github/actions/file

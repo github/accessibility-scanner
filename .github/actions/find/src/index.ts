@@ -12,6 +12,7 @@ export default async function () {
   const reducedMotion = loadReducedMotion()
   const colorScheme = loadColorScheme()
   const ignoreHttpsErrors = loadIgnoreHttpsErrors()
+  const pluginFailurePolicy = loadPluginFailurePolicy()
 
   const actualUrls = urlConfigs || urls || []
 
@@ -30,6 +31,7 @@ export default async function () {
       reducedMotion,
       colorScheme,
       ignoreHttpsErrors,
+      pluginFailurePolicy,
     )
     if (findingsForUrl.length === 0) {
       core.info(`No accessibility gaps were found on ${url}`)
@@ -119,4 +121,12 @@ function loadColorScheme() {
 
 function loadIgnoreHttpsErrors() {
   return core.getInput('ignore_https_errors', {required: false}).toLowerCase() === 'true'
+}
+
+function loadPluginFailurePolicy() {
+  const value = core.getInput('plugin_failure_policy', {required: false}) || 'log-and-continue'
+  if (value !== 'log-and-continue' && value !== 'abort') {
+    throw new Error("Input 'plugin_failure_policy' must be one of: 'log-and-continue', 'abort'.")
+  }
+  return value
 }

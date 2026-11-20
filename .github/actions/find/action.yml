@@ -19,6 +19,10 @@ inputs:
   scans:
     description: "Stringified JSON array of scans to perform. Core engines are 'axe' and 'accesslint'. Any other entry is either a plugin name (string) or, for a first-party NPM-published plugin, an object with 'name', 'package', and optional 'version'. If not provided, only Axe will be performed"
     required: false
+  plugin_failure_policy:
+    description: "Plugin failure behavior: 'log-and-continue' preserves partial findings (default); 'abort' fails before publishing findings when a requested plugin fails or is unavailable. Does not change core engine failure behavior."
+    required: false
+    default: 'log-and-continue'
   reduced_motion:
     description: 'Playwright reducedMotion setting: https://playwright.dev/docs/api/class-browser#browser-new-page-option-reduced-motion'
     required: false

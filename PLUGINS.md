@@ -90,6 +90,38 @@ jobs:
 > - If an NPM plugin shares a name with a built-in or local plugin, the built-in/local plugin wins and the NPM one is skipped.
 > - Plugin configuration works the same as local plugins: place a config-only folder at `./.github/scanner-plugins/<name>/config.json` in your repo (the plugin reads its config relative to the repo you run the workflow from).
 
+## Plugin failure behavior
+
+Set `plugin_failure_policy` on the scanner action (or directly on the `find` action):
+
+```yaml
+with:
+  scans: '["axe", "my-custom-plugin"]'
+  plugin_failure_policy: abort
+```
+
+The accepted values are `log-and-continue` (default) and `abort`; other values fail input validation.
+The policy applies uniformly to built-in, local, and NPM plugins.
+
+- `log-and-continue` preserves existing behavior: scan errors are logged, findings collected before a
+  thrown error are returned, and subsequent URLs still run. A thrown plugin error skips the remaining
+  plugins and core engines on that URL; it does not resume the scan loop. Plugin loading retains its
+  existing logging/skipping behavior, including skipped unavailable plugins.
+- `abort` requires every requested plugin name to be available after loading, before any plugin runs.
+  A missing, skipped, invalid, or failed-to-load requested plugin causes failure. Existing built-in/local
+  precedence over an NPM plugin of the same name still applies. A plugin invocation error is logged and
+  propagated with plugin/URL context. Remaining plugins, core engines on that URL, and subsequent URLs
+  are not scanned. No findings file or `findings_file` output is published, including findings from earlier
+  successful URLs, so the composite action's normal filing and cache steps do not run.
+
+Neither mode changes Axe or AccessLint failure behavior, adds timeouts or page recovery, or detects errors
+a plugin catches internally without propagating them. Plugins must reject/throw to signal incomplete work.
+Browser cleanup still runs and is not time-bounded by this policy.
+
+For [#303](https://github.com/github/accessibility-scanner/issues/303), abort-before-filing is an opt-in
+guarantee: select `abort` **and** use a plugin that propagates its failure. Under the compatibility default,
+logged failures and partial findings are permitted; incomplete plugin findings may still reach issue filing.
+
 ## Things to look out for
 
 - Plugin names should be unique. If multiple plugins have the same name, and the `scans` input array contains this name, all the plugins with that name _will_ run. However, this is not advised because if you want to turn off one plugin, you'll have to go back and change that plugin name.

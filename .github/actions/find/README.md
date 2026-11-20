@@ -49,6 +49,15 @@ configuration option.
 Allowlisted NPM plugins use an object with `name`, `package`, and optional `version`. If not provided, only Axe
 will be performed. See [the plugin docs](../../../PLUGINS.md#loading-plugins-from-npm-packages) for an example.
 
+#### `plugin_failure_policy`
+
+**Optional** `log-and-continue` (default) or `abort`. Applies to built-in, local, and NPM plugins, not
+Axe or AccessLint. The default logs scan errors and returns partial findings, preserving existing behavior
+(a thrown plugin error skips the remaining scans on that URL; subsequent URLs still run).
+`abort` rejects failed or unavailable requested plugins, stops subsequent scans and URLs, and writes no
+findings file or output for the run. See [plugin failure behavior](../../../PLUGINS.md#plugin-failure-behavior)
+for limitations.
+
 ### Outputs
 
 #### `findings_file`

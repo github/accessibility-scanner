@@ -17,6 +17,8 @@ import * as core from '@actions/core'
 
 const SELECTOR_WAIT_TIMEOUT = 30000
 
+export type PluginFailurePolicy = 'log-and-continue' | 'abort'
+
 export async function findForUrl(
   urlConfig: UrlConfig,
   authContext?: AuthContext,
@@ -24,6 +26,7 @@ export async function findForUrl(
   reducedMotion?: ReducedMotionPreference,
   colorScheme?: ColorSchemePreference,
   ignoreHttpsErrors: boolean = false,
+  pluginFailurePolicy: PluginFailurePolicy = 'log-and-continue',
 ): Promise<Finding[]> {
   const {url, excludeSelectors, waitForSelectors} = urlConfig
   const browser = await playwright.chromium.launch({
@@ -56,13 +59,22 @@ export async function findForUrl(
       findings.push({...findingData, screenshotId, originalUrl: url})
     }
 
+    let pluginStage: string | undefined
     try {
       const scansContext = getScansContext()
 
       if (scansContext.shouldRunPlugins) {
+        pluginStage = 'loading requested plugins'
         const plugins = await loadPlugins()
+        if (pluginFailurePolicy === 'abort') {
+          const unavailable = scansContext.pluginScans.filter(name => !plugins.some(plugin => plugin.name === name))
+          if (unavailable.length > 0) {
+            throw new Error(`Requested plugins are unavailable: ${unavailable.join(', ')}`)
+          }
+        }
         for (const plugin of plugins) {
           if (scansContext.scansToPerform.includes(plugin.name)) {
+            pluginStage = `running plugin '${plugin.name}'`
             core.info(`Running plugin: ${plugin.name}`)
             await invokePlugin({
               plugin,
@@ -73,6 +85,7 @@ export async function findForUrl(
             core.info(`Skipping plugin ${plugin.name} because it is not included in the 'scans' input`)
           }
         }
+        pluginStage = undefined
       }
 
       if (scansContext.shouldPerformAxeScan) {
@@ -84,6 +97,9 @@ export async function findForUrl(
       }
     } catch (e) {
       core.error(`Error during accessibility scan: ${e}`)
+      if (pluginFailurePolicy === 'abort' && pluginStage) {
+        throw new Error(`Plugin failure while ${pluginStage} on ${url}: ${e}`, {cause: e})
+      }
     }
     return findings
   } finally {

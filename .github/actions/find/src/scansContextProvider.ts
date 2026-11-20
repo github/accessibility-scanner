@@ -4,6 +4,7 @@ import type {NpmPluginRequest} from './pluginManager/types.js'
 type ScansContext = {
   scansToPerform: Array<string>
   npmPlugins: NpmPluginRequest[]
+  pluginScans: string[]
   shouldPerformAxeScan: boolean
   shouldPerformAccesslintScan: boolean
   shouldRunPlugins: boolean
@@ -54,6 +55,7 @@ export function getScansContext() {
     scansContext = {
       scansToPerform,
       npmPlugins,
+      pluginScans,
       // - if no 'scans' input is provided, we default to the existing behavior
       //   (only axe scan) for backwards compatability.
       // - we can enforce using the 'scans' input in a future major release and
