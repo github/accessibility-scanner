@@ -6,6 +6,7 @@ const cachedFinding: Finding = {
   scannerType: 'axe',
   ruleId: 'color-contrast',
   url: 'https://example.com/',
+  originalUrl: 'https://example.com/',
   html: '<span class="post-meta">old markup</span>',
   nodes: [{html: '<span class="post-meta">old markup</span>', target: 'span.post-meta'}],
   problemShort: 'elements must meet minimum color contrast ratio thresholds',
@@ -34,7 +35,12 @@ describe('updateFilingsWithNewFindings', () => {
       ],
     }
 
-    const result = updateFilingsWithNewFindings([cachedFiling], [shiftedFinding])
+    const result = updateFilingsWithNewFindings([cachedFiling], [shiftedFinding], 'finding', {
+      schemaVersion: 1,
+      complete: true,
+      scans: [{requestedUrl: cachedFinding.originalUrl!, scanner: 'axe', status: 'completed'}],
+      failures: [],
+    })
 
     expect(result).toHaveLength(1)
     const filing = result[0] as RepeatedFiling
@@ -83,6 +89,108 @@ describe('updateFilingsWithNewFindings — group_by', () => {
     expect(result).toHaveLength(2)
     const counts = result.map(f => f.findings.length).sort()
     expect(counts).toEqual([1, 2])
+  })
+
+  describe('completion-aware reconciliation', () => {
+    const a = {...cachedFinding, url: 'https://example.com/a', originalUrl: 'https://example.com/a'}
+    const b = {...cachedFinding, url: 'https://example.com/b', originalUrl: 'https://example.com/b'}
+    const report = (scans: {requestedUrl: string; scanner: string; status: string}[]) => ({
+      schemaVersion: 1 as const,
+      complete: false,
+      scans,
+      failures: [],
+    })
+
+    it.each(['failed', 'timed_out', 'skipped', 'not_started', 'unknown'])(
+      'retains a cached finding when its scan is %s',
+      status => {
+        const completion = report([{requestedUrl: a.originalUrl, scanner: 'axe', status}])
+        expect(
+          updateFilingsWithNewFindings([{...cachedFiling, findings: [a]}], [], 'finding', completion)[0].findings,
+        ).toEqual([a])
+      },
+    )
+
+    it('retains omitted URLs, disabled scanners, missing reports and legacy requested URLs', () => {
+      const legacy = {...a, originalUrl: undefined}
+      const otherScanner = {...a, scannerType: 'accesslint'}
+      const cached = {...cachedFiling, findings: [a, b, legacy, otherScanner]}
+      const completion = report([{requestedUrl: a.originalUrl, scanner: 'axe', status: 'completed'}])
+      expect(updateFilingsWithNewFindings([cached], [], 'rule', completion)[0].findings).toEqual([
+        b,
+        legacy,
+        otherScanner,
+      ])
+      expect(updateFilingsWithNewFindings([cached], [], 'rule')[0].findings).toEqual(cached.findings)
+    })
+
+    it('treats conflicting outcomes and URL-level failures as incomplete', () => {
+      const completed = {requestedUrl: a.originalUrl, scanner: 'axe', status: 'completed'}
+      const cached = {...cachedFiling, findings: [a]}
+      expect(
+        updateFilingsWithNewFindings([cached], [], 'finding', report([completed, {...completed, status: 'unknown'}]))[0]
+          .findings,
+      ).toEqual([a])
+      expect(
+        updateFilingsWithNewFindings([cached], [], 'finding', {
+          ...report([completed]),
+          failures: [{requestedUrl: a.originalUrl}],
+        })[0].findings,
+      ).toEqual([a])
+    })
+
+    it.each(['finding', 'rule', 'rule+url'] as const)(
+      'refreshes completed portions and retains incomplete portions for %s, then resolves the original issue',
+      groupBy => {
+        // The same rendered URL can arise from different requested URLs.
+        const unverified = {...b, url: a.url}
+        const cached = {...cachedFiling, findings: [a, unverified]}
+        const completion = report([
+          {requestedUrl: a.originalUrl, scanner: 'axe', status: 'completed'},
+          {requestedUrl: b.originalUrl, scanner: 'axe', status: 'timed_out'},
+        ])
+        const refreshed = {...a, html: '<span>new</span>'}
+        const first = updateFilingsWithNewFindings([cached], [refreshed], groupBy, completion)
+        expect(first).toHaveLength(1)
+        expect(first[0].findings).toEqual([unverified, refreshed])
+        const second = updateFilingsWithNewFindings(
+          first as RepeatedFiling[],
+          [],
+          groupBy,
+          report([
+            {requestedUrl: a.originalUrl, scanner: 'axe', status: 'completed'},
+            {requestedUrl: b.originalUrl, scanner: 'axe', status: 'completed'},
+          ]),
+        )
+        expect(second).toHaveLength(1)
+        expect(second[0].issue?.url).toBe(cached.issue.url)
+        expect(second[0].findings).toEqual([])
+      },
+    )
+
+    it('replaces matching observations despite new screenshots, retaining other unchecked occurrences', () => {
+      const other = {...a, html: '<div>another occurrence</div>'}
+      const otherUrl = {...a, originalUrl: b.originalUrl}
+      const cached = {...cachedFiling, findings: [{...a, screenshotId: 'old'}, other, otherUrl]}
+      const completion = report([{requestedUrl: a.originalUrl, scanner: 'axe', status: 'failed'}])
+      const fresh = {...a, screenshotId: 'new'}
+      const first = updateFilingsWithNewFindings([cached], [fresh], 'finding', completion)
+      expect(first[0].findings).toEqual([other, otherUrl, fresh])
+      const latest = {...a, screenshotId: 'latest'}
+      const second = updateFilingsWithNewFindings(first as RepeatedFiling[], [latest], 'finding', completion)
+      expect(second[0].findings).toEqual([other, otherUrl, latest])
+    })
+
+    it('updates a rule grouped across different URLs without losing incomplete occurrences', () => {
+      const cached = {...cachedFiling, findings: [a, b]}
+      const completion = report([
+        {requestedUrl: a.originalUrl, scanner: 'axe', status: 'completed'},
+        {requestedUrl: b.originalUrl, scanner: 'axe', status: 'failed'},
+      ])
+      const result = updateFilingsWithNewFindings([cached], [], 'rule', completion)
+      expect(result[0].findings).toEqual([b])
+      expect(result[0].issue?.url).toBe(cached.issue.url)
+    })
   })
 
   it("'rule': collapses all occurrences of a rule into a single filing", () => {

@@ -10,7 +10,7 @@ export type Finding = {
   category?: FindingCategory
   ruleId?: string
   url: string
-  originalUrl: string
+  originalUrl?: string
   html?: string
   nodes?: FindingNode[]
   problemShort: string
@@ -56,4 +56,11 @@ export type Filing = ResolvedFiling | NewFiling | RepeatedFiling
 export type FindingGroupIssue = {
   url: string
   id: number
+}
+
+export type ScanCompletionReport = {
+  schemaVersion: 1
+  complete: boolean
+  scans: {requestedUrl: string; scanner: string; status: string}[]
+  failures: {requestedUrl: string; scanner?: string}[]
 }

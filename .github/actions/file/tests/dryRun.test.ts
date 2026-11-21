@@ -58,6 +58,7 @@ const finding = {
   scannerType: 'axe',
   ruleId: 'color-contrast',
   url: 'https://example.com/page',
+  originalUrl: 'https://example.com/page',
   html: '<span>Low contrast</span>',
   problemShort: 'elements must meet minimum color contrast ratio thresholds',
   problemUrl: 'https://dequeuniversity.com/rules/axe/4.10/color-contrast',
@@ -84,8 +85,15 @@ function setup() {
   files['/tmp/findings.json'] = JSON.stringify([finding, newFinding])
   // cached filings: one repeated, one resolved (its finding is absent from findings file)
   files['/tmp/cached.json'] = JSON.stringify([repeatedCached, resolvedCached])
+  files['/tmp/completion.json'] = JSON.stringify({
+    schemaVersion: 1,
+    complete: true,
+    scans: [{requestedUrl: finding.originalUrl, scanner: 'axe', status: 'completed'}],
+    failures: [],
+  })
   inputs.findings_file = '/tmp/findings.json'
   inputs.cached_filings_file = '/tmp/cached.json'
+  inputs.completion_file = '/tmp/completion.json'
   inputs.repository = 'org/repo'
   inputs.token = 'fake-token'
 }
@@ -228,5 +236,41 @@ describe('file action — dry_run', () => {
     expect(openIssue).not.toHaveBeenCalled()
     expect(reopenIssue).not.toHaveBeenCalled()
     expect(closeIssue).not.toHaveBeenCalled()
+  })
+
+  it('rejects an invalid completion report before filing', async () => {
+    setup()
+    files['/tmp/completion.json'] = JSON.stringify({schemaVersion: 1, scans: [null], failures: []})
+
+    await runFileAction()
+
+    expect(failedMessages).toContain("Invalid or unsupported 'completion_file' report.")
+    expect(openIssue).not.toHaveBeenCalled()
+    expect(closeIssue).not.toHaveBeenCalled()
+    expect(reopenIssue).not.toHaveBeenCalled()
+  })
+
+  it('closes only covered findings and leaves unchecked filings untouched', async () => {
+    setup()
+    files['/tmp/findings.json'] = JSON.stringify([])
+    files['/tmp/completion.json'] = JSON.stringify({
+      schemaVersion: 1,
+      complete: false,
+      scans: [{requestedUrl: finding.originalUrl, scanner: 'axe', status: 'completed'}],
+      failures: [],
+    })
+    files['/tmp/cached.json'] = JSON.stringify([
+      repeatedCached,
+      {...resolvedCached, findings: [{...resolvedCached.findings[0], originalUrl: 'https://example.com/other'}]},
+    ])
+    inputs.dry_run = 'true'
+
+    await runFileAction()
+
+    const saved = JSON.parse(files[outputs.filings_file])
+    expect(saved[0].findings).toEqual([])
+    expect(saved[0].issue.state).toBe('closed')
+    expect(saved[1].findings).toHaveLength(1)
+    expect(infoLines.join('\n')).not.toContain('Would REOPEN issue')
   })
 })

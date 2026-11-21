@@ -132,4 +132,53 @@ describe('file action — wontfix label', () => {
     expect(reopenIssue).toHaveBeenCalledTimes(2)
     expect(warnLines.join('\n')).toContain("Could not fetch 'wontfix' issues")
   })
+
+  it('does not reopen retained findings without current evidence', async () => {
+    setup()
+    files['/tmp/findings.json'] = JSON.stringify([])
+    files['/tmp/cached.json'] = JSON.stringify([
+      wontfixCached,
+      {...normalCached, issue: {...normalCached.issue, state: 'open'}},
+    ])
+    await runFileAction()
+
+    expect(reopenIssue).not.toHaveBeenCalled()
+    expect(closeIssue).not.toHaveBeenCalled()
+    const saved = JSON.parse(files[outputs.filings_file])
+    expect(saved.find((f: {issue: {url: string}}) => f.issue.url === normalCached.issue.url).findings).toEqual([
+      normalFinding,
+    ])
+    expect(JSON.parse(files[outputs.issues_file])).toEqual([])
+  })
+
+  it.each(['open', 'closed'])('updates only open grouped issues when completed portions resolve (%s)', async state => {
+    setup()
+    const a = {...normalFinding, originalUrl: 'https://example.com/a'}
+    const b = {...normalFinding, originalUrl: 'https://example.com/b'}
+    files['/tmp/findings.json'] = JSON.stringify([])
+    files['/tmp/cached.json'] = JSON.stringify([{...normalCached, findings: [a, b]}])
+    files['/tmp/completion.json'] = JSON.stringify({
+      schemaVersion: 1,
+      complete: false,
+      scans: [{requestedUrl: a.originalUrl, scanner: 'axe', status: 'completed'}],
+      failures: [],
+    })
+    inputs.completion_file = '/tmp/completion.json'
+    octokitRequest.mockImplementation((route: string) => {
+      if (route.includes('GET /repos/org/repo/issues?')) return Promise.resolve({data: []})
+      if (route === 'GET /repos/org/repo/issues/3') return Promise.resolve({data: {state}})
+      return Promise.resolve({data: []})
+    })
+
+    await runFileAction()
+
+    expect(reopenIssue).not.toHaveBeenCalled()
+    expect(octokitRequest.mock.calls.some(([route]) => route === 'PATCH /repos/org/repo/issues/3')).toBe(
+      state === 'open',
+    )
+    const saved = JSON.parse(files[outputs.filings_file])
+    expect(saved[0].findings).toEqual([b])
+    expect(saved[0].issue.state).toBe(state)
+    expect(JSON.parse(files[outputs.issues_file])).toEqual([])
+  })
 })
