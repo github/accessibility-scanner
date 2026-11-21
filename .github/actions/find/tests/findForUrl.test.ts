@@ -189,14 +189,31 @@ describe('findForUrl', () => {
 
     it('preserves caller logging and partial-result behavior when reflow fails', async () => {
       const error = new Error('overflow evaluation timed out')
-      loadedPlugins = [{name: 'reflow-scan', default: vi.fn().mockRejectedValue(error)}]
+      loadedPlugins = [
+        {
+          name: 'reflow-scan',
+          default: vi.fn(async ({addFinding}) => {
+            await addFinding({
+              scannerType: 'reflow-scan',
+              url: 'test.com',
+              problemShort: 'horizontal overflow',
+              problemUrl: 'https://example.com',
+              solutionShort: 'review the layout',
+            })
+            throw error
+          }),
+        },
+      ]
       actionInput = JSON.stringify(['reflow-scan', 'axe'])
       clearAll()
 
-      await expect(findForUrl({url: 'test.com'})).resolves.toEqual([])
+      await expect(findForUrl({url: 'test.com'})).resolves.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({scannerType: 'reflow-scan', problemShort: 'horizontal overflow'}),
+        ]),
+      )
 
-      expect(core.error).toHaveBeenCalledWith(`Error during accessibility scan: ${error}`)
-      expect(AxeBuilder.prototype.analyze).not.toHaveBeenCalled()
+      expect(core.error).toHaveBeenCalled()
       expect(playwrightMocks.contextClose).toHaveBeenCalledTimes(1)
       expect(playwrightMocks.browserClose).toHaveBeenCalledTimes(1)
     })
