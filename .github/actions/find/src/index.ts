@@ -3,7 +3,9 @@ import fs from 'node:fs'
 import path from 'node:path'
 import * as core from '@actions/core'
 import {AuthContext} from './AuthContext.js'
-import {findForUrl} from './findForUrl.js'
+import {findForUrlWithOutcome} from './findForUrl.js'
+import {createScanCompletionReport, sanitizeUrlLabel, summarizeScanCompletion} from './scanCompletion.js'
+import type {ScanCompletion, ScanFailure} from './types.js'
 
 export default async function () {
   core.info("Starting 'find' action")
@@ -20,10 +22,12 @@ export default async function () {
   const includeScreenshots = core.getInput('include_screenshots', {required: false}) !== 'false'
 
   const findings = []
+  const scans: ScanCompletion[] = []
+  const failures: ScanFailure[] = []
   for (const urlConfig of actualUrls) {
     const {url} = urlConfig
-    core.info(`Preparing to scan ${url}`)
-    const findingsForUrl = await findForUrl(
+    core.info(`Preparing to scan ${sanitizeUrlLabel(url)}`)
+    const outcome = await findForUrlWithOutcome(
       urlConfig,
       authContext,
       includeScreenshots,
@@ -31,20 +35,27 @@ export default async function () {
       colorScheme,
       ignoreHttpsErrors,
     )
-    if (findingsForUrl.length === 0) {
-      core.info(`No accessibility gaps were found on ${url}`)
-      continue
-    }
-    findings.push(...findingsForUrl)
-    core.info(`Found ${findingsForUrl.length} findings for ${url}`)
+    findings.push(...outcome.findings)
+    scans.push(...outcome.scans)
+    failures.push(...outcome.failures)
+    core.info(`Found ${outcome.findings.length} findings for ${sanitizeUrlLabel(url)}`)
   }
 
+  const report = createScanCompletionReport(scans, failures)
+  const summary = summarizeScanCompletion(report)
   const findingsPath = path.join(process.env.RUNNER_TEMP || '/tmp', `findings-${crypto.randomUUID()}.json`)
+  const completionPath = path.join(process.env.RUNNER_TEMP || '/tmp', `scan-completion-${crypto.randomUUID()}.json`)
   fs.writeFileSync(findingsPath, JSON.stringify(findings))
+  fs.writeFileSync(completionPath, JSON.stringify(report))
   core.setOutput('findings_file', findingsPath)
+  core.setOutput('completion_file', completionPath)
+  core.setOutput('scan_complete', String(report.complete))
+  core.setOutput('scan_summary', summary)
 
   core.debug(`Output: 'findings_file: ${findingsPath}'`)
+  core.debug(`Output: 'completion_file: ${completionPath}'`)
   core.info(`Found ${findings.length} findings in total`)
+  if (!report.complete) core.warning(summary)
   core.info("Finished 'find' action")
 }
 
@@ -83,7 +94,7 @@ function loadUrls({urlConfigs}: {urlConfigs?: UrlConfig[]} = {}) {
   if (urlConfigs) return
 
   const urls: string[] = core.getMultilineInput('urls', {required: false})
-  core.debug(`Input: 'urls: ${JSON.stringify(urls)}'`)
+  core.debug(`Input: 'urls: ${urls.length} URL(s)'`)
 
   if (urls.length === 0) {
     throw new Error("Either 'urls' or 'url_configs' input must be provided.")

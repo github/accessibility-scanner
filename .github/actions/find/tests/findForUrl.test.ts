@@ -1,6 +1,6 @@
 import {describe, it, expect, vi} from 'vitest'
 import * as core from '@actions/core'
-import {findForUrl} from '../src/findForUrl.js'
+import {findForUrl, findForUrlWithOutcome} from '../src/findForUrl.js'
 import {AxeBuilder} from '@axe-core/playwright'
 import {accesslintAudit} from '@accesslint/playwright'
 import axe from 'axe-core'
@@ -182,8 +182,143 @@ describe('findForUrl', () => {
 
       await expect(findForUrl({url: 'test.com'})).resolves.toEqual([])
 
-      expect(core.error).toHaveBeenCalledWith(`Error during accessibility scan: ${error}`)
+      expect(core.error).toHaveBeenCalledWith('Accessibility scan failed during scan for URL (axe)')
       expect(playwrightMocks.contextClose).toHaveBeenCalledTimes(1)
+      expect(playwrightMocks.browserClose).toHaveBeenCalledTimes(1)
+    })
+
+    it('reports timeout and leaves planned scanners not started when page readiness fails', async () => {
+      actionInput = JSON.stringify(['axe', 'accesslint'])
+      clearAll()
+      const timeoutError = Object.assign(new Error('Selector did not become visible'), {name: 'TimeoutError'})
+      playwrightMocks.locatorWaitFor.mockRejectedValueOnce(timeoutError)
+
+      const outcome = await findForUrlWithOutcome({
+        url: 'https://example.com/private?token=secret',
+        waitForSelectors: ['#app'],
+      })
+
+      expect(outcome.scans).toEqual([
+        {
+          requestedUrl: 'https://example.com/private?token=secret',
+          scanner: 'axe',
+          status: 'not_started',
+          stage: 'wait_for_selectors',
+        },
+        {
+          requestedUrl: 'https://example.com/private?token=secret',
+          scanner: 'accesslint',
+          status: 'not_started',
+          stage: 'wait_for_selectors',
+        },
+      ])
+      expect(outcome.failures).toEqual([
+        {
+          requestedUrl: 'https://example.com/private?token=secret',
+          status: 'timed_out',
+          stage: 'wait_for_selectors',
+        },
+      ])
+      expect(AxeBuilder.prototype.analyze).not.toHaveBeenCalled()
+    })
+
+    it('reports navigation failures at URL scope and leaves scanners not started', async () => {
+      actionInput = JSON.stringify(['axe', 'accesslint'])
+      clearAll()
+      playwrightMocks.pageGoto.mockRejectedValueOnce(new Error('Navigation failed'))
+
+      const outcome = await findForUrlWithOutcome({url: 'https://example.com/start'})
+
+      expect(outcome.scans).toEqual([
+        {requestedUrl: 'https://example.com/start', scanner: 'axe', status: 'not_started', stage: 'navigation'},
+        {
+          requestedUrl: 'https://example.com/start',
+          scanner: 'accesslint',
+          status: 'not_started',
+          stage: 'navigation',
+        },
+      ])
+      expect(outcome.failures).toEqual([
+        {requestedUrl: 'https://example.com/start', status: 'failed', stage: 'navigation'},
+      ])
+    })
+
+    it('reports independent scanner failures and continues the remaining requested checks', async () => {
+      actionInput = JSON.stringify(['axe', 'accesslint'])
+      clearAll()
+      vi.mocked(AxeBuilder.prototype.analyze).mockRejectedValueOnce(new Error('Axe failed'))
+
+      const outcome = await findForUrlWithOutcome({url: 'https://example.com/start'})
+
+      expect(outcome.scans).toEqual([
+        {requestedUrl: 'https://example.com/start', scanner: 'axe', status: 'failed', stage: 'scan'},
+        {requestedUrl: 'https://example.com/start', scanner: 'accesslint', status: 'completed'},
+      ])
+      expect(outcome.failures).toEqual([
+        {requestedUrl: 'https://example.com/start', scanner: 'axe', status: 'failed', stage: 'scan'},
+      ])
+      expect(accesslintAudit).toHaveBeenCalledTimes(1)
+    })
+
+    it('marks disabled scanners skipped while preserving the requested URL through redirects', async () => {
+      actionInput = ''
+      clearAll()
+      vi.mocked(AxeBuilder.prototype.analyze).mockResolvedValueOnce({
+        violations: [
+          {
+            id: 'r',
+            help: 'h',
+            helpUrl: 'https://example.com',
+            description: 'd',
+            tags: [],
+            nodes: [{html: '<a></a>', target: ['a']}],
+          },
+        ],
+      } as unknown as axe.AxeResults)
+
+      const outcome = await findForUrlWithOutcome({url: 'https://example.com/start?token=secret'})
+
+      expect(outcome.findings[0]).toMatchObject({
+        url: 'test.com',
+        originalUrl: 'https://example.com/start?token=secret',
+      })
+      expect(outcome.scans).toEqual([
+        {requestedUrl: 'https://example.com/start?token=secret', scanner: 'axe', status: 'completed'},
+        {requestedUrl: 'https://example.com/start?token=secret', scanner: 'accesslint', status: 'skipped'},
+      ])
+      expect(outcome.failures).toEqual([])
+    })
+
+    it('reports plugin failures without preventing other scanners from completing', async () => {
+      loadedPlugins = [{name: 'custom-scan-1', default: vi.fn().mockRejectedValue(new Error('Plugin failed'))}]
+      actionInput = JSON.stringify(['custom-scan-1', 'axe'])
+      clearAll()
+
+      const outcome = await findForUrlWithOutcome({url: 'https://example.com'})
+
+      expect(outcome.scans).toEqual([
+        {requestedUrl: 'https://example.com', scanner: 'axe', status: 'completed'},
+        {requestedUrl: 'https://example.com', scanner: 'accesslint', status: 'skipped'},
+        {requestedUrl: 'https://example.com', scanner: 'custom-scan-1', status: 'failed', stage: 'scan'},
+      ])
+      expect(outcome.failures).toEqual([
+        {requestedUrl: 'https://example.com', scanner: 'custom-scan-1', status: 'failed', stage: 'scan'},
+      ])
+    })
+
+    it('reports cleanup failures separately from completed scanner coverage', async () => {
+      actionInput = ''
+      clearAll()
+      playwrightMocks.contextClose.mockRejectedValueOnce(new Error('Cleanup failed'))
+
+      const outcome = await findForUrlWithOutcome({url: 'https://example.com'})
+
+      expect(outcome.scans[0]).toEqual({
+        requestedUrl: 'https://example.com',
+        scanner: 'axe',
+        status: 'completed',
+      })
+      expect(outcome.failures).toEqual([{requestedUrl: 'https://example.com', status: 'failed', stage: 'cleanup'}])
       expect(playwrightMocks.browserClose).toHaveBeenCalledTimes(1)
     })
   })
