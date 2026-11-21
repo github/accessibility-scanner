@@ -6,9 +6,10 @@ import * as core from '@actions/core'
 
 // Use GITHUB_WORKSPACE to ensure screenshots are saved in the workflow workspace root
 // where the artifact upload step can find them
-const SCREENSHOT_DIR = path.join(process.env.GITHUB_WORKSPACE || process.cwd(), '.screenshots')
+const SCREENSHOT_DIR =
+  process.env.SCANNER_SCREENSHOT_DIR || path.join(process.env.GITHUB_WORKSPACE || process.cwd(), '.screenshots')
 
-export const generateScreenshots = async function (page: Page) {
+export const generateScreenshots = async function (page: Page, shouldSave: () => boolean = () => true) {
   let screenshotId: string | undefined
   // Ensure screenshot directory exists
   if (!fs.existsSync(SCREENSHOT_DIR)) {
@@ -23,6 +24,7 @@ export const generateScreenshots = async function (page: Page) {
       fullPage: true,
       type: 'png',
     })
+    if (!shouldSave()) return undefined
 
     screenshotId = crypto.randomUUID()
     const filename = `${screenshotId}.png`

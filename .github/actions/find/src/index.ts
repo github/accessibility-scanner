@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import * as core from '@actions/core'
 import {AuthContext} from './AuthContext.js'
-import {findForUrlWithOutcome} from './findForUrl.js'
+import {superviseUrl} from './superviseUrl.js'
 import {createScanCompletionReport, sanitizeUrlLabel, summarizeScanCompletion} from './scanCompletion.js'
 import type {ScanCompletion, ScanFailure} from './types.js'
 
@@ -14,6 +14,7 @@ export default async function () {
   const reducedMotion = loadReducedMotion()
   const colorScheme = loadColorScheme()
   const ignoreHttpsErrors = loadIgnoreHttpsErrors()
+  const urlTimeoutMs = loadUrlTimeout()
 
   const actualUrls = urlConfigs || urls || []
 
@@ -27,13 +28,14 @@ export default async function () {
   for (const urlConfig of actualUrls) {
     const {url} = urlConfig
     core.info(`Preparing to scan ${sanitizeUrlLabel(url)}`)
-    const outcome = await findForUrlWithOutcome(
+    const outcome = await superviseUrl(
       urlConfig,
       authContext,
       includeScreenshots,
       reducedMotion,
       colorScheme,
       ignoreHttpsErrors,
+      urlTimeoutMs,
     )
     findings.push(...outcome.findings)
     scans.push(...outcome.scans)
@@ -130,4 +132,13 @@ function loadColorScheme() {
 
 function loadIgnoreHttpsErrors() {
   return core.getInput('ignore_https_errors', {required: false}).toLowerCase() === 'true'
+}
+
+function loadUrlTimeout() {
+  const input = core.getInput('url_timeout_ms', {required: false}) || '120000'
+  const value = Number(input)
+  if (!/^[0-9]+$/.test(input) || !Number.isSafeInteger(value) || value <= 0 || value > 2147483647) {
+    throw new Error("Input 'url_timeout_ms' must be a positive integer no greater than 2147483647.")
+  }
+  return value
 }

@@ -43,6 +43,10 @@ configuration option.
 
 **Optional** Bool - whether to capture screenshots of scanned pages and include links to them in the issue
 
+#### `url_timeout_ms`
+
+**Optional** Positive integer (maximum 2147483647) limiting each URL scan in milliseconds. Default: `120000` (2 minutes). Browser setup, navigation, selectors, plugins, and screenshots share this budget. Cleanup has up to four additional seconds, including forced termination.
+
 #### `scans`
 
 **Optional** Stringified JSON array of scans to perform. Core engines and local plugins use string names.

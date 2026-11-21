@@ -23,8 +23,8 @@ vi.mock('node:fs', () => ({
   },
 }))
 
-vi.mock('../src/findForUrl.js', () => ({
-  findForUrlWithOutcome: mocks.findForUrlWithOutcome,
+vi.mock('../src/superviseUrl.js', () => ({
+  superviseUrl: mocks.findForUrlWithOutcome,
 }))
 
 describe('url_configs', () => {
@@ -61,8 +61,31 @@ describe('url_configs', () => {
       undefined,
       undefined,
       false,
+      120000,
     )
     expect(core.setOutput).toHaveBeenCalledWith('scan_complete', 'true')
+  })
+
+  it.each(['0', '-1', '1.5', 'abc', '2147483648'])('rejects invalid URL deadline %s', async timeout => {
+    mocks.inputs.url_configs = JSON.stringify([{url: 'https://example.com'}])
+    mocks.inputs.url_timeout_ms = timeout
+    await expect(find()).rejects.toThrow("Input 'url_timeout_ms' must be a positive integer")
+    expect(mocks.findForUrlWithOutcome).not.toHaveBeenCalled()
+  })
+
+  it('passes the configured deadline to each URL scan', async () => {
+    mocks.inputs.url_configs = JSON.stringify([{url: 'https://example.com'}])
+    mocks.inputs.url_timeout_ms = '90000'
+    await find()
+    expect(mocks.findForUrlWithOutcome).toHaveBeenCalledWith(
+      {url: 'https://example.com'},
+      expect.anything(),
+      true,
+      undefined,
+      undefined,
+      false,
+      90000,
+    )
   })
 
   it('rejects waitForSelectors values that are not arrays of strings', async () => {
