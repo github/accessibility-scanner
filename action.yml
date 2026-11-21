@@ -174,8 +174,7 @@ runs:
         repository: ${{ inputs.repository }}
         token: ${{ inputs.token }}
         base_url: ${{ inputs.base_url }}
-    - name: Set results output
-      id: results
+    - name: Prepare results
       shell: bash
       env:
         FILINGS_FILE: ${{ steps.file.outputs.filings_file }}
@@ -201,6 +200,11 @@ runs:
         fs.writeFileSync(resultsPath, JSON.stringify(filings));
         NODE_SCRIPT
 
+    - name: Set results output
+      id: results
+      if: ${{ steps.find.outputs.scan_complete == 'true' }}
+      shell: bash
+      run: |
         RESULTS_FILE="$GITHUB_WORKSPACE/scanner-results.json"
 
         # Set results output (backward compat)

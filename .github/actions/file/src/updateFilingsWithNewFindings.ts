@@ -1,5 +1,14 @@
 import type {Finding, ResolvedFiling, NewFiling, RepeatedFiling, Filing, ScanCompletionReport} from './types.d.js'
 import type {GroupBy} from './groupBy.js'
+import {isDeepStrictEqual} from 'node:util'
+
+function sameOccurrence(a: Finding, b: Finding): boolean {
+  const first = {...a}
+  const second = {...b}
+  delete first.screenshotId
+  delete second.screenshotId
+  return isDeepStrictEqual(first, second)
+}
 
 function getFilingKey(filing: ResolvedFiling | RepeatedFiling): string {
   return filing.issue.url
@@ -74,9 +83,7 @@ export function updateFilingsWithNewFindings(
     if (filingKey) {
       // This finding already has an associated filing; add it to that filing's findings
       const current = (filingKeys[filingKey] as RepeatedFiling).findings
-      const duplicate = current.findIndex(
-        cached => !currentFindings.has(cached) && JSON.stringify(cached) === JSON.stringify(finding),
-      )
+      const duplicate = current.findIndex(cached => !currentFindings.has(cached) && sameOccurrence(cached, finding))
       if (duplicate !== -1) current.splice(duplicate, 1)
       current.push(finding)
     } else if (newFilingKeys[key]) {

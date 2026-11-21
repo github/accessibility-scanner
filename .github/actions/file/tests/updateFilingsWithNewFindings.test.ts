@@ -168,10 +168,17 @@ describe('updateFilingsWithNewFindings — group_by', () => {
       },
     )
 
-    it('does not accumulate identical observations from incomplete runs', () => {
-      const cached = {...cachedFiling, findings: [a]}
+    it('replaces matching observations despite new screenshots, retaining other unchecked occurrences', () => {
+      const other = {...a, html: '<div>another occurrence</div>'}
+      const otherUrl = {...a, originalUrl: b.originalUrl}
+      const cached = {...cachedFiling, findings: [{...a, screenshotId: 'old'}, other, otherUrl]}
       const completion = report([{requestedUrl: a.originalUrl, scanner: 'axe', status: 'failed'}])
-      expect(updateFilingsWithNewFindings([cached], [{...a}], 'finding', completion)[0].findings).toEqual([a])
+      const fresh = {...a, screenshotId: 'new'}
+      const first = updateFilingsWithNewFindings([cached], [fresh], 'finding', completion)
+      expect(first[0].findings).toEqual([other, otherUrl, fresh])
+      const latest = {...a, screenshotId: 'latest'}
+      const second = updateFilingsWithNewFindings(first as RepeatedFiling[], [latest], 'finding', completion)
+      expect(second[0].findings).toEqual([other, otherUrl, latest])
     })
 
     it('updates a rule grouped across different URLs without losing incomplete occurrences', () => {
