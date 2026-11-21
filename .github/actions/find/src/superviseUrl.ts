@@ -34,6 +34,7 @@ export async function superviseUrl(
   const safeUrl = sanitizeUrlLabel(urlConfig.url)
   let progress: ScanProgress = {outcome, stage: 'browser_setup'}
   let server: playwright.BrowserServer | undefined
+  let pendingLaunch: Promise<playwright.BrowserServer> | undefined
   let worker: ChildProcess | undefined
   let accepting = true
   let screenshotDir: string | undefined
@@ -43,18 +44,12 @@ export async function superviseUrl(
     if (includeScreenshots) fs.mkdirSync(screenshotRoot, {recursive: true})
     screenshotDir = fs.mkdtempSync(path.join(includeScreenshots ? screenshotRoot : os.tmpdir(), '.accessibility-scan-'))
     server = await deadline.run(() => {
-      const launch = playwright.chromium.launchServer({
+      pendingLaunch = playwright.chromium.launchServer({
         headless: true,
         executablePath: process.env.CI ? '/usr/bin/google-chrome' : undefined,
         timeout: Math.max(1, deadline.remaining()),
       })
-      void launch.then(
-        lateServer => {
-          if (deadline.controller.signal.aborted) void killServer(lateServer, safeUrl)
-        },
-        () => {},
-      )
-      return launch
+      return pendingLaunch
     })
     if (deadline.remaining() === 0) throw new TimeoutError()
     worker = fork(new URL('../dist/scanWorker.js', import.meta.url), {
@@ -113,6 +108,7 @@ export async function superviseUrl(
   } finally {
     accepting = false
     let workerError: unknown
+    let browserError: unknown
     if (worker) {
       try {
         await stopWorker(worker)
@@ -121,9 +117,29 @@ export async function superviseUrl(
         core.error(`Could not terminate URL worker for ${safeUrl}: ${String(error)}`)
       }
     }
+    if (!server && pendingLaunch) {
+      try {
+        server = await new Deadline(1000).run(() => pendingLaunch!)
+      } catch (error) {
+        if (error instanceof TimeoutError) {
+          void pendingLaunch
+            .then(
+              lateServer => killServer(lateServer, safeUrl),
+              () => undefined,
+            )
+            .catch(lateError => core.error(`Could not terminate browser for ${safeUrl}: ${String(lateError)}`))
+          browserError = new Error(`Cannot verify browser startup cleanup for ${safeUrl}`)
+        }
+      }
+    }
     if (server) {
-      const error = await killServer(server, safeUrl)
-      if (error) outcome.failures.push({requestedUrl: urlConfig.url, status: getFailureStatus(error), stage: 'cleanup'})
+      try {
+        const error = await killServer(server, safeUrl)
+        if (error)
+          outcome.failures.push({requestedUrl: urlConfig.url, status: getFailureStatus(error), stage: 'cleanup'})
+      } catch (error) {
+        browserError = error
+      }
     }
     if (workerError) throw workerError
     if (screenshotDir) {
@@ -150,12 +166,25 @@ export async function superviseUrl(
         }
       }
     }
+    if (browserError) throw browserError
   }
   return outcome
 }
 
 async function stopWorker(worker: ChildProcess) {
-  if (worker.exitCode !== null || worker.signalCode !== null) return
+  if (worker.exitCode !== null || worker.signalCode !== null) {
+    if (process.platform === 'win32') {
+      throw new Error('Cannot verify cleanup of an exited URL worker process tree on Windows')
+    }
+    if (worker.pid) {
+      try {
+        process.kill(-worker.pid, 'SIGKILL')
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'ESRCH') throw error
+      }
+    }
+    return
+  }
   let onExit: () => void = () => {}
   const exited = new Promise<void>(resolve => {
     onExit = resolve
@@ -176,10 +205,11 @@ async function stopWorker(worker: ChildProcess) {
         )
       } catch (error) {
         taskkill?.kill('SIGKILL')
-        if (worker.exitCode !== null || worker.signalCode !== null) return
-        worker.kill('SIGKILL')
-        await new Deadline(1000).run(() => exited)
-        throw error
+        if (worker.exitCode === null && worker.signalCode === null) {
+          worker.kill('SIGKILL')
+          await new Deadline(1000).run(() => exited)
+        }
+        throw new Error('Cannot verify cleanup of the URL worker process tree on Windows', {cause: error})
       }
     } else {
       try {

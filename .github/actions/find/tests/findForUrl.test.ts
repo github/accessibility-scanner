@@ -99,9 +99,10 @@ describe('findForUrl', () => {
   }
 
   it.each([
-    ['Viewport restoration failed', 'failed'],
-    ['reflow-scan resize timed out after 50ms', 'timed_out'],
-  ] as const)('does not run later scanners when a plugin reports "%s"', async (message, status) => {
+    ['Viewport restoration failed', 'failed', 'pageStateUnsafe'],
+    ['reflow-scan resize timed out after 50ms', 'timed_out', 'pageStateUnsafe'],
+    ['Viewport restoration failed', 'failed', 'viewportMayBeDirty'],
+  ] as const)('does not run later scanners when a plugin reports "%s"', async (message, status, flag) => {
     actionInput = JSON.stringify(['custom', 'axe', 'accesslint'])
     clearAll()
     loadedPlugins = [
@@ -109,7 +110,7 @@ describe('findForUrl', () => {
         name: 'custom',
         default: vi
           .fn()
-          .mockRejectedValue(Object.assign(new Error(message), {viewportMayBeDirty: true, timeoutMs: 50})),
+          .mockRejectedValue(Object.assign(new Error(message), {name: 'ReflowScanError', [flag]: true, timeoutMs: 50})),
       },
     ]
     const outcome = await findForUrlWithOutcome({url: 'https://example.com'})

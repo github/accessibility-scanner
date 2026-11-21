@@ -88,6 +88,13 @@ describe('url_configs', () => {
     )
   })
 
+  it('stops when an owned process tree cannot be recovered', async () => {
+    mocks.inputs.url_configs = JSON.stringify([{url: 'https://one.example'}, {url: 'https://two.example'}])
+    mocks.findForUrlWithOutcome.mockRejectedValueOnce(new Error('Cannot verify cleanup'))
+    await expect(find()).rejects.toThrow('Cannot verify cleanup')
+    expect(mocks.findForUrlWithOutcome).toHaveBeenCalledTimes(1)
+  })
+
   it('rejects waitForSelectors values that are not arrays of strings', async () => {
     mocks.inputs.url_configs = JSON.stringify([{url: 'https://example.com', waitForSelectors: ['#app', 42]}])
 

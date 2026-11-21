@@ -12,7 +12,10 @@ export type WorkerRequest = {
   ignoreHttpsErrors: boolean
 }
 
-process.once('message', async (request: WorkerRequest) => {
+let started = false
+process.on('message', async (request: WorkerRequest) => {
+  if (started) return
+  started = true
   try {
     let findingsSent = 0
     const outcome = await findForUrlWithOutcome(

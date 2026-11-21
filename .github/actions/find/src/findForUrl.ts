@@ -249,7 +249,10 @@ async function runScanner(scan: ScanCompletion, stage: ScanStage, failures: Scan
   } catch (error) {
     markScanFailure(scan, stage, error, failures)
     return (
-      typeof error === 'object' && error !== null && 'viewportMayBeDirty' in error && error.viewportMayBeDirty === true
+      typeof error === 'object' &&
+      error !== null &&
+      (('pageStateUnsafe' in error && error.pageStateUnsafe === true) ||
+        ('viewportMayBeDirty' in error && error.viewportMayBeDirty === true))
     )
   }
   return false

@@ -64,7 +64,7 @@ describe.skipIf(process.platform === 'win32' || !fs.existsSync(executable))('pro
     }
   }, 20000)
 
-  it.each(['plugin', 'screenshot', 'cleanup'])(
+  it.each(['plugin', 'screenshot', 'cleanup', 'exit'])(
     'recovers a stuck worker during %s',
     async fault => {
       const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'scanner-worker-test-'))
@@ -81,6 +81,11 @@ describe.skipIf(process.platform === 'win32' || !fs.existsSync(executable))('pro
         `,
         screenshot: 'page.screenshot = () => new Promise(() => {}); await addFinding(finding)',
         cleanup: 'page.context().close = () => new Promise(() => {}); return',
+        exit: `
+          const child = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], {stdio: 'ignore'});
+          writeFileSync('descendant.pid', String(child.pid));
+          process.exit(1);
+        `,
       }
       fs.writeFileSync(
         path.join(pluginDir, 'index.js'),
@@ -145,19 +150,21 @@ describe.skipIf(process.platform === 'win32' || !fs.existsSync(executable))('pro
             status: 'timed_out',
             stage: 'cleanup',
           })
+        } else if (fault === 'exit') {
+          expect(result?.first.failures[0].status).toBe('failed')
         } else {
           expect(result?.first.scans.find(scan => scan.scanner === 'hung')?.status).toBe('timed_out')
           expect(result?.first.scans.find(scan => scan.scanner === 'axe')?.status).toBe('not_started')
           if (fault === 'screenshot') expect(result?.first.findings).toEqual([])
-          if (fault === 'plugin') {
-            expect(result?.first.findings).toHaveLength(1)
-            const pid = Number(fs.readFileSync(path.join(dir, 'descendant.pid'), 'utf8'))
-            try {
-              const state = execFileSync('ps', ['-o', 'stat=', '-p', String(pid)], {encoding: 'utf8'}).trim()
-              expect(state.startsWith('Z')).toBe(true)
-            } catch (error) {
-              expect((error as {status?: number}).status).toBe(1)
-            }
+          if (fault === 'plugin') expect(result?.first.findings).toHaveLength(1)
+        }
+        if (fault === 'plugin' || fault === 'exit') {
+          const pid = Number(fs.readFileSync(path.join(dir, 'descendant.pid'), 'utf8'))
+          try {
+            const state = execFileSync('ps', ['-o', 'stat=', '-p', String(pid)], {encoding: 'utf8'}).trim()
+            expect(state.startsWith('Z')).toBe(true)
+          } catch (error) {
+            expect((error as {status?: number}).status).toBe(1)
           }
         }
         expect(result?.next.scans.find(scan => scan.scanner === 'axe')?.status).toBe('completed')
