@@ -5,6 +5,9 @@ inputs:
   findings_file:
     description: 'Path to a JSON file containing the list of potential accessibility gaps'
     required: true
+  completion_file:
+    description: 'Path to the versioned per-URL/per-scanner completion report. Without it, cached findings are retained.'
+    required: false
   repository:
     description: 'Repository (with owner) to file issues in'
     required: true
@@ -44,6 +47,8 @@ inputs:
 outputs:
   filings_file:
     description: 'Path to a JSON file containing the list of issues filed (and their associated finding(s))'
+  issues_file:
+    description: 'Path to a JSON file containing open issues eligible for assignment'
 
 runs:
   using: 'node24'

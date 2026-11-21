@@ -149,20 +149,12 @@ runs:
         color_scheme: ${{ inputs.color_scheme }}
         ignore_https_errors: ${{ inputs.ignore_https_errors }}
         scans: ${{ inputs.scans }}
-    - name: Stop before filing incomplete scans
-      if: ${{ steps.find.outputs.scan_complete != 'true' }}
-      shell: bash
-      env:
-        SCAN_SUMMARY: ${{ steps.find.outputs.scan_summary }}
-      run: |
-        printf '::error::%s\n' "$SCAN_SUMMARY"
-        exit 1
     - name: File
       id: file
-      if: ${{ steps.find.outputs.scan_complete == 'true' }}
       uses: ./../../_actions/github/accessibility-scanner/current/.github/actions/file
       with:
         findings_file: ${{ steps.find.outputs.findings_file }}
+        completion_file: ${{ steps.find.outputs.completion_file }}
         repository: ${{ inputs.repository }}
         token: ${{ inputs.token }}
         base_url: ${{ inputs.base_url }}
@@ -173,20 +165,12 @@ runs:
         dry_run: ${{ inputs.dry_run }}
         file_best_practice_issues: ${{ inputs.file_best_practice_issues }}
         file_experimental_issues: ${{ inputs.file_experimental_issues }}
-    - if: ${{ steps.file.outputs.filings_file }}
-      name: Get issues from filings
-      id: get_issues_from_filings
-      shell: bash
-      run: |
-        # Extract open issues from Filing objects and write to a file
-        jq -c '[.[] | select(.issue.state == "open") | .issue]' "${{ steps.file.outputs.filings_file }}" > "$RUNNER_TEMP/issues.json"
-        echo "issues_file=$RUNNER_TEMP/issues.json" >> "$GITHUB_OUTPUT"
     - if: ${{ inputs.skip_copilot_assignment != 'true' && inputs.dry_run != 'true' }}
       name: Fix
       id: fix
       uses: ./../../_actions/github/accessibility-scanner/current/.github/actions/fix
       with:
-        issues_file: ${{ steps.get_issues_from_filings.outputs.issues_file }}
+        issues_file: ${{ steps.file.outputs.issues_file }}
         repository: ${{ inputs.repository }}
         token: ${{ inputs.token }}
         base_url: ${{ inputs.base_url }}
@@ -247,6 +231,14 @@ runs:
       with:
         path: ${{ inputs.cache_key }}
         token: ${{ inputs.token }}
+    - name: Report incomplete scan
+      if: ${{ steps.find.outputs.scan_complete != 'true' }}
+      shell: bash
+      env:
+        SCAN_SUMMARY: ${{ steps.find.outputs.scan_summary }}
+      run: |
+        printf '::error::%s\n' "$SCAN_SUMMARY"
+        exit 1
 
 branding:
   icon: 'compass'

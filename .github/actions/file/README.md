@@ -16,6 +16,12 @@ The file should contain a JSON array of finding objects. For example:
 []
 ```
 
+#### `completion_file`
+
+**Optional** Path to the versioned completion report from the `find` action. Cached findings are removed only when their requested URL and scanner completed successfully. Failed, skipped, omitted, or unknown coverage is retained. Without a report, no cached findings are treated as resolved.
+
+Older cached findings without `originalUrl` are retained because their requested URL cannot be determined reliably, including after redirects. They cannot be automatically resolved from completion reports without that metadata.
+
 #### `repository`
 
 **Required** Repository (with owner) to file issues in. For example: `primer/primer-docs`.
@@ -55,6 +61,10 @@ The file should contain a JSON array of filing objects. For example:
 When grouping, each additional occurrence is appended to the single "umbrella" issue body as a checklist item under an **Occurrences** section rather than spawning a new issue. This is the preferred mechanism for consolidating issues over `open_grouped_issues`.
 
 ### Outputs
+
+#### `issues_file`
+
+Absolute path to open issues eligible for assignment. Filings retained only because their coverage is incomplete are excluded.
 
 #### `filings_file`
 

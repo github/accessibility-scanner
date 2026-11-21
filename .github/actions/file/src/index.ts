@@ -1,4 +1,12 @@
-import type {Finding, ResolvedFiling, RepeatedFiling, FindingGroupIssue, Filing, IssueResponse} from './types.d.js'
+import type {
+  Finding,
+  ResolvedFiling,
+  RepeatedFiling,
+  FindingGroupIssue,
+  Filing,
+  IssueResponse,
+  ScanCompletionReport,
+} from './types.d.js'
 import fs from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
@@ -15,6 +23,7 @@ import {openIssue} from './openIssue.js'
 import {reopenIssue} from './reopenIssue.js'
 import {updateFilingsWithNewFindings} from './updateFilingsWithNewFindings.js'
 import {GROUP_BY_VALUES, isGroupBy} from './groupBy.js'
+import {generateIssueBody} from './generateIssueBody.js'
 import {OctokitResponse} from '@octokit/types'
 const OctokitWithThrottling = Octokit.plugin(throttling)
 
@@ -28,6 +37,33 @@ export default async function () {
   core.info("Started 'file' action")
   const findingsFile = core.getInput('findings_file', {required: true})
   const findings: Finding[] = JSON.parse(fs.readFileSync(findingsFile, 'utf8'))
+  const completionFile = core.getInput('completion_file', {required: false})
+  const completion: ScanCompletionReport | undefined = completionFile
+    ? JSON.parse(fs.readFileSync(completionFile, 'utf8'))
+    : undefined
+  if (
+    completionFile &&
+    (!completion ||
+      completion.schemaVersion !== 1 ||
+      !Array.isArray(completion.scans) ||
+      !Array.isArray(completion.failures) ||
+      completion.scans.some(
+        scan =>
+          !scan ||
+          typeof scan.requestedUrl !== 'string' ||
+          typeof scan.scanner !== 'string' ||
+          typeof scan.status !== 'string',
+      ) ||
+      completion.failures.some(
+        failure =>
+          !failure ||
+          typeof failure.requestedUrl !== 'string' ||
+          (failure.scanner !== undefined && typeof failure.scanner !== 'string'),
+      ))
+  ) {
+    core.setFailed("Invalid or unsupported 'completion_file' report.")
+    return
+  }
   const repoWithOwner = core.getInput('repository', {required: true})
   const token = core.getInput('token', {required: true})
   const baseUrl = core.getInput('base_url', {required: false})
@@ -77,10 +113,14 @@ export default async function () {
       },
     },
   })
-  const filings = updateFilingsWithNewFindings(cachedFilings, findings, groupBy)
+  const filings = updateFilingsWithNewFindings(cachedFilings, findings, groupBy, completion)
+  const currentFindings = new Set(findings)
+  const cachedFindingCounts = new Map(cachedFilings.map(f => [f.issue.url, f.findings.length]))
+  const previouslyEmptyIssues = new Set(cachedFilings.filter(f => f.findings.length === 0).map(f => f.issue.url))
 
   // Suppressed new filings are kept out of the cache
   const suppressedFilings = new Set<Filing>()
+  const retainedOnlyFilings = new Set<Filing>()
 
   // Fetch closed wontfix issues once up front; a failed fetch reopens as usual
   let wontfixIssueNumbers = new Set<number>()
@@ -101,6 +141,29 @@ export default async function () {
   for (const filing of filings) {
     let response: OctokitResponse<IssueResponse> | undefined
     try {
+      if (isRepeatedFiling(filing) && !filing.findings.some(finding => currentFindings.has(finding))) {
+        retainedOnlyFilings.add(filing)
+        if (filing.findings.length < (cachedFindingCounts.get(filing.issue.url) ?? 0)) {
+          if (dryRun) {
+            core.info(`[dry run] Would update open issue: ${filing.issue.url}`)
+          } else {
+            const issue = new Issue(filing.issue)
+            const {owner, repository, issueNumber} = issue
+            const {data} = await octokit.request(`GET /repos/${owner}/${repository}/issues/${issueNumber}`)
+            if (data.state === 'open') {
+              await octokit.request(`PATCH /repos/${owner}/${repository}/issues/${issueNumber}`, {
+                body: generateIssueBody(filing.findings, screenshotRepo),
+              })
+            }
+            filing.issue.state = data.state === 'open' ? 'open' : 'closed'
+          }
+        }
+        continue
+      }
+      if (isResolvedFiling(filing) && previouslyEmptyIssues.has(filing.issue.url)) {
+        retainedOnlyFilings.add(filing)
+        continue
+      }
       // Category switches gate only new issues
       if (isNewFiling(filing)) {
         const category = filing.findings[0].category ?? 'wcag'
@@ -221,6 +284,13 @@ export default async function () {
   const outputFilings = suppressedFilings.size > 0 ? filings.filter(f => !suppressedFilings.has(f)) : filings
   fs.writeFileSync(filingsPath, JSON.stringify(outputFilings))
   core.setOutput('filings_file', filingsPath)
+
+  const issuesPath = path.join(process.env.RUNNER_TEMP || '/tmp', `issues-${crypto.randomUUID()}.json`)
+  const issues = outputFilings
+    .filter(filing => !retainedOnlyFilings.has(filing) && filing.issue?.state === 'open')
+    .map(filing => filing.issue)
+  fs.writeFileSync(issuesPath, JSON.stringify(issues))
+  core.setOutput('issues_file', issuesPath)
 
   core.debug(`Output: 'filings_file: ${filingsPath}'`)
   core.info("Finished 'file' action")
