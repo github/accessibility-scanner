@@ -82,6 +82,15 @@ outputs:
   results_file:
     description: 'Path to a JSON file containing the results (use for large datasets to avoid output size limits)'
     value: ${{ steps.results.outputs.results_file }}
+  completion_file:
+    description: 'Path to the versioned per-URL/per-scanner completion report'
+    value: ${{ steps.find.outputs.completion_file }}
+  scan_complete:
+    description: 'Whether every requested URL had at least one completed scanner and no incomplete outcomes'
+    value: ${{ steps.find.outputs.scan_complete }}
+  scan_summary:
+    description: 'Concise sanitized summary of incomplete scan coverage, if any'
+    value: ${{ steps.find.outputs.scan_summary }}
 
 runs:
   using: 'composite'
@@ -140,8 +149,17 @@ runs:
         color_scheme: ${{ inputs.color_scheme }}
         ignore_https_errors: ${{ inputs.ignore_https_errors }}
         scans: ${{ inputs.scans }}
+    - name: Stop before filing incomplete scans
+      if: ${{ steps.find.outputs.scan_complete != 'true' }}
+      shell: bash
+      env:
+        SCAN_SUMMARY: ${{ steps.find.outputs.scan_summary }}
+      run: |
+        printf '::error::%s\n' "$SCAN_SUMMARY"
+        exit 1
     - name: File
       id: file
+      if: ${{ steps.find.outputs.scan_complete == 'true' }}
       uses: ./../../_actions/github/accessibility-scanner/current/.github/actions/file
       with:
         findings_file: ${{ steps.find.outputs.findings_file }}

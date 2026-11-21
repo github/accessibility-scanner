@@ -55,3 +55,41 @@ export type UrlConfig = {
   excludeSelectors?: string[]
   waitForSelectors?: string[]
 }
+
+export type ScanStatus = 'completed' | 'failed' | 'timed_out' | 'skipped' | 'not_started' | 'unknown'
+
+export type ScanStage =
+  | 'planning'
+  | 'browser_setup'
+  | 'navigation'
+  | 'wait_for_selectors'
+  | 'plugin_setup'
+  | 'scan'
+  | 'cleanup'
+
+export type ScanCompletion = {
+  requestedUrl: string
+  scanner: string
+  status: ScanStatus
+  stage?: ScanStage
+}
+
+export type ScanFailure = {
+  requestedUrl: string
+  status: 'failed' | 'timed_out' | 'unknown'
+  stage: ScanStage
+  scanner?: string
+}
+
+export type ScanCompletionReport = {
+  schemaVersion: 1
+  complete: boolean
+  scans: ScanCompletion[]
+  failures: ScanFailure[]
+}
+
+export type UrlScanOutcome = {
+  findings: Finding[]
+  scans: ScanCompletion[]
+  failures: ScanFailure[]
+}

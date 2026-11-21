@@ -33,6 +33,12 @@ inputs:
 outputs:
   findings_file:
     description: 'Path to a JSON file containing the list of potential accessibility gaps'
+  completion_file:
+    description: 'Path to the versioned per-URL/per-scanner completion report'
+  scan_complete:
+    description: 'Whether every requested URL had at least one completed scanner and no incomplete outcomes'
+  scan_summary:
+    description: 'Concise sanitized summary of incomplete scan coverage, if any'
 
 runs:
   using: 'node24'

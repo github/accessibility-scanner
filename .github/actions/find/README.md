@@ -56,6 +56,31 @@ will be performed. See [the plugin docs](../../../PLUGINS.md#loading-plugins-fro
 Absolute path to a JSON file containing the list of potential accessibility gaps. The action writes this file to a temporary directory and returns the absolute path. For example: `$RUNNER_TEMP/findings-<uuid>.json`.
 
 The file will contain a JSON array of finding objects. For example:
+
 ```json
 []
 ```
+
+#### `completion_file`
+
+Absolute path to a JSON completion report. Each scan entry is keyed by the requested URL (not the browser's final URL after redirects) and scanner name. The findings file remains separate from scan status.
+
+```json
+{
+  "schemaVersion": 1,
+  "complete": true,
+  "scans": [
+    {"requestedUrl": "https://example.com/start", "scanner": "axe", "status": "completed"},
+    {"requestedUrl": "https://example.com/start", "scanner": "accesslint", "status": "skipped"}
+  ],
+  "failures": []
+}
+```
+
+`status` is `completed`, `failed`, `timed_out`, `skipped`, `not_started`, or `unknown`. A scan with zero findings is still `completed`. `failures` also records URL-level failures such as navigation, setup, and cleanup, with a `stage` and status; scanner failures include the scanner name. Consumers must treat `failed`, `timed_out`, `not_started`, and `unknown` coverage as incomplete. A report with no selected scanner is incomplete.
+
+#### `scan_complete` and `scan_summary`
+
+`scan_complete` is the string `true` only when at least one scanner completed and all requested scanner outcomes are completed or intentionally skipped, with no reported failures. `scan_summary` is a concise summary containing only the URL hostname, scanner, stage, and status; it does not include URL paths, query strings, browser state, or error details.
+
+The top-level composite action exposes the same three outputs. It fails the action before issue filing or cache updates when `scan_complete` is not `true`; on complete runs, the existing results outputs retain their current format. `findings_file` and `completion_file` are still written first for diagnostics. The standalone `find` action remains successful and exposes `scan_complete` for callers to handle.
