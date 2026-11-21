@@ -98,6 +98,42 @@ describe('findForUrl', () => {
     expect(pluginManager.invokePlugin).toHaveBeenCalledTimes(0)
   }
 
+  it.each([
+    ['Viewport restoration failed', 'failed', 'pageStateUnsafe'],
+    ['reflow-scan resize timed out after 50ms', 'timed_out', 'pageStateUnsafe'],
+    ['Viewport restoration failed', 'failed', 'viewportMayBeDirty'],
+  ] as const)('does not run later scanners when a plugin reports "%s"', async (message, status, flag) => {
+    actionInput = JSON.stringify(['custom', 'axe', 'accesslint'])
+    clearAll()
+    loadedPlugins = [
+      {
+        name: 'custom',
+        default: vi
+          .fn()
+          .mockRejectedValue(Object.assign(new Error(message), {name: 'ReflowScanError', [flag]: true, timeoutMs: 50})),
+      },
+    ]
+    const outcome = await findForUrlWithOutcome({url: 'https://example.com'})
+    expect(outcome.scans.find(scan => scan.scanner === 'custom')?.status).toBe(status)
+    expect(outcome.scans.find(scan => scan.scanner === 'axe')?.status).toBe('not_started')
+    expect(outcome.scans.find(scan => scan.scanner === 'accesslint')?.status).toBe('not_started')
+    expect(AxeBuilder.prototype.analyze).not.toHaveBeenCalled()
+    expect(accesslintAudit).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ['navigation', playwrightMocks.pageGoto],
+    ['wait_for_selectors', playwrightMocks.locatorWaitFor],
+  ] as const)('continues after a %s failure', async (stage, operation) => {
+    actionInput = ''
+    clearAll()
+    operation.mockRejectedValueOnce(new Error('Readiness failed'))
+    const first = await findForUrlWithOutcome({url: 'https://one.example', waitForSelectors: ['#app']})
+    expect(first.failures[0].stage).toBe(stage)
+    const next = await findForUrlWithOutcome({url: 'https://two.example'})
+    expect(next.scans[0].status).toBe('completed')
+  })
+
   describe('page load handling', () => {
     it('uses the default navigation readiness when no selectors are configured', async () => {
       actionInput = ''

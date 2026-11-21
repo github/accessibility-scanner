@@ -29,6 +29,10 @@ inputs:
     description: 'Whether to ignore HTTPS errors when scanning URLs with self-signed certificates'
     required: false
     default: 'false'
+  url_timeout_ms:
+    description: 'Maximum time in milliseconds to scan each URL (excluding bounded cleanup)'
+    required: false
+    default: '120000'
 
 outputs:
   findings_file:

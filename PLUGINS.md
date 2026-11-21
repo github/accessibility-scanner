@@ -92,4 +92,5 @@ jobs:
 
 ## Things to look out for
 
+- The per-URL deadline cannot cooperatively interrupt synchronous blocking plugin code; it terminates the URL worker instead.
 - Plugin names should be unique. If multiple plugins have the same name, and the `scans` input array contains this name, all the plugins with that name _will_ run. However, this is not advised because if you want to turn off one plugin, you'll have to go back and change that plugin name.

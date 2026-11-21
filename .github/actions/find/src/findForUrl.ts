@@ -23,6 +23,9 @@ import {sanitizeLabel, sanitizeUrlLabel} from './scanCompletion.js'
 
 const SELECTOR_WAIT_TIMEOUT = 30000
 
+export type ScanProgress = {outcome: UrlScanOutcome; stage: ScanStage; scanner?: string}
+type ScanExecution = {endpoint: string; onProgress: (progress: ScanProgress) => void}
+
 export async function findForUrl(
   urlConfig: UrlConfig,
   authContext?: AuthContext,
@@ -50,6 +53,7 @@ export async function findForUrlWithOutcome(
   reducedMotion?: ReducedMotionPreference,
   colorScheme?: ColorSchemePreference,
   ignoreHttpsErrors: boolean = false,
+  execution?: ScanExecution,
 ): Promise<UrlScanOutcome> {
   const {findings, scans, failures} = await scanUrlForOutcome(
     urlConfig,
@@ -58,6 +62,7 @@ export async function findForUrlWithOutcome(
     reducedMotion,
     colorScheme,
     ignoreHttpsErrors,
+    execution,
   )
   return {findings, scans, failures}
 }
@@ -69,22 +74,10 @@ async function scanUrlForOutcome(
   reducedMotion?: ReducedMotionPreference,
   colorScheme?: ColorSchemePreference,
   ignoreHttpsErrors: boolean = false,
+  execution?: ScanExecution,
 ): Promise<UrlScanOutcome & {fatalError?: unknown}> {
   const {url, excludeSelectors, waitForSelectors} = urlConfig
-  const scansContext = getScansContext()
-  const requestedPlugins = [
-    ...new Set(scansContext.scansToPerform.filter(name => name !== 'axe' && name !== 'accesslint')),
-  ]
-  const scans: ScanCompletion[] = ['axe', 'accesslint', ...requestedPlugins].map(scanner => ({
-    requestedUrl: url,
-    scanner,
-    status:
-      (scanner === 'axe' && scansContext.shouldPerformAxeScan) ||
-      (scanner === 'accesslint' && scansContext.shouldPerformAccesslintScan) ||
-      requestedPlugins.includes(scanner)
-        ? 'not_started'
-        : 'skipped',
-  }))
+  const {scans, requestedPlugins} = planScans(url)
   const failures: ScanFailure[] = []
   const findings: Finding[] = []
 
@@ -94,26 +87,51 @@ async function scanUrlForOutcome(
 
   const safeUrl = sanitizeUrlLabel(url)
   let stage: ScanStage = 'browser_setup'
+  let activeScanner: string | undefined
   let browser: playwright.Browser | undefined
   let context: playwright.BrowserContext | undefined
   let page: playwright.Page | undefined
   let canScan = false
   let fatalError: unknown
+  const progress = () => execution?.onProgress({outcome: {findings, scans, failures}, stage, scanner: activeScanner})
+  const setStage = (next: ScanStage, scanner?: string) => {
+    stage = next
+    activeScanner = scanner
+    progress()
+  }
 
-  const addFinding = async (findingData: FindingInput) => {
-    let screenshotId
-    if (includeScreenshots) {
-      screenshotId = await generateScreenshots(page!)
+  const scanWithFindings = async (
+    scan: ScanCompletion,
+    run: (addFinding: (findingData: FindingInput) => Promise<void>) => Promise<void>,
+  ) => {
+    let active = true
+    const addFinding = async (findingData: FindingInput) => {
+      if (!active) return
+      const screenshotId = includeScreenshots ? await generateScreenshots(page!, () => active) : undefined
+      if (!active) return
+      findings.push({...findingData, screenshotId, originalUrl: url})
+      progress()
     }
-    findings.push({...findingData, screenshotId, originalUrl: url})
+    setStage('scan', scan.scanner)
+    try {
+      return await runScanner(scan, 'scan', failures, () => run(addFinding))
+    } finally {
+      active = false
+      activeScanner = undefined
+      progress()
+    }
   }
 
   try {
     try {
-      browser = await playwright.chromium.launch({
-        headless: true,
-        executablePath: process.env.CI ? '/usr/bin/google-chrome' : undefined,
-      })
+      if (execution) {
+        browser = await playwright.chromium.connect(execution.endpoint)
+      } else {
+        browser = await playwright.chromium.launch({
+          headless: true,
+          executablePath: process.env.CI ? '/usr/bin/google-chrome' : undefined,
+        })
+      }
       const contextOptions = {
         ...(authContext?.toPlaywrightBrowserContextOptions() ?? {}),
         ...(reducedMotion ? {reducedMotion} : {}),
@@ -123,9 +141,9 @@ async function scanUrlForOutcome(
       context = await browser.newContext(contextOptions)
       page = await context.newPage()
 
-      stage = 'navigation'
+      setStage('navigation')
       await page.goto(url)
-      stage = 'wait_for_selectors'
+      setStage('wait_for_selectors')
       await Promise.all(
         (waitForSelectors ?? []).map(selector =>
           page!.locator(selector).waitFor({state: 'visible', timeout: SELECTOR_WAIT_TIMEOUT}),
@@ -142,42 +160,51 @@ async function scanUrlForOutcome(
         }
       }
       core.error(`Accessibility scan could not start at ${stage} for ${safeUrl}`)
+      progress()
     }
 
     if (canScan && page) {
       const pluginScans = scans.filter(scan => requestedPlugins.includes(scan.scanner))
       if (pluginScans.length > 0) {
         let plugins: Plugin[] = []
+        setStage('plugin_setup')
         try {
           plugins = await loadPlugins()
-        } catch {
+        } catch (error) {
           for (const scan of pluginScans) {
-            markScanFailure(scan, 'plugin_setup', new Error('plugin setup failed'), failures)
+            markScanFailure(scan, 'plugin_setup', error, failures)
           }
+          progress()
         }
         for (const scan of pluginScans) {
           if (scan.status !== 'not_started') continue
           const plugin = plugins.find(candidate => candidate.name === scan.scanner)
           if (!plugin) {
             markScanFailure(scan, 'plugin_setup', new Error('plugin unavailable'), failures)
+            progress()
             continue
           }
           core.info(`Running plugin: ${sanitizeLabel(plugin.name)}`)
-          await runScanner(scan, 'scan', failures, () => invokePlugin({plugin, page: page!, addFinding}))
+          const unsafePage = await scanWithFindings(scan, addFinding => invokePlugin({plugin, page: page!, addFinding}))
+          if (unsafePage) {
+            canScan = false
+            break
+          }
         }
       }
 
       const axeScan = scans.find(scan => scan.scanner === 'axe')
-      if (axeScan?.status === 'not_started') {
-        await runScanner(axeScan, 'scan', failures, () => runAxeScan({page: page!, addFinding, excludeSelectors}))
+      if (canScan && axeScan?.status === 'not_started') {
+        await scanWithFindings(axeScan, addFinding => runAxeScan({page: page!, addFinding, excludeSelectors}))
       }
 
       const accesslintScan = scans.find(scan => scan.scanner === 'accesslint')
-      if (accesslintScan?.status === 'not_started') {
-        await runScanner(accesslintScan, 'scan', failures, () => runAccesslintScan({page: page!, addFinding}))
+      if (canScan && accesslintScan?.status === 'not_started') {
+        await scanWithFindings(accesslintScan, addFinding => runAccesslintScan({page: page!, addFinding}))
       }
     }
   } finally {
+    setStage('cleanup')
     for (const [resource, close] of [
       ['context', () => context?.close()],
       ['browser', () => browser?.close()],
@@ -189,11 +216,30 @@ async function scanUrlForOutcome(
         failures.push({requestedUrl: url, status, stage: 'cleanup'})
         fatalError ??= error
         core.error(`Accessibility scan cleanup failed for ${safeUrl} (${resource})`)
+        progress()
       }
     }
   }
 
-  return {findings, scans, failures, fatalError}
+  return {findings: [...findings], scans, failures, fatalError}
+}
+
+export function planScans(url: string) {
+  const scansContext = getScansContext()
+  const requestedPlugins = [
+    ...new Set(scansContext.scansToPerform.filter(name => name !== 'axe' && name !== 'accesslint')),
+  ]
+  const scans: ScanCompletion[] = ['axe', 'accesslint', ...requestedPlugins].map(scanner => ({
+    requestedUrl: url,
+    scanner,
+    status:
+      (scanner === 'axe' && scansContext.shouldPerformAxeScan) ||
+      (scanner === 'accesslint' && scansContext.shouldPerformAccesslintScan) ||
+      requestedPlugins.includes(scanner)
+        ? 'not_started'
+        : 'skipped',
+  }))
+  return {scans, requestedPlugins}
 }
 
 async function runScanner(scan: ScanCompletion, stage: ScanStage, failures: ScanFailure[], run: () => Promise<void>) {
@@ -202,7 +248,14 @@ async function runScanner(scan: ScanCompletion, stage: ScanStage, failures: Scan
     scan.status = 'completed'
   } catch (error) {
     markScanFailure(scan, stage, error, failures)
+    return (
+      typeof error === 'object' &&
+      error !== null &&
+      (('pageStateUnsafe' in error && error.pageStateUnsafe === true) ||
+        ('viewportMayBeDirty' in error && error.viewportMayBeDirty === true))
+    )
   }
+  return false
 }
 
 function markScanFailure(scan: ScanCompletion, stage: ScanStage, error: unknown, failures: ScanFailure[]) {
@@ -215,7 +268,7 @@ function markScanFailure(scan: ScanCompletion, stage: ScanStage, error: unknown,
   )
 }
 
-function getFailureStatus(error: unknown): 'failed' | 'timed_out' {
+export function getFailureStatus(error: unknown): 'failed' | 'timed_out' {
   if (
     typeof error === 'object' &&
     error !== null &&
@@ -225,7 +278,7 @@ function getFailureStatus(error: unknown): 'failed' | 'timed_out' {
   ) {
     return 'timed_out'
   }
-  if (error instanceof Error && /\btimeout\b/i.test(error.message)) return 'timed_out'
+  if (error instanceof Error && /\b(?:timeout|timed out)\b/i.test(error.message)) return 'timed_out'
   return 'failed'
 }
 
